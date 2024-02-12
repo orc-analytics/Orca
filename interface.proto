@@ -1,0 +1,34 @@
+syntax="proto3";
+
+message Origin {
+    string name = 1;
+}
+message Type {
+    string type = 1;
+}
+
+message Payload {
+    bytes payload = 1;
+}
+
+message Window {
+    string start = 1;
+    string end = 2;
+    Origin origin = 3;
+    Type type = 4;
+    Payload payload = 5;
+}
+
+enum TriggerType {
+    CRON = 0;
+    EPOCH = 1;
+}
+
+message Trigger {
+    TriggerType triggerType = 1;
+}
+
+message Algorithm {
+    string name = 1;
+    string version = 2;
+}
