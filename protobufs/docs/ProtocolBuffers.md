@@ -8,10 +8,10 @@
     - [Epoch](#AnalyticsFrameworkInterface-Epoch)
     - [Origin](#AnalyticsFrameworkInterface-Origin)
     - [Payload](#AnalyticsFrameworkInterface-Payload)
-    - [Trigger](#AnalyticsFrameworkInterface-Trigger)
+    - [Pipeline](#AnalyticsFrameworkInterface-Pipeline)
+    - [Pipeline.AlgorithmDependency](#AnalyticsFrameworkInterface-Pipeline-AlgorithmDependency)
     - [Type](#AnalyticsFrameworkInterface-Type)
-  
-    - [TriggerType](#AnalyticsFrameworkInterface-TriggerType)
+    - [Version](#AnalyticsFrameworkInterface-Version)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -27,13 +27,14 @@
 <a name="AnalyticsFrameworkInterface-Algorithm"></a>
 
 ### Algorithm
-
+The definition of an algorithm.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  |  |
-| version | [string](#string) |  |  |
+| name | [string](#string) |  | The name of the algorithm. |
+| version | [string](#string) |  | The version of the algorithm. Follow [SemVer](https://semver.org/) convention |
+| EpochType | [Type](#AnalyticsFrameworkInterface-Type) |  | The Epoch type that triggers the algorithm |
 
 
 
@@ -43,16 +44,21 @@
 <a name="AnalyticsFrameworkInterface-Epoch"></a>
 
 ### Epoch
-
+The epoch definition. The Epoch is the Cardinal trigger for all
+processing DAGs. It defines the complete set of information 
+required to successfully run an algorithm, pipeline and/or 
+complete DAG.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| start | [string](#string) |  |  |
-| end | [string](#string) |  |  |
-| origin | [Origin](#AnalyticsFrameworkInterface-Origin) |  |  |
-| type | [Type](#AnalyticsFrameworkInterface-Type) |  |  |
-| payload | [Payload](#AnalyticsFrameworkInterface-Payload) |  |  |
+| start | [string](#string) |  | The start of the epoch, it the same units as the basis. |
+| end | [string](#string) |  | The end time of the epoch, in the same units as the basis. |
+| origin | [Origin](#AnalyticsFrameworkInterface-Origin) |  | Where the epoch was generated. E.g. by service A or locally. |
+| type | [Type](#AnalyticsFrameworkInterface-Type) |  | The type of the epoch. It is the Epoch Type that is the fundamentally distinguishing characteristic between Epochs. E.g. Epoch A may define a region of time where a certain event happened and Epoch B may define a sub-region within Epoch A. |
+| payload | [Payload](#AnalyticsFrameworkInterface-Payload) |  | Additional arbitrary information that can be taken along with the Epoch. |
+| key | [string](#string) |  | A globally unique hash identifying this epoch |
+| parent_key | [string](#string) |  | If this epoch has been derived from an invoked algorithm within the Analytical Framework, then the `parent_key` is the key of that Algorithm. |
 
 
 
@@ -62,12 +68,12 @@
 <a name="AnalyticsFrameworkInterface-Origin"></a>
 
 ### Origin
-Here is an example comment
+Defines an arbitrary location, for where an Epoch was generated.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  |  |
+| name | [string](#string) |  | The location name. Best practice is use Snake, Pascal or Camel case consistently. |
 
 
 
@@ -77,27 +83,50 @@ Here is an example comment
 <a name="AnalyticsFrameworkInterface-Payload"></a>
 
 ### Payload
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| payload | [bytes](#bytes) |  |  |
-
-
-
-
-
-
-<a name="AnalyticsFrameworkInterface-Trigger"></a>
-
-### Trigger
-
+Arbitrary information that can be carried along with the epoch.
+It is often useful, when performing batch analysis, to include
+&#39;expensive&#39; data that can be queried once, in this field. Such
+data would be common across algorithms.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| triggerType | [TriggerType](#AnalyticsFrameworkInterface-TriggerType) |  |  |
+| data | [bytes](#bytes) |  | The payload data. |
+
+
+
+
+
+
+<a name="AnalyticsFrameworkInterface-Pipeline"></a>
+
+### Pipeline
+An explicit declaration of a proessing DAG, defining algorithms
+that should be triggered, and in what order, from a single epoch.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  | The name of the Pipeline. |
+| algorithms | [Algorithm](#AnalyticsFrameworkInterface-Algorithm) | repeated | Algorithms to execute as part of the pipeline. |
+| dependencies | [Pipeline.AlgorithmDependency](#AnalyticsFrameworkInterface-Pipeline-AlgorithmDependency) | repeated | Algorithm result dependencies |
+
+
+
+
+
+
+<a name="AnalyticsFrameworkInterface-Pipeline-AlgorithmDependency"></a>
+
+### Pipeline.AlgorithmDependency
+Message struct for defnining the depencies between algorithms,
+in the context of a pipeline
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| parent_algorithm | [Algorithm](#AnalyticsFrameworkInterface-Algorithm) |  | The parent algorithm, that creates the dependent result. |
+| dependent_algorithm | [Algorithm](#AnalyticsFrameworkInterface-Algorithm) |  | The dependent algorithm that inherits the result of the parent algorithm. |
 
 
 
@@ -107,30 +136,37 @@ Here is an example comment
 <a name="AnalyticsFrameworkInterface-Type"></a>
 
 ### Type
-
+Defines the type associated with an epoch. Can be freeform but
+must be used consistently across identical epochs.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| type | [string](#string) |  |  |
+| name | [string](#string) |  | Name of the type. |
+| version | [Version](#AnalyticsFrameworkInterface-Version) |  |  |
+
+
+
+
+
+
+<a name="AnalyticsFrameworkInterface-Version"></a>
+
+### Version
+A generic versioning struct.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| minor | [int32](#int32) |  |  |
+| major | [int32](#int32) |  |  |
+| patch | [int32](#int32) |  |  |
 
 
 
 
 
  
-
-
-<a name="AnalyticsFrameworkInterface-TriggerType"></a>
-
-### TriggerType
-
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| CRON | 0 |  |
-| EPOCH | 1 |  |
-
 
  
 

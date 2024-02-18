@@ -4,38 +4,105 @@ package AnalyticsFrameworkInterface;
 
 option go_package = "github.com/predixus/analytics-framework/protobufs/go";
 
-/*
-* Here is an example comment
-*/
+// Defines an arbitrary location, for where an Epoch was generated.
 message Origin {
-    string name = 1;
+    // The location name. Best practice is use Snake,
+    // Pascal or Camel case consistently.
+    string name = 1; 
 }
+
+// A generic versioning struct.
+message Version {
+    int32 minor = 1;
+    int32 major = 2;
+    int32 patch = 3;
+}
+
+// Defines the type associated with an epoch. Can be freeform but
+// must be used consistently across identical epochs.
 message Type {
-    string type = 1;
+    string name = 1; // Name of the type.
+    Version version = 2;
 }
 
+// Arbitrary information that can be carried along with the epoch.
+// It is often useful, when performing batch analysis, to include
+// 'expensive' data that can be queried once, in this field. Such
+// data would be common across algorithms.
 message Payload {
-    bytes payload = 1;
+    bytes data = 1; // The payload data.
 }
 
+// The epoch definition. The Epoch is the Cardinal trigger for all
+// processing DAGs. It defines the complete set of information 
+// required to successfully run an algorithm, pipeline and/or 
+// complete DAG.
 message Epoch {
+
+    // The start of the epoch, it the same units as the basis.
     string start = 1;
-    string end = 2;
-    Origin origin = 3;
-    Type type = 4;
+
+    // The end time of the epoch, in the same units as the basis.
+    string end = 2; 
+
+    // Where the epoch was generated. E.g. by service A or locally.
+    Origin origin = 3; 
+
+    // The type of the epoch. It is the Epoch Type that is the
+    // fundamentally  distinguishing characteristic between Epochs.
+    // E.g.
+    //     Epoch A may define a region of time where a certain
+    //     event happened
+    // and Epoch B may define a sub-region within Epoch A.
+    Type type = 4; 
+
+    // Additional arbitrary information that can be taken along with
+    // the Epoch.
     Payload payload = 5;
+
+    string key = 6; // A globally unique hash identifying this epoch
+
+    // If this epoch has been derived from an invoked algorithm
+    // within the Analytical Framework, then the `parent_key` is the
+    // key of that Algorithm.
+    string parent_key = 7;
 }
 
-enum TriggerType {
-    CRON = 0;
-    EPOCH = 1;
-}
-
-message Trigger {
-    TriggerType triggerType = 1;
-}
-
+// The definition of an algorithm.
 message Algorithm {
-    string name = 1;
+    // The name of the algorithm. 
+    string name = 1; 
+
+    // The version of the algorithm. Follow [SemVer](https://semver.org/)
+    // convention
     string version = 2;
+
+    // The Epoch type that triggers the algorithm
+    Type EpochType = 3;
+}
+
+// An explicit declaration of a proessing DAG, defining algorithms
+// that should be triggered, and in what order, from a single epoch.
+message Pipeline {
+
+    // Message struct for defnining the depencies between algorithms,
+    // in the context of a pipeline
+    message AlgorithmDependency {
+
+        // The parent algorithm, that creates the dependent result.
+        Algorithm parent_algorithm = 1;
+
+        // The dependent algorithm that inherits the result of the
+        // parent algorithm. 
+        Algorithm dependent_algorithm = 2;
+    }
+
+    // The name of the Pipeline.
+    string name = 1;
+
+    // Algorithms to execute as part of the pipeline.
+    repeated Algorithm algorithms = 2;
+
+    // Algorithm result dependencies
+    repeated AlgorithmDependency dependencies = 3;
 }
