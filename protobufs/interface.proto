@@ -1,5 +1,12 @@
 syntax="proto3";
 
+package AnalyticsFrameworkInterface;
+
+option go_package = "github.com/predixus/analytics-framework/protobufs/go";
+
+/*
+* Here is an example comment
+*/
 message Origin {
     string name = 1;
 }
@@ -11,7 +18,7 @@ message Payload {
     bytes payload = 1;
 }
 
-message Window {
+message Epoch {
     string start = 1;
     string end = 2;
     Origin origin = 3;
