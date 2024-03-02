@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/predixus/analytics_framework/src/routeHandler"
 )
@@ -32,6 +33,7 @@ func main() {
 		Handler:      r,
 	}
 
+	// setup logging
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
