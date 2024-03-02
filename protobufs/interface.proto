@@ -10,7 +10,6 @@ message Origin {
     // Pascal or Camel case consistently.
     string name = 1; 
 }
-
 // A generic versioning struct.
 message Version {
     int32 minor = 1;

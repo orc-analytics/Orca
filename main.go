@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/predixus/analytics_framework/src/routeHandler"
 )
 
 func main() {
@@ -23,11 +23,9 @@ func main() {
 	flag.Parse()
 
 	// Route definitions
-	r := mux.NewRouter()
-	r.HandleFunc("/", HomeHandler)
-
+	r := routeHandler.GenerateRouter()
 	srv := &http.Server{
-		Addr:         "localhost:8000",
+		Addr:         "localhost:8080",
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
@@ -57,9 +55,4 @@ func main() {
 
 	log.Println("Shutting Down")
 	os.Exit(0)
-}
-
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Recieved Request")
-	w.WriteHeader(http.StatusOK)
 }
