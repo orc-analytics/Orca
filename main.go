@@ -10,7 +10,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/predixus/analytics_framework/src/routeHandler"
+	api "github.com/predixus/analytics_framework/src/api"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	flag.Parse()
 
 	// Route definitions
-	r := routeHandler.GenerateRouter()
+	r := api.GenerateRouter()
 	srv := &http.Server{
 		Addr:         "localhost:8080",
 		WriteTimeout: time.Second * 15,

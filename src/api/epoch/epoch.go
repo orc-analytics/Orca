@@ -1,11 +1,12 @@
 package epoch
 
 import (
-	"log"
 	"net/http"
+
+	li "github.com/predixus/analytics_framework/src/logger"
 )
 
 func EpochHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Registering Epoch")
+	li.Logger.Println("Registering Epoch")
 	w.WriteHeader(http.StatusOK)
 }

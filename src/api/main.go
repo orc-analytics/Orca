@@ -1,16 +1,16 @@
-package routeHandler
+package api
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
-	"github.com/predixus/analytics_framework/src/routeHandler/epoch"
+	"github.com/predixus/analytics_framework/src/api/epoch"
+	li "github.com/predixus/analytics_framework/src/logger"
 )
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Recieved Request:")
+	li.Logger.Printf("Recieved Request:")
 	w.WriteHeader(http.StatusOK)
 }
 
