@@ -4,19 +4,23 @@
 ## Table of Contents
 
 - [interface.proto](#interface-proto)
-    - [Algorithm](#AnalyticsFrameworkInterface-Algorithm)
-    - [Epoch](#AnalyticsFrameworkInterface-Epoch)
-    - [Origin](#AnalyticsFrameworkInterface-Origin)
-    - [Payload](#AnalyticsFrameworkInterface-Payload)
-    - [Pipeline](#AnalyticsFrameworkInterface-Pipeline)
-    - [Pipeline.AlgorithmDependency](#AnalyticsFrameworkInterface-Pipeline-AlgorithmDependency)
-    - [Type](#AnalyticsFrameworkInterface-Type)
-    - [Version](#AnalyticsFrameworkInterface-Version)
+    - [Algorithm](#-Algorithm)
+    - [Epoch](#-Epoch)
+    - [EpochRequest](#-EpochRequest)
+    - [EpochResponse](#-EpochResponse)
+    - [Origin](#-Origin)
+    - [Payload](#-Payload)
+    - [Pipeline](#-Pipeline)
+    - [Pipeline.AlgorithmDependency](#-Pipeline-AlgorithmDependency)
+    - [Type](#-Type)
+    - [Version](#-Version)
   
-- [Scalar Value Types](#scalar-value-types)
+    - [EpochService](#-EpochService)
+  
+- [Scalar Value Types](#scalar-val
 
 
-
+ic
 <a name="interface-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -24,7 +28,7 @@
 
 
 
-<a name="AnalyticsFrameworkInterface-Algorithm"></a>
+<a name="-Algorithm"></a>
 
 ### Algorithm
 The definition of an algorithm.
@@ -34,14 +38,14 @@ The definition of an algorithm.
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | The name of the algorithm. |
 | version | [string](#string) |  | The version of the algorithm. Follow [SemVer](https://semver.org/) convention |
-| EpochType | [Type](#AnalyticsFrameworkInterface-Type) |  | The Epoch type that triggers the algorithm |
+| EpochType | [Type](#Type) |  | The Epoch type that triggers the algorithm |
 
 
 
 
 
 
-<a name="AnalyticsFrameworkInterface-Epoch"></a>
+<a name="-Epoch"></a>
 
 ### Epoch
 The epoch definition. The Epoch is the Cardinal trigger for all
@@ -54,9 +58,9 @@ complete DAG.
 | ----- | ---- | ----- | ----------- |
 | start | [string](#string) |  | The start of the epoch, it the same units as the basis. |
 | end | [string](#string) |  | The end time of the epoch, in the same units as the basis. |
-| origin | [Origin](#AnalyticsFrameworkInterface-Origin) |  | Where the epoch was generated. E.g. by service A or locally. |
-| type | [Type](#AnalyticsFrameworkInterface-Type) |  | The type of the epoch. It is the Epoch Type that is the fundamentally distinguishing characteristic between Epochs. E.g. Epoch A may define a region of time where a certain event happened and Epoch B may define a sub-region within Epoch A. |
-| payload | [Payload](#AnalyticsFrameworkInterface-Payload) |  | Additional arbitrary information that can be taken along with the Epoch. |
+| origin | [Origin](#Origin) |  | Where the epoch was generated. E.g. by service A or locally. |
+| type | [Type](#Type) |  | The type of the epoch. It is the Epoch Type that is the fundamentally distinguishing characteristic between Epochs. E.g. Epoch A may define a region of time where a certain event happened and Epoch B may define a sub-region within Epoch A. |
+| payload | [Payload](#Payload) |  | Additional arbitrary information that can be taken along with the Epoch. |
 | key | [string](#string) |  | A globally unique hash identifying this epoch |
 | parent_key | [string](#string) |  | If this epoch has been derived from an invoked algorithm within the Analytical Framework, then the `parent_key` is the key of that Algorithm. |
 
@@ -65,7 +69,27 @@ complete DAG.
 
 
 
-<a name="AnalyticsFrameworkInterface-Origin"></a>
+<a name="-EpochRequest"></a>
+
+### EpochRequest
+
+
+
+
+
+
+
+<a name="-EpochResponse"></a>
+
+### EpochResponse
+
+
+
+
+
+
+
+<a name="-Origin"></a>
 
 ### Origin
 Defines an arbitrary location, for where an Epoch was generated.
@@ -80,7 +104,7 @@ Defines an arbitrary location, for where an Epoch was generated.
 
 
 
-<a name="AnalyticsFrameworkInterface-Payload"></a>
+<a name="-Payload"></a>
 
 ### Payload
 Arbitrary information that can be carried along with the epoch.
@@ -98,7 +122,7 @@ data would be common across algorithms.
 
 
 
-<a name="AnalyticsFrameworkInterface-Pipeline"></a>
+<a name="-Pipeline"></a>
 
 ### Pipeline
 An explicit declaration of a proessing DAG, defining algorithms
@@ -108,15 +132,15 @@ that should be triggered, and in what order, from a single epoch.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | The name of the Pipeline. |
-| algorithms | [Algorithm](#AnalyticsFrameworkInterface-Algorithm) | repeated | Algorithms to execute as part of the pipeline. |
-| dependencies | [Pipeline.AlgorithmDependency](#AnalyticsFrameworkInterface-Pipeline-AlgorithmDependency) | repeated | Algorithm result dependencies |
+| algorithms | [Algorithm](#Algorithm) | repeated | Algorithms to execute as part of the pipeline. |
+| dependencies | [Pipeline.AlgorithmDependency](#Pipeline-AlgorithmDependency) | repeated | Algorithm result dependencies |
 
 
 
 
 
 
-<a name="AnalyticsFrameworkInterface-Pipeline-AlgorithmDependency"></a>
+<a name="-Pipeline-AlgorithmDependency"></a>
 
 ### Pipeline.AlgorithmDependency
 Message struct for defnining the depencies between algorithms,
@@ -125,15 +149,15 @@ in the context of a pipeline
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| parent_algorithm | [Algorithm](#AnalyticsFrameworkInterface-Algorithm) |  | The parent algorithm, that creates the dependent result. |
-| dependent_algorithm | [Algorithm](#AnalyticsFrameworkInterface-Algorithm) |  | The dependent algorithm that inherits the result of the parent algorithm. |
+| parent_algorithm | [Algorithm](#Algorithm) |  | The parent algorithm, that creates the dependent result. |
+| dependent_algorithm | [Algorithm](#Algorithm) |  | The dependent algorithm that inherits the result of the parent algorithm. |
 
 
 
 
 
 
-<a name="AnalyticsFrameworkInterface-Type"></a>
+<a name="-Type"></a>
 
 ### Type
 Defines the type associated with an epoch. Can be freeform but
@@ -143,14 +167,14 @@ must be used consistently across identical epochs.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | Name of the type. |
-| version | [Version](#AnalyticsFrameworkInterface-Version) |  |  |
+| version | [Version](#Version) |  |  |
 
 
 
 
 
 
-<a name="AnalyticsFrameworkInterface-Version"></a>
+<a name="-Version"></a>
 
 ### Version
 A generic versioning struct.
@@ -171,6 +195,16 @@ A generic versioning struct.
  
 
  
+
+
+<a name="-EpochService"></a>
+
+### EpochService
+
+
+| Method Name | Request Type | Response Type | Description |
+| ----------- | ------------ | ------------- | ------------|
+| Create | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
 
  
 

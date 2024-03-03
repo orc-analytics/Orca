@@ -1,8 +1,19 @@
 syntax="proto3";
 
-package AnalyticsFrameworkInterface;
+option go_package = "github.com/predixus/analytics_framework/protobufs/go";
 
-option go_package = "github.com/predixus/analytics-framework/protobufs/go";
+service  EpochService {
+  rpc Create(EpochRequest) returns (EpochResponse);
+};
+
+
+message EpochRequest {
+
+}
+message EpochResponse {
+
+}
+
 
 // Defines an arbitrary location, for where an Epoch was generated.
 message Origin {
