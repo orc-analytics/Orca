@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EpochServiceClient interface {
-	Create(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
+	RegisterEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
 }
 
 type epochServiceClient struct {
@@ -33,9 +33,9 @@ func NewEpochServiceClient(cc grpc.ClientConnInterface) EpochServiceClient {
 	return &epochServiceClient{cc}
 }
 
-func (c *epochServiceClient) Create(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
+func (c *epochServiceClient) RegisterEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
 	out := new(EpochResponse)
-	err := c.cc.Invoke(ctx, "/EpochService/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/EpochService/RegisterEpoch", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (c *epochServiceClient) Create(ctx context.Context, in *EpochRequest, opts 
 // All implementations must embed UnimplementedEpochServiceServer
 // for forward compatibility
 type EpochServiceServer interface {
-	Create(context.Context, *EpochRequest) (*EpochResponse, error)
+	RegisterEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
 	mustEmbedUnimplementedEpochServiceServer()
 }
 
@@ -54,8 +54,8 @@ type EpochServiceServer interface {
 type UnimplementedEpochServiceServer struct {
 }
 
-func (UnimplementedEpochServiceServer) Create(context.Context, *EpochRequest) (*EpochResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (UnimplementedEpochServiceServer) RegisterEpoch(context.Context, *EpochRequest) (*EpochResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterEpoch not implemented")
 }
 func (UnimplementedEpochServiceServer) mustEmbedUnimplementedEpochServiceServer() {}
 
@@ -70,20 +70,20 @@ func RegisterEpochServiceServer(s grpc.ServiceRegistrar, srv EpochServiceServer)
 	s.RegisterService(&EpochService_ServiceDesc, srv)
 }
 
-func _EpochService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _EpochService_RegisterEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EpochRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EpochServiceServer).Create(ctx, in)
+		return srv.(EpochServiceServer).RegisterEpoch(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/EpochService/Create",
+		FullMethod: "/EpochService/RegisterEpoch",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EpochServiceServer).Create(ctx, req.(*EpochRequest))
+		return srv.(EpochServiceServer).RegisterEpoch(ctx, req.(*EpochRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -96,8 +96,8 @@ var EpochService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*EpochServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _EpochService_Create_Handler,
+			MethodName: "RegisterEpoch",
+			Handler:    _EpochService_RegisterEpoch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

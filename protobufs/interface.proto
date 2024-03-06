@@ -3,15 +3,16 @@ syntax="proto3";
 option go_package = "github.com/predixus/analytics_framework/protobufs/go";
 
 service  EpochService {
-  rpc Create(EpochRequest) returns (EpochResponse);
+  rpc RegisterEpoch(EpochRequest) returns (EpochResponse);
 };
 
 
 message EpochRequest {
-
+  Epoch epoch = 1;
 }
-message EpochResponse {
 
+message EpochResponse {
+  int32 status = 1;
 }
 
 
