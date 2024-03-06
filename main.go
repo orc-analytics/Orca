@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,9 +12,12 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	api "github.com/predixus/analytics_framework/src/api"
+	grpc "github.com/predixus/analytics_framework/src/grpc"
 )
 
 func main() {
+	grpc.StartGRPCServer()
+
 	var wait time.Duration
 	flag.DurationVar(
 		&wait,
@@ -25,8 +29,12 @@ func main() {
 
 	// Route definitions
 	r := api.GenerateRouter()
+	port := os.Getenv("API_PORT")
+	if port == "" {
+		port = "4040"
+	}
 	srv := &http.Server{
-		Addr:         "localhost:8080",
+		Addr:         fmt.Sprintf("localhost:%s", port),
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,

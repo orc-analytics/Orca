@@ -215,6 +215,9 @@ A generic versioning struct.
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
 | RegisterEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
+| DeleteEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
+| ReprocessEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
+| ModifyEppoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
 
  
 

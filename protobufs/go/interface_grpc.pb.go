@@ -23,6 +23,9 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EpochServiceClient interface {
 	RegisterEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
+	DeleteEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
+	ReprocessEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
+	ModifyEppoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
 }
 
 type epochServiceClient struct {
@@ -42,11 +45,41 @@ func (c *epochServiceClient) RegisterEpoch(ctx context.Context, in *EpochRequest
 	return out, nil
 }
 
+func (c *epochServiceClient) DeleteEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
+	out := new(EpochResponse)
+	err := c.cc.Invoke(ctx, "/EpochService/DeleteEpoch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *epochServiceClient) ReprocessEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
+	out := new(EpochResponse)
+	err := c.cc.Invoke(ctx, "/EpochService/ReprocessEpoch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *epochServiceClient) ModifyEppoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
+	out := new(EpochResponse)
+	err := c.cc.Invoke(ctx, "/EpochService/ModifyEppoch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EpochServiceServer is the server API for EpochService service.
 // All implementations must embed UnimplementedEpochServiceServer
 // for forward compatibility
 type EpochServiceServer interface {
 	RegisterEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
+	DeleteEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
+	ReprocessEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
+	ModifyEppoch(context.Context, *EpochRequest) (*EpochResponse, error)
 	mustEmbedUnimplementedEpochServiceServer()
 }
 
@@ -56,6 +89,15 @@ type UnimplementedEpochServiceServer struct {
 
 func (UnimplementedEpochServiceServer) RegisterEpoch(context.Context, *EpochRequest) (*EpochResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterEpoch not implemented")
+}
+func (UnimplementedEpochServiceServer) DeleteEpoch(context.Context, *EpochRequest) (*EpochResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteEpoch not implemented")
+}
+func (UnimplementedEpochServiceServer) ReprocessEpoch(context.Context, *EpochRequest) (*EpochResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReprocessEpoch not implemented")
+}
+func (UnimplementedEpochServiceServer) ModifyEppoch(context.Context, *EpochRequest) (*EpochResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ModifyEppoch not implemented")
 }
 func (UnimplementedEpochServiceServer) mustEmbedUnimplementedEpochServiceServer() {}
 
@@ -88,6 +130,60 @@ func _EpochService_RegisterEpoch_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EpochService_DeleteEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EpochRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EpochServiceServer).DeleteEpoch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/EpochService/DeleteEpoch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EpochServiceServer).DeleteEpoch(ctx, req.(*EpochRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EpochService_ReprocessEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EpochRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EpochServiceServer).ReprocessEpoch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/EpochService/ReprocessEpoch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EpochServiceServer).ReprocessEpoch(ctx, req.(*EpochRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EpochService_ModifyEppoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EpochRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EpochServiceServer).ModifyEppoch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/EpochService/ModifyEppoch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EpochServiceServer).ModifyEppoch(ctx, req.(*EpochRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EpochService_ServiceDesc is the grpc.ServiceDesc for EpochService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +194,18 @@ var EpochService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterEpoch",
 			Handler:    _EpochService_RegisterEpoch_Handler,
+		},
+		{
+			MethodName: "DeleteEpoch",
+			Handler:    _EpochService_DeleteEpoch_Handler,
+		},
+		{
+			MethodName: "ReprocessEpoch",
+			Handler:    _EpochService_ReprocessEpoch_Handler,
+		},
+		{
+			MethodName: "ModifyEppoch",
+			Handler:    _EpochService_ModifyEppoch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

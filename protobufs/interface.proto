@@ -3,7 +3,11 @@ syntax="proto3";
 option go_package = "github.com/predixus/analytics_framework/protobufs/go";
 
 service  EpochService {
+  // Unary Requests
   rpc RegisterEpoch(EpochRequest) returns (EpochResponse);
+  rpc DeleteEpoch(EpochRequest) returns (EpochResponse);
+  rpc ReprocessEpoch(EpochRequest) returns (EpochResponse);
+  rpc ModifyEppoch(EpochRequest) returns (EpochResponse);
 };
 
 
