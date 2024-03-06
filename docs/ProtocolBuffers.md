@@ -17,10 +17,10 @@
   
     - [EpochService](#-EpochService)
   
-- [Scalar Value Types](#scalar-val
+- [Scalar Value Types](#scalar-value-types)
 
 
-ic
+
 <a name="interface-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -75,6 +75,11 @@ complete DAG.
 
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| epoch | [Epoch](#Epoch) |  |  |
+
+
 
 
 
@@ -83,6 +88,11 @@ complete DAG.
 
 ### EpochResponse
 
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| status | [int32](#int32) |  |  |
 
 
 
@@ -204,7 +214,10 @@ A generic versioning struct.
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Create | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
+| RegisterEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
+| DeleteEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
+| ReprocessEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
+| ModifyEppoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
 
  
 
