@@ -1,3 +1,5 @@
+.PHONY: build_proto build_store remove_store refresh_store
+
 build_proto: .proto .proto_docs .spin_up_datalayer
 build_store: .spin_up_datalayer
 remove_store: .shut_down_datalayer
@@ -23,7 +25,9 @@ refresh_store: .shut_down_datalayer .spin_up_datalayer
 	cd storage && docker-compose down
 
 .spin_up_datalayer:
+	@if [ ! -d "./storage/datalayer" ]; then \
+        sudo mkdir -p ./storage/datalayer; \
+        sudo chmod 777 ./storage/datalayer; \
+    fi
 	cd storage && docker-compose up -d
-
-
 
