@@ -3,8 +3,8 @@ package main
 import (
 	"sync"
 
-	api "github.com/predixus/analytics_framework/src/api"
-	grpc "github.com/predixus/analytics_framework/src/grpc"
+	api "github.com/predixus/analytics_framework/internal/api"
+	grpc "github.com/predixus/analytics_framework/internal/grpc"
 )
 
 func main() {

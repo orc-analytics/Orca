@@ -13,8 +13,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/predixus/analytics_framework/src/api/epoch"
-	li "github.com/predixus/analytics_framework/src/logger"
+	"github.com/predixus/analytics_framework/internal/api/epoch"
+	li "github.com/predixus/analytics_framework/internal/logger"
 )
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {

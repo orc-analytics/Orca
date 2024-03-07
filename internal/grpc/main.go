@@ -9,8 +9,8 @@ import (
 
 	"google.golang.org/grpc"
 
+	"github.com/predixus/analytics_framework/internal/grpc/epoch"
 	infc "github.com/predixus/analytics_framework/protobufs/go"
-	"github.com/predixus/analytics_framework/src/grpc/epoch"
 )
 
 // implement the GRPC server requests
