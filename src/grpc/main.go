@@ -1,31 +1,22 @@
 package grpc
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"sync"
 
 	"google.golang.org/grpc"
 
 	infc "github.com/predixus/analytics_framework/protobufs/go"
+	"github.com/predixus/analytics_framework/src/grpc/epoch"
 )
 
-// struct level api for the GRPC service
-type epochServiceserver struct {
-	infc.UnimplementedEpochServiceServer
-}
-
 // implement the GRPC server requests
-func (s *epochServiceserver) RegisterEpoch(
-	ctx context.Context,
-	epochRequest *infc.EpochRequest,
-) (*infc.EpochResponse, error) {
-	return nil, nil
-}
+func StartGRPCServer(wg *sync.WaitGroup) {
+	defer wg.Done()
 
-func StartGRPCServer() {
 	port := os.Getenv("GRPC_PORT")
 	if port == "" {
 		port = "8080"
@@ -40,9 +31,13 @@ func StartGRPCServer() {
 	var opts []grpc.ServerOption
 
 	grpcServer := grpc.NewServer(opts...)
-	service := &epochServiceserver{}
+	service := &grpc_epoch.EpochServiceServer{}
 
+	// register all the services here
+	defer wg.Done()
 	infc.RegisterEpochServiceServer(grpcServer, service)
 
 	grpcServer.Serve(lis)
+
+	log.Println("GRPC: Shutting Down")
 }

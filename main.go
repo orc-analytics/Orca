@@ -1,14 +1,27 @@
 package main
 
 import (
+	"sync"
+
 	api "github.com/predixus/analytics_framework/src/api"
 	grpc "github.com/predixus/analytics_framework/src/grpc"
 )
 
 func main() {
+	// start a waitgroup
+	var wg sync.WaitGroup
+
 	// Start the gRPC framework server
-	grpc.StartGRPCServer()
+	wg.Add(1)
+	go func() {
+		grpc.StartGRPCServer(&wg)
+	}()
 
 	// Start the API - TODO: kick out into seperate module
-	api.StartHTTPServer()
+	wg.Add(1)
+	go func() {
+		api.StartHTTPServer(&wg)
+	}()
+
+	wg.Wait()
 }

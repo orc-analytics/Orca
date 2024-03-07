@@ -214,10 +214,10 @@ A generic versioning struct.
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| RegisterEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
+| RegisterEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) | Unary Requests |
 | DeleteEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
 | ReprocessEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
-| ModifyEppoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
+| ModifyEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
 
  
 

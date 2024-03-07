@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -29,7 +30,9 @@ func GenerateRouter() *mux.Router {
 	return r
 }
 
-func StartHTTPServer() {
+func StartHTTPServer(wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	// Start the HTTP API
 	var wait time.Duration
 	flag.DurationVar(
@@ -77,5 +80,4 @@ func StartHTTPServer() {
 	srv.Shutdown(ctx)
 
 	log.Println("Shutting Down")
-	os.Exit(0)
 }

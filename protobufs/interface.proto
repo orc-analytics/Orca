@@ -7,7 +7,7 @@ service  EpochService {
   rpc RegisterEpoch(EpochRequest) returns (EpochResponse);
   rpc DeleteEpoch(EpochRequest) returns (EpochResponse);
   rpc ReprocessEpoch(EpochRequest) returns (EpochResponse);
-  rpc ModifyEppoch(EpochRequest) returns (EpochResponse);
+  rpc ModifyEpoch(EpochRequest) returns (EpochResponse);
 };
 
 

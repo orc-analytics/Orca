@@ -22,10 +22,11 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EpochServiceClient interface {
+	// Unary Requests
 	RegisterEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
 	DeleteEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
 	ReprocessEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
-	ModifyEppoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
+	ModifyEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
 }
 
 type epochServiceClient struct {
@@ -63,9 +64,9 @@ func (c *epochServiceClient) ReprocessEpoch(ctx context.Context, in *EpochReques
 	return out, nil
 }
 
-func (c *epochServiceClient) ModifyEppoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
+func (c *epochServiceClient) ModifyEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
 	out := new(EpochResponse)
-	err := c.cc.Invoke(ctx, "/EpochService/ModifyEppoch", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/EpochService/ModifyEpoch", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,10 +77,11 @@ func (c *epochServiceClient) ModifyEppoch(ctx context.Context, in *EpochRequest,
 // All implementations must embed UnimplementedEpochServiceServer
 // for forward compatibility
 type EpochServiceServer interface {
+	// Unary Requests
 	RegisterEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
 	DeleteEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
 	ReprocessEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
-	ModifyEppoch(context.Context, *EpochRequest) (*EpochResponse, error)
+	ModifyEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
 	mustEmbedUnimplementedEpochServiceServer()
 }
 
@@ -96,8 +98,8 @@ func (UnimplementedEpochServiceServer) DeleteEpoch(context.Context, *EpochReques
 func (UnimplementedEpochServiceServer) ReprocessEpoch(context.Context, *EpochRequest) (*EpochResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReprocessEpoch not implemented")
 }
-func (UnimplementedEpochServiceServer) ModifyEppoch(context.Context, *EpochRequest) (*EpochResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ModifyEppoch not implemented")
+func (UnimplementedEpochServiceServer) ModifyEpoch(context.Context, *EpochRequest) (*EpochResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ModifyEpoch not implemented")
 }
 func (UnimplementedEpochServiceServer) mustEmbedUnimplementedEpochServiceServer() {}
 
@@ -166,20 +168,20 @@ func _EpochService_ReprocessEpoch_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EpochService_ModifyEppoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _EpochService_ModifyEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EpochRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EpochServiceServer).ModifyEppoch(ctx, in)
+		return srv.(EpochServiceServer).ModifyEpoch(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/EpochService/ModifyEppoch",
+		FullMethod: "/EpochService/ModifyEpoch",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EpochServiceServer).ModifyEppoch(ctx, req.(*EpochRequest))
+		return srv.(EpochServiceServer).ModifyEpoch(ctx, req.(*EpochRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -204,8 +206,8 @@ var EpochService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EpochService_ReprocessEpoch_Handler,
 		},
 		{
-			MethodName: "ModifyEppoch",
-			Handler:    _EpochService_ModifyEppoch_Handler,
+			MethodName: "ModifyEpoch",
+			Handler:    _EpochService_ModifyEpoch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
