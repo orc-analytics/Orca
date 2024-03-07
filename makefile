@@ -30,8 +30,8 @@ refresh_store: .shut_down_datalayer .spin_up_datalayer
 	cd storage && docker-compose down
 
 .spin_up_datalayer:
-	@if [ ! -d "./storage/datalayer" ]; then \
-        sudo mkdir -p ./storage/datalayer; \
+	@if [ ! -d "./storage/_datalayer" ]; then \
+        sudo mkdir -p ./storage/_datalayer; \
 	fi
 	cd storage && docker-compose up -d
 

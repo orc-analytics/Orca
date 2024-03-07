@@ -32,4 +32,4 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ./datalayer
+      device: ./_datalayer
