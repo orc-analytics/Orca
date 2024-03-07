@@ -1,5 +1,8 @@
-build_proto: .proto .proto_docs
-
+build_proto: .proto .proto_docs .spin_up_datalayer
+build_store: .spin_up_datalayer
+remove_store: .shut_down_datalayer
+refresh_store: .shut_down_datalayer .spin_up_datalayer
+	
 .proto:
 	cd protobufs && protoc \
 	--go_out=go \
@@ -14,3 +17,13 @@ build_proto: .proto .proto_docs
 	-v ./:/protos \
 	pseudomuto/protoc-gen-doc \
 	--doc_opt=markdown,ProtocolBuffers.md
+
+
+.shut_down_datalayer:
+	cd storage && docker-compose down
+
+.spin_up_datalayer:
+	cd storage && docker-compose up -d
+
+
+
