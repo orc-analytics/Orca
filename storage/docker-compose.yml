@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: test_db
     volumes:
-      - datalayer:/var/lib/postgresql
+      - datalayer:/var/lib/postgresql/data
     restart: unless-stopped
 
   pgadmin:
@@ -31,5 +31,5 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: ./datalayer
       o: bind
+      device: ./datalayer

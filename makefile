@@ -1,8 +1,11 @@
-.PHONY: build_proto build_store remove_store refresh_store
+.PHONY: all build_proto build_store remove_store refresh_store
 
-build_proto: .proto .proto_docs .spin_up_datalayer
+all: build_proto build_store
+
+build_proto: .proto .proto_docs 
 build_store: .spin_up_datalayer
-remove_store: .shut_down_datalayer
+stop_store: .stop_datalayer
+remove_store: .remove_datalayer
 refresh_store: .shut_down_datalayer .spin_up_datalayer
 	
 .proto:
@@ -20,14 +23,15 @@ refresh_store: .shut_down_datalayer .spin_up_datalayer
 	pseudomuto/protoc-gen-doc \
 	--doc_opt=markdown,ProtocolBuffers.md
 
+.stop_datalayer:
+	cd storage && docker-compose stop
 
-.shut_down_datalayer:
+.remove_datalayer:
 	cd storage && docker-compose down
 
 .spin_up_datalayer:
 	@if [ ! -d "./storage/datalayer" ]; then \
         sudo mkdir -p ./storage/datalayer; \
-        sudo chmod 777 ./storage/datalayer; \
-    fi
+	fi
 	cd storage && docker-compose up -d
 
