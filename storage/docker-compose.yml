@@ -6,8 +6,8 @@ services:
     hostname: localhost
     command: >
       -c ssl=on
-      -c ssl_cert_file=/var/lib/postgresql/cert.pem
-      -c ssl_key_file=/var/lib/postgresql/key.pem
+      -c ssl_cert_file=/var/lib/postgresql/db.cert
+      -c ssl_key_file=/var/lib/postgresql/db.key
     ports:
       - "5432:5432"
     environment:
@@ -16,8 +16,8 @@ services:
       POSTGRES_DB: test_db
     volumes:
       - datalayer:/var/lib/postgresql/data
-      - ./_ca/cert.pem:/var/lib/postgresql/cert.pem
-      - ./_ca/cert.key:/var/lib/postgresql/key.pem
+      - ./_ca/db.cert:/var/lib/postgresql/db.cert
+      - ./_ca/db.key:/var/lib/postgresql/db.key
     restart: unless-stopped
 
   pgadmin:
