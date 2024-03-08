@@ -26,35 +26,35 @@ create_ssl: .create_ssl_cert
 	--doc_opt=markdown,ProtocolBuffers.md
 
 .stop_datalayer:
-	cd storage && docker-compose stop
+	cd local_storage && docker-compose stop
 
 .start_datalayer:
-	cd storage && docker-compose start
+	cd local_storage && docker-compose start
 
 .remove_datalayer:
-	cd storage && docker-compose down
-	docker volume remove storage_datalayer
+	cd local_storage && docker-compose down
+	docker volume remove local_storage_datalayer
 
 .spin_up_datalayer:
-	@if [ ! -d "./storage/_datalayer" ]; then \
-        sudo mkdir -p ./storage/_datalayer; \
+	@if [ ! -d "./local_storage/_datalayer" ]; then \
+        sudo mkdir -p ./local_storage/_datalayer; \
 	fi
-	cd storage && docker-compose up -d
+	cd local_storage && docker-compose up -d
 
 .remove_store_cache:
-	sudo rm -rf storage/_*
+	sudo rm -rf local_storage/_*
 
 .create_ssl_cert:
-	@if [ ! -d "./storage/_ca" ]; then \
-        sudo mkdir -p ./storage/_ca; \
-				sudo chmod 777 ./storage/_ca; \
+	@if [ ! -d "./local_storage/_ca" ]; then \
+        sudo mkdir -p ./local_storage/_ca; \
+				sudo chmod 777 ./local_storage/_ca; \
 	fi
-	cd ./storage/_ca && \
+	cd ./local_storage/_ca && \
 		sudo openssl req -new -text -passout pass:abcd -subj /CN=localhost -out server.req
-	cd ./storage/_ca && \
+	cd ./local_storage/_ca && \
 		sudo openssl rsa -in privkey.pem -passin pass:abcd -out server.key
-	cd ./storage/_ca && \
+	cd ./local_storage/_ca && \
 		sudo openssl req -x509 -in server.req -text -key server.key -out server.crt
 
-	sudo chown 0:70 storage/_ca/server.key
-	sudo chmod 640 storage/_ca/server.key
+	sudo chown 0:70 local_storage/_ca/server.key
+	sudo chmod 640 local_storage/_ca/server.key
