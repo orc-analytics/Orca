@@ -81,6 +81,7 @@ message Epoch {
     // within the Analytical Framework, then the `parent_key` is the
     // key of that Algorithm.
     string parent_key = 7;
+
 }
 
 // The definition of an algorithm.

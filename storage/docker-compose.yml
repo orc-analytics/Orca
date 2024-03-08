@@ -2,12 +2,12 @@ version: '3.8'
 services:
   postgres:
     container_name: container-pg
-    image: postgres
+    image: postgres:16-alpine
     hostname: localhost
     command: >
       -c ssl=on
-      -c ssl_cert_file=/var/lib/postgresql/db.cert
-      -c ssl_key_file=/var/lib/postgresql/db.key
+      -c ssl_cert_file=/var/lib/postgresql/server.crt
+      -c ssl_key_file=/var/lib/postgresql/server.key
     ports:
       - "5432:5432"
     environment:
@@ -16,8 +16,8 @@ services:
       POSTGRES_DB: test_db
     volumes:
       - datalayer:/var/lib/postgresql/data
-      - ./_ca/db.cert:/var/lib/postgresql/db.cert
-      - ./_ca/db.key:/var/lib/postgresql/db.key
+      - ./_ca/server.crt:/var/lib/postgresql/server.crt:ro
+      - ./_ca/server.key:/var/lib/postgresql/server.key:ro
     restart: unless-stopped
 
   pgadmin:

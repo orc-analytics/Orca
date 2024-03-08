@@ -86,16 +86,34 @@ func generateTableSchema(
 	return pgFieldMap
 }
 
-func generateCreateTableStatement(tableName string, tableMap map[string]string) string {
-	var columns []string
+func generateAlterTableStatement(tableName string, tableMap map[string]string) string {
+	var queryRows []string
 	for columnName, columnType := range tableMap {
-		columns = append(columns, fmt.Sprintf("%s %s", columnName, columnType))
+		queryRows = append(
+			queryRows,
+			fmt.Sprintf("ADD COLUMN IF NOT EXISTS \"%s\" %s", columnName, columnType),
+		)
 	}
-	return fmt.Sprintf("CREATE TABLE %s (%s);", tableName, strings.Join(columns, ", "))
+	return fmt.Sprintf("ALTER TABLE \"%s\" %s;", tableName, strings.Join(queryRows, ", "))
+}
+
+func generateCreateTableStatement(tableName string, tableMap map[string]string) string {
+	var queryColumns []string
+	for columnName, columnType := range tableMap {
+		queryColumns = append(
+			queryColumns,
+			fmt.Sprintf("\"%s\" %s", columnName, columnType),
+		)
+	}
+	return fmt.Sprintf(
+		"CREATE TABLE IF NOT EXISTS \"%s\" (%s);",
+		tableName,
+		strings.Join(queryColumns, ", "),
+	)
 }
 
 func main() {
-	godotenv.Load("../../.env")
+	godotenv.Load()
 	var (
 		host     = os.Getenv("DB_IP")
 		port     = os.Getenv("DB_PORT")
@@ -103,10 +121,13 @@ func main() {
 		password = os.Getenv("DB_PASSWORD")
 		dbname   = os.Getenv("DB_NAME")
 	)
+	fmt.Println(host)
+	fmt.Println(port)
+	fmt.Println(user)
 	fmt.Println(dbname)
 	fmt.Println(password)
 	connStr := fmt.Sprintf("host=%s port=%s user=%s "+
-		"password=%s dbname=%s sslmode=disable",
+		"password=%s dbname=%s ",
 		host, port, user, password, dbname)
 
 	db, err := sql.Open("postgres", connStr)
@@ -118,10 +139,16 @@ func main() {
 	msg := &pb.Epoch{}
 	desc := msg.ProtoReflect().Descriptor()
 	pgFieldMap := generateTableSchema(&desc, false)
+
 	createStatement := generateCreateTableStatement(string(desc.Name()), pgFieldMap)
-	fmt.Println(createStatement)
+	alterStatement := generateAlterTableStatement(string(desc.Name()), pgFieldMap)
 
 	_, err = db.Query(createStatement)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = db.Query(alterStatement)
 	if err != nil {
 		log.Fatal(err)
 	}

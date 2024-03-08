@@ -63,6 +63,7 @@ complete DAG.
 | payload | [Payload](#Payload) |  | Additional arbitrary information that can be taken along with the Epoch. |
 | key | [string](#string) |  | A globally unique hash identifying this epoch |
 | parent_key | [string](#string) |  | If this epoch has been derived from an invoked algorithm within the Analytical Framework, then the `parent_key` is the key of that Algorithm. |
+| get_fucked | [string](#string) |  |  |
 
 
 
