@@ -14,6 +14,8 @@ import (
 	pb "github.com/predixus/analytics_framework/protobufs/go"
 )
 
+// TODO: Add a role that this routine uses that only allows additions
+
 func protoToPostgresType(field *protoreflect.FieldDescriptor) string {
 	kind := (*field).Kind()
 
@@ -58,7 +60,6 @@ func generateTableSchema(
 	for i := 0; i < fields.Len(); i++ {
 		field := fields.Get(i)
 		fieldName := field.Name()
-		fieldType := field.Kind()
 		pgType := protoToPostgresType(&field)
 		if pgType == "MESSAGE" {
 			nestedMessage := field.Message()
@@ -74,14 +75,6 @@ func generateTableSchema(
 			}
 		}
 
-		fmt.Println(
-			fmt.Sprintf(
-				"Field Name: %s - Type: %s - PostgresType: %s",
-				fieldName,
-				fieldType,
-				pgType,
-			),
-		)
 	}
 	return pgFieldMap
 }
@@ -121,11 +114,7 @@ func main() {
 		password = os.Getenv("DB_PASSWORD")
 		dbname   = os.Getenv("DB_NAME")
 	)
-	fmt.Println(host)
-	fmt.Println(port)
-	fmt.Println(user)
-	fmt.Println(dbname)
-	fmt.Println(password)
+
 	connStr := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s ",
 		host, port, user, password, dbname)
