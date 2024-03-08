@@ -1,4 +1,4 @@
-package provision
+package main
 
 import (
 	"database/sql"
@@ -7,70 +7,122 @@ import (
 	"os"
 	"strings"
 
-	"github.com/golang/protobuf/protoc-gen-go/descriptor"
-	"google.golang.org/protobuf/proto"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	pb "github.com/predixus/analytics_framework/protobufs/go"
 )
 
+func protoToPostgresType(field *protoreflect.FieldDescriptor) string {
+	kind := (*field).Kind()
+
+	switch kind {
+	case protoreflect.BoolKind:
+		return "BOOLEAN"
+	case protoreflect.EnumKind,
+		protoreflect.Int32Kind,
+		protoreflect.Sint32Kind,
+		protoreflect.Uint32Kind,
+		protoreflect.Sfixed32Kind,
+		protoreflect.Fixed32Kind:
+		return "INT"
+	case protoreflect.Int64Kind,
+		protoreflect.Sint64Kind,
+		protoreflect.Uint64Kind,
+		protoreflect.Sfixed64Kind,
+		protoreflect.Fixed64Kind:
+		return "BIGINT"
+	case protoreflect.FloatKind:
+		return "REAL"
+	case protoreflect.DoubleKind:
+		return "DOUBLE PRECISION"
+	case protoreflect.StringKind:
+		return "TEXT"
+	case protoreflect.BytesKind:
+		return "BYTEA"
+	case protoreflect.MessageKind:
+		return "MESSAGE"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+func generateTableSchema(
+	msg *protoreflect.MessageDescriptor,
+	prePendParent bool,
+) map[string]string {
+	pgFieldMap := make(map[string]string)
+
+	fields := (*msg).Fields()
+	for i := 0; i < fields.Len(); i++ {
+		field := fields.Get(i)
+		fieldName := field.Name()
+		fieldType := field.Kind()
+		pgType := protoToPostgresType(&field)
+		if pgType == "MESSAGE" {
+			nestedMessage := field.Message()
+			subMap := generateTableSchema(&nestedMessage, true)
+			for k, v := range subMap {
+				pgFieldMap[k] = v
+			}
+		} else {
+			if prePendParent {
+				pgFieldMap[fmt.Sprintf("%s_%s", field.ContainingMessage().Name(), fieldName)] = pgType
+			} else {
+				pgFieldMap[string(fieldName)] = pgType
+			}
+		}
+
+		fmt.Println(
+			fmt.Sprintf(
+				"Field Name: %s - Type: %s - PostgresType: %s",
+				fieldName,
+				fieldType,
+				pgType,
+			),
+		)
+	}
+	return pgFieldMap
+}
+
+func generateCreateTableStatement(tableName string, tableMap map[string]string) string {
+	var columns []string
+	for columnName, columnType := range tableMap {
+		columns = append(columns, fmt.Sprintf("%s %s", columnName, columnType))
+	}
+	return fmt.Sprintf("CREATE TABLE %s (%s);", tableName, strings.Join(columns, ", "))
+}
+
 func main() {
-	username := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	database_ip := os.Getenv("DB_IP")
-	connStr := fmt.Sprintf("postgresql://%s:%s@%s/public", username, password, database_ip)
+	godotenv.Load("../../.env")
+	var (
+		host     = os.Getenv("DB_IP")
+		port     = os.Getenv("DB_PORT")
+		user     = os.Getenv("DB_USER")
+		password = os.Getenv("DB_PASSWORD")
+		dbname   = os.Getenv("DB_NAME")
+	)
+	fmt.Println(dbname)
+	fmt.Println(password)
+	connStr := fmt.Sprintf("host=%s port=%s user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
-}
+	defer db.Close()
 
-// Example protobuf message
-type MyMessage struct {
-	Id   int32
-	Name string
-}
-
-func main_v2() {
-	// Create an instance of your protobuf message
 	msg := &pb.Epoch{}
+	desc := msg.ProtoReflect().Descriptor()
+	pgFieldMap := generateTableSchema(&desc, false)
+	createStatement := generateCreateTableStatement(string(desc.Name()), pgFieldMap)
+	fmt.Println(createStatement)
 
-	// Get the descriptor for the protobuf message
-	desc := proto.MessageReflect(msg).Descriptor()
-
-	// Generate PostgreSQL table schema based on the message descriptor
-	schema := generateTableSchema(desc)
-
-	// Print the PostgreSQL table schema
-	fmt.Println(schema)
-}
-
-// Function to generate PostgreSQL table schema
-func generateTableSchema(desc *descriptor.MessageDescriptorProto) string {
-	var fields []string
-
-	// Iterate through the fields of the protobuf message
-	for _, field := range desc.Field {
-		fieldName := field.GetName()
-		fieldType := fieldTypeMapping(field.GetType())
-
-		// Add field definition to the schema
-		fields = append(fields, fmt.Sprintf("%s %s", fieldName, fieldType))
-	}
-
-	// Join all field definitions to form the table schema
-	return fmt.Sprintf("CREATE TABLE %s (\n\t%s\n);", desc.GetName(), strings.Join(fields, ",\n\t"))
-}
-
-// Function to map protobuf field types to PostgreSQL data types
-func fieldTypeMapping(fieldType descriptor.FieldDescriptorProto_Type) string {
-	switch fieldType {
-	case descriptor.FieldDescriptorProto_TYPE_INT32, descriptor.FieldDescriptorProto_TYPE_INT64:
-		return "INTEGER"
-	case descriptor.FieldDescriptorProto_TYPE_STRING:
-		return "TEXT"
-	// Add more mappings for other types as needed
-	default:
-		return "UNKNOWN"
+	_, err = db.Query(createStatement)
+	if err != nil {
+		log.Fatal(err)
 	}
 }

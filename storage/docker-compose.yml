@@ -4,6 +4,10 @@ services:
     container_name: container-pg
     image: postgres
     hostname: localhost
+    command: >
+      -c ssl=on
+      -c ssl_cert_file=/var/lib/postgresql/cert.pem
+      -c ssl_key_file=/var/lib/postgresql/key.pem
     ports:
       - "5432:5432"
     environment:
@@ -12,6 +16,8 @@ services:
       POSTGRES_DB: test_db
     volumes:
       - datalayer:/var/lib/postgresql/data
+      - ./_ca/cert.pem:/var/lib/postgresql/cert.pem
+      - ./_ca/cert.key:/var/lib/postgresql/key.pem
     restart: unless-stopped
 
   pgadmin:
