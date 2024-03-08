@@ -14,8 +14,6 @@ import (
 	pb "github.com/predixus/analytics_framework/protobufs/go"
 )
 
-// TODO: Add a role that this routine uses that only allows additions
-
 func protoToPostgresType(field *protoreflect.FieldDescriptor) string {
 	kind := (*field).Kind()
 
@@ -61,6 +59,13 @@ func generateTableSchema(
 		field := fields.Get(i)
 		fieldName := field.Name()
 		pgType := protoToPostgresType(&field)
+
+		if pgType == "UNKNOWN" {
+			log.Fatal(
+				fmt.Sprintf("Unsure how to translate pbuf type to PG: %s", field.Kind().String()),
+			)
+		}
+
 		if pgType == "MESSAGE" {
 			nestedMessage := field.Message()
 			subMap := generateTableSchema(&nestedMessage, true)
@@ -115,6 +120,11 @@ func main() {
 		dbname   = os.Getenv("DB_NAME")
 	)
 
+	messagesToTabularise := make([]protoreflect.ProtoMessage, 3)
+	messagesToTabularise[0] = &pb.Epoch{}
+	messagesToTabularise[1] = &pb.Algorithm{}
+	messagesToTabularise[2] = &pb.Pipeline{}
+
 	connStr := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s ",
 		host, port, user, password, dbname)
@@ -125,20 +135,22 @@ func main() {
 	}
 	defer db.Close()
 
-	msg := &pb.Epoch{}
-	desc := msg.ProtoReflect().Descriptor()
-	pgFieldMap := generateTableSchema(&desc, false)
+	for _, msg := range messagesToTabularise {
 
-	createStatement := generateCreateTableStatement(string(desc.Name()), pgFieldMap)
-	alterStatement := generateAlterTableStatement(string(desc.Name()), pgFieldMap)
+		desc := msg.ProtoReflect().Descriptor()
+		pgFieldMap := generateTableSchema(&desc, false)
 
-	_, err = db.Query(createStatement)
-	if err != nil {
-		log.Fatal(err)
-	}
+		createStatement := generateCreateTableStatement(string(desc.Name()), pgFieldMap)
+		alterStatement := generateAlterTableStatement(string(desc.Name()), pgFieldMap)
 
-	_, err = db.Query(alterStatement)
-	if err != nil {
-		log.Fatal(err)
+		_, err = db.Query(createStatement)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		_, err = db.Query(alterStatement)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
