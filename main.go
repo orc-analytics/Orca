@@ -3,11 +3,13 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"sync"
 
 	"github.com/joho/godotenv"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
 
 	api "github.com/predixus/analytics_framework/internal/api"
 	datalayer "github.com/predixus/analytics_framework/internal/datalayer"
@@ -28,11 +30,8 @@ func main() {
 	// start a connection to the MetaDB
 	connStr := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s ",
 		host, port, user, password, dbname)
-	var err error
-	datalayer.MetaDB, err = sql.Open("postgres", connStr)
-	if err != nil {
-		log.Fatalf("Unable to open connection to the DB: %v", datalayer.MetaDB)
-	}
+	db := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(connStr)))
+	datalayer.MetaDB = bun.NewDB(db, pgdialect.New())
 	defer datalayer.MetaDB.Close()
 
 	// start a waitgroup
