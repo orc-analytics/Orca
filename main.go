@@ -1,15 +1,7 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"os"
 	"sync"
-
-	"github.com/joho/godotenv"
-	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect/pgdialect"
-	"github.com/uptrace/bun/driver/pgdriver"
 
 	api "github.com/predixus/analytics_framework/internal/api"
 	datalayer "github.com/predixus/analytics_framework/internal/datalayer"
@@ -17,22 +9,9 @@ import (
 )
 
 func main() {
-	// load in variables
-	godotenv.Load()
-	var (
-		host     = os.Getenv("DB_IP")
-		port     = os.Getenv("DB_PORT")
-		user     = os.Getenv("DB_USER")
-		password = os.Getenv("DB_PASSWORD")
-		dbname   = os.Getenv("DB_NAME")
-	)
-
-	// start a connection to the MetaDB
-	connStr := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s ",
-		host, port, user, password, dbname)
-	db := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(connStr)))
-	datalayer.MetaDB = bun.NewDB(db, pgdialect.New())
-	defer datalayer.MetaDB.Close()
+	// connect to the postgres store
+	datalayer.ConnectDB()
+	defer datalayer.StorageDB.Close()
 
 	// start a waitgroup
 	var wg sync.WaitGroup

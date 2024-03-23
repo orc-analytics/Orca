@@ -1,25 +1,56 @@
 package datalayer
 
 import (
-	"log"
+	"database/sql"
+	"fmt"
+	"os"
 
-	"github.com/uptrace/bun"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 
 	pb "github.com/predixus/analytics_framework/protobufs/go"
 )
 
-var MetaDB *bun.DB
+var StorageDB *sql.DB
 
-func WriteEpoch(epoch *pb.Epoch) {
-	var query_string string
+type Epoch pb.Epoch
 
-	_, err := MetaDB.Query(query_string)
+func ConnectDB() {
+	// load in variables
+	godotenv.Load()
+	var (
+		host     = os.Getenv("DB_IP")
+		port     = os.Getenv("DB_PORT")
+		user     = os.Getenv("DB_USER")
+		password = os.Getenv("DB_PASSWORD")
+		dbname   = os.Getenv("DB_NAME")
+	)
+
+	// start a connection to the storage db
+	connStr := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s ",
+		host, port, user, password, dbname)
+
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
+
+	StorageDB = db
 }
+
+// func (epoch Epoch) WriteEpoch(ctx context.Context) {
+//   ...
+// }
 
 //
 // func ReadEpoch(epoch *pb.Epoch) {
+//   ...
+// }
+
+// func (epoch *pb.Epoch) UpdateEpoch(ctx context.Context) {
+//   ...
+// }
+
+// func (epoch *pb.Epoch) UpdateEpoch(ctx context.Context){
 //   ...
 // }
