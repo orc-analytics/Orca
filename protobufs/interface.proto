@@ -55,10 +55,10 @@ message Payload {
 message Epoch {
 
     // The start of the epoch, it the same units as the basis.
-    string start = 1;
+    string epoch_start = 1;
 
     // The end time of the epoch, in the same units as the basis.
-    string end = 2; 
+    string epoch_end = 2; 
 
     // Where the epoch was generated. E.g. by service A or locally.
     Origin origin = 3; 
@@ -81,7 +81,6 @@ message Epoch {
     // within the Analytical Framework, then the `parent_key` is the
     // key of that Algorithm.
     string parent_key = 7;
-
 }
 
 // The definition of an algorithm.

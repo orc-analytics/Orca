@@ -5,6 +5,13 @@ This repository contains the back end scaffolding for the analytics framework.
 
 ## Functionality
 
+### The Datalayer
+The datalayer is where all results are stored. Datalayers for these storage solutions are already implemented:
+- `Postgres`
+
+To implement a datalayer, the following methods should be exposed:
+``
+
 ## Development
 
 ### Spinning up a DB for local Development
@@ -17,7 +24,7 @@ When `make build_store` is run from the root directory, a Postgres DB along with
 - `stop_store` - To stop a running instance of the store
 - `remove_store` - To remove an existing store and the data contents
 - `redo_store` - Tear down a store, delete the data and spin it back up
-- `create_ssl` - Create a fresh SSL certificate
+- ``
 ```
 
 To make available

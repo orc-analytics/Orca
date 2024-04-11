@@ -9,6 +9,7 @@ stop_store: .stop_datalayer
 remove_store: .remove_datalayer
 redo_store: .remove_datalayer .remove_store_cache .create_ssl_cert .spin_up_datalayer
 create_ssl: .create_ssl_cert
+test: .test_all
 
 .proto:
 	cd protobufs && protoc \
@@ -58,3 +59,6 @@ create_ssl: .create_ssl_cert
 
 	sudo chown 0:70 local_storage/_ca/server.key
 	sudo chmod 640 local_storage/_ca/server.key
+
+.test_all:
+	go test -v ./...

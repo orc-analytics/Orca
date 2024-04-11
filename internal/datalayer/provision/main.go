@@ -1,4 +1,4 @@
-package main
+package datalayer_provision
 
 import (
 	"database/sql"
@@ -49,63 +49,92 @@ func protoToPostgresType(field *protoreflect.FieldDescriptor) string {
 }
 
 func generateTableSchema(
-	msg *protoreflect.MessageDescriptor,
-	prePendParent bool,
+	msg *protoreflect.ProtoMessage,
 ) map[string]string {
+	desc := (*msg).ProtoReflect().Descriptor()
 	pgFieldMap := make(map[string]string)
 
-	fields := (*msg).Fields()
-	for i := 0; i < fields.Len(); i++ {
-		field := fields.Get(i)
-		fieldName := field.Name()
-		pgType := protoToPostgresType(&field)
+	stack := []*protoreflect.MessageDescriptor{&desc}
+	prependParent := []bool{false}
 
-		if pgType == "UNKNOWN" {
-			log.Fatal(
-				fmt.Sprintf("Unsure how to translate pbuf type to PG: %s", field.Kind().String()),
-			)
-		}
+	for len(stack) > 0 {
+		// get the current message
+		currMsg := stack[len(stack)-1]
+		prependCurrentMessage := prependParent[len(stack)-1]
 
-		if pgType == "MESSAGE" {
-			nestedMessage := field.Message()
-			subMap := generateTableSchema(&nestedMessage, true)
-			for k, v := range subMap {
-				pgFieldMap[k] = v
+		// move the stack forward
+		stack = stack[:len(stack)-1]
+		prependParent = prependParent[:len(stack)-1]
+
+		fields := (*currMsg).Fields()
+		for i := 0; i < fields.Len(); i++ {
+			field := fields.Get(i)
+			fieldName := field.Name()
+			pgType := protoToPostgresType(&field)
+
+			if pgType == "UNKNOWN" {
+				log.Fatal(
+					fmt.Sprintf(
+						"Unsure how to translate pbuf type to PG type: %s",
+						field.Kind().String(),
+					),
+				)
 			}
-		} else {
-			if prePendParent {
-				pgFieldMap[fmt.Sprintf("%s_%s", field.ContainingMessage().Name(), fieldName)] = pgType
+
+			if pgType == "MESSAGE" {
+				// we've encoutered a message. Add it to the stack to handle later
+				nestedMessage := field.Message()
+				stack = append(stack, &nestedMessage)
+				prependParent = append(prependParent, true)
 			} else {
-				pgFieldMap[string(fieldName)] = pgType
+				if prependCurrentMessage {
+					pgFieldMap[fmt.Sprintf("%s_%s", field.ContainingMessage().Name(), fieldName)] = pgType
+				} else {
+					pgFieldMap[string(fieldName)] = pgType
+				}
 			}
 		}
-
 	}
+
 	return pgFieldMap
 }
 
-func generateAlterTableStatement(tableName string, tableMap map[string]string) string {
+func generateAlterTableStatement(
+	msg *protoreflect.ProtoMessage,
+	tableMap map[string]string,
+) string {
 	var queryRows []string
 	for columnName, columnType := range tableMap {
 		queryRows = append(
 			queryRows,
-			fmt.Sprintf("ADD COLUMN IF NOT EXISTS \"%s\" %s", columnName, columnType),
+			fmt.Sprintf(
+				"ADD COLUMN IF NOT EXISTS %s %s",
+				strings.ToLower(columnName),
+				columnType,
+			),
 		)
 	}
-	return fmt.Sprintf("ALTER TABLE \"%s\" %s;", tableName, strings.Join(queryRows, ", "))
+	return fmt.Sprintf(
+		"ALTER TABLE %s %s;",
+		strings.ToLower(string((*msg).ProtoReflect().Descriptor().Name())),
+		strings.Join(queryRows, ", "),
+	)
 }
 
-func generateCreateTableStatement(tableName string, tableMap map[string]string) string {
+func generateCreateTableStatement(
+	msg *protoreflect.ProtoMessage,
+	tableMap map[string]string,
+) string {
 	var queryColumns []string
 	for columnName, columnType := range tableMap {
 		queryColumns = append(
 			queryColumns,
-			fmt.Sprintf("\"%s\" %s", columnName, columnType),
+			fmt.Sprintf("%s %s", strings.ToLower(columnName), columnType),
 		)
 	}
 	return fmt.Sprintf(
-		"CREATE TABLE IF NOT EXISTS \"%s\" (%s);",
-		tableName,
+		"CREATE TABLE IF NOT EXISTS %s (%s);",
+		strings.ToLower(string((*msg).ProtoReflect().Descriptor().Name())),
 		strings.Join(queryColumns, ", "),
 	)
 }
@@ -125,8 +154,7 @@ func main() {
 	messagesToTabularise[1] = &pb.Algorithm{}
 	messagesToTabularise[2] = &pb.Pipeline{}
 
-	connStr := fmt.Sprintf("host=%s port=%s user=%s "+
-		"password=%s dbname=%s ",
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s",
 		host, port, user, password, dbname)
 
 	db, err := sql.Open("postgres", connStr)
@@ -137,12 +165,10 @@ func main() {
 
 	for _, msg := range messagesToTabularise {
 
-		desc := msg.ProtoReflect().Descriptor()
-		pgFieldMap := generateTableSchema(&desc, false)
+		pgFieldMap := generateTableSchema(&msg)
 
-		createStatement := generateCreateTableStatement(string(desc.Name()), pgFieldMap)
-		alterStatement := generateAlterTableStatement(string(desc.Name()), pgFieldMap)
-
+		createStatement := generateCreateTableStatement(&msg, pgFieldMap)
+		alterStatement := generateAlterTableStatement(&msg, pgFieldMap)
 		_, err = db.Query(createStatement)
 		if err != nil {
 			log.Fatal(err)

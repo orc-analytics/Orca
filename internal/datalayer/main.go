@@ -27,10 +27,14 @@ func ConnectDB() {
 	)
 
 	// start a connection to the storage db
-	connStr := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s ",
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s",
 		host, port, user, password, dbname)
 
 	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		panic(err)
+	}
+	err = db.Ping()
 	if err != nil {
 		panic(err)
 	}
@@ -38,8 +42,12 @@ func ConnectDB() {
 	StorageDB = db
 }
 
-// func (epoch Epoch) WriteEpoch(ctx context.Context) {
-//   ...
+// func (epoch Epoch) WriteEpoch() {
+//   epoch.Type.Version.if
+// 	insertSmt := fmt.Sprintf("INSERT INTO epoch (epoch_start, epoch_end, origin, type, ) values ();")
+//    e
+//
+// 	StorageDB.Query(insertSmt)
 // }
 
 //
