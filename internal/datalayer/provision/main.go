@@ -139,7 +139,7 @@ func generateCreateTableStatement(
 	)
 }
 
-func main() {
+func Provision() error {
 	godotenv.Load()
 	var (
 		host     = os.Getenv("DB_IP")
@@ -160,6 +160,7 @@ func main() {
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
 	defer db.Close()
 
@@ -172,11 +173,14 @@ func main() {
 		_, err = db.Query(createStatement)
 		if err != nil {
 			log.Fatal(err)
+			return err
 		}
 
 		_, err = db.Query(alterStatement)
 		if err != nil {
 			log.Fatal(err)
+			return err
 		}
 	}
+	return nil
 }
