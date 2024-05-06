@@ -61,4 +61,4 @@ test: .test_all
 	sudo chmod 640 local_storage/_ca/server.key
 
 .test_all:
-	go test -v ./...
+	go test ./internal/... -v

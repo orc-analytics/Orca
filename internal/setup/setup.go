@@ -9,14 +9,16 @@ import (
 )
 
 func Setup(
-	db_connector dlyr.DBConnector,
+	db_connector dlyr.DB,
 	grpc_server grpc.GRPCServer,
 	api_server api.HTTPServer,
 ) error {
 	// connect to the db
-	db := db_connector.Connect()
-
-	defer db.Close()
+	err := db_connector.Connect()
+	if err != nil {
+		return err
+	}
+	defer db_connector.Close()
 
 	// start a waitgroup
 	var wg sync.WaitGroup

@@ -16,16 +16,18 @@ import (
 type Epoch pb.Epoch
 
 // DBConnector abstracts the database connection functionality.
-type DBConnector interface {
-	Connect() *sql.DB
+type DB interface {
+	Connect() error
 	Close() error
 }
 
 // DBConnection is a struct for connecting to the database
-type DbConnector struct{}
+type Db struct {
+	DB *sql.DB
+}
 
 // ConnectDB connects to the database and returns a db instance
-func (c *DbConnector) Connect() *sql.DB {
+func (c *Db) Connect() error {
 	// load in variables
 	godotenv.Load()
 	var (
@@ -43,16 +45,22 @@ func (c *DbConnector) Connect() *sql.DB {
 	if err != nil {
 		li.Logger.Fatalf("Could not open DB: %v", err)
 	}
-
 	err = db.Ping()
 	if err != nil {
 		li.Logger.Fatalf("Could not talk to the DB: %v", err)
 	}
-	return db
+
+	c.DB = db
+	return nil
 }
 
-func (c *DbConnector) Close() error {
-	err := c.Close()
+func (c *Db) Close() error {
+	if c.DB == nil {
+		return nil
+	}
+
+	err := c.DB.Close()
+	c.DB = nil
 	return err
 }
 
