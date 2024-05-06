@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,44 +11,37 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-
-	"github.com/predixus/analytics_framework/internal/api/epoch"
-	li "github.com/predixus/analytics_framework/internal/logger"
 )
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	li.Logger.Printf("Recieved Request:")
+type HTTPServer interface {
+	Start(wg *sync.WaitGroup)
+}
+
+type HttpServer struct {
+	*http.Server
+}
+
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Received Request:")
 	w.WriteHeader(http.StatusOK)
 }
 
-func GenerateRouter() *mux.Router {
+func generateRouter() *mux.Router {
 	r := mux.NewRouter()
-	r.HandleFunc("/", HomeHandler)
-	r.HandleFunc("/register-epoch", epoch.EpochHandler)
-
+	r.HandleFunc("/", homeHandler)
 	return r
 }
 
-func StartHTTPServer(wg *sync.WaitGroup) {
+func (s *HttpServer) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	// Start the HTTP API
-	var wait time.Duration
-	flag.DurationVar(
-		&wait,
-		"graceful-timeout",
-		time.Second*15,
-		"The duration for which the server gracefull waits for existing connections to finish.",
-	)
-	flag.Parse()
-
 	// Route definitions
-	r := GenerateRouter()
+	r := generateRouter()
 	port := os.Getenv("API_PORT")
 	if port == "" {
 		port = "4040"
 	}
-	srv := &http.Server{
+	s.Server = &http.Server{
 		Addr:         fmt.Sprintf("localhost:%s", port),
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
@@ -59,8 +51,8 @@ func StartHTTPServer(wg *sync.WaitGroup) {
 
 	// setup logging
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("HTTP server ListenAndServe: %v", err)
 		}
 	}()
 
@@ -68,16 +60,18 @@ func StartHTTPServer(wg *sync.WaitGroup) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 
-	// block until the signal is recieved
+	// block until the signal is received
 	<-c
 
 	// create a deadline
 	// this will not block if there are no connections
-	// if there are, it will wait untill the timeout completes
-	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	// if there are, it will wait until the timeout completes
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
-	srv.Shutdown(ctx)
+	if err := s.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP server Shutdown: %v", err)
+	}
 
-	log.Println("Shutting Down")
+	log.Println("HTTP: Shutting Down")
 }

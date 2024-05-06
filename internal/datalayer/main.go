@@ -8,14 +8,24 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
+	li "github.com/predixus/analytics_framework/internal/logger"
 	pb "github.com/predixus/analytics_framework/protobufs/go"
 )
 
-var StorageDB *sql.DB
-
+// Epoch represents an epoch instance
 type Epoch pb.Epoch
 
-func ConnectDB() {
+// DBConnector abstracts the database connection functionality.
+type DBConnector interface {
+	Connect() *sql.DB
+	Close() error
+}
+
+// DBConnection is a struct for connecting to the database
+type DbConnector struct{}
+
+// ConnectDB connects to the database and returns a db instance
+func (c *DbConnector) Connect() *sql.DB {
 	// load in variables
 	godotenv.Load()
 	var (
@@ -29,17 +39,21 @@ func ConnectDB() {
 	// start a connection to the storage db
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s",
 		host, port, user, password, dbname)
-
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		panic(err)
-	}
-	err = db.Ping()
-	if err != nil {
-		panic(err)
+		li.Logger.Fatalf("Could not open DB: %v", err)
 	}
 
-	StorageDB = db
+	err = db.Ping()
+	if err != nil {
+		li.Logger.Fatalf("Could not talk to the DB: %v", err)
+	}
+	return db
+}
+
+func (c *DbConnector) Close() error {
+	err := c.Close()
+	return err
 }
 
 // func (epoch Epoch) WriteEpoch() {
