@@ -1,0 +1,56 @@
+// package datalayer_provision
+//
+// import (
+// 	"testing"
+//
+// 	"google.golang.org/protobuf/reflect/protoreflect"
+// )
+
+//	func TestTableSchemaCorrect(t *testing.T) {
+//		assert := assert.New(t)
+//		var epoch protoreflect.ProtoMessage = protoreflect.ProtoMessage(&pb.Epoch{
+//			EpochStart: "test_start",
+//			EpochEnd:   "test_end",
+//			Origin: &pb.Origin{
+//				Name: "test_origin",
+//			},
+//		})
+//		schema := generateTableSchema(&epoch)
+//
+//		assert.Equal(t, schema["origin"], "name")
+//	}
+
+// type testFieldDescriptor struct {
+// 	kind protoreflect.Kind
+// }
+//
+// func (f *testFieldDescriptor) Kind() protoreflect.Kind { return f.kind }
+//
+// func TestProtoToPostgresType(t *testing.T) {
+// 	tests := []struct {
+// 		name string
+// 		kind protoreflect.Kind
+// 		want string
+// 	}{
+// 		{"Bool", protoreflect.BoolKind, "BOOLEAN"},
+// 		{"Int32", protoreflect.Int32Kind, "INT"},
+// 		{"Uint64", protoreflect.Uint64Kind, "BIGINT"},
+// 		{"Float", protoreflect.FloatKind, "REAL"},
+// 		{"Double", protoreflect.DoubleKind, "DOUBLE PRECISION"},
+// 		{"String", protoreflect.StringKind, "TEXT"},
+// 		{"Bytes", protoreflect.BytesKind, "BYTEA"},
+// 		{"Message", protoreflect.MessageKind, "MESSAGE"},
+// 		{"Unknown", protoreflect.Kind(100), "UNKNOWN"},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			field := &testFieldDescriptor{
+// 				kind: tt.kind,
+// 			}
+// 			got := protoToPostgresType(&field.FieldDescriptor)
+// 			if got != tt.want {
+// 				t.Errorf("protoToPostgresType() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }
