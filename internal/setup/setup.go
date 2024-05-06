@@ -8,10 +8,6 @@ import (
 	grpc "github.com/predixus/analytics_framework/internal/grpc"
 )
 
-type APIServerStarter interface {
-	StartHTTPServer(wg *sync.WaitGroup)
-}
-
 func Setup(
 	db_connector dlyr.DBConnector,
 	grpc_server grpc.GRPCServer,

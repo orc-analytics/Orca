@@ -2,55 +2,32 @@ package setup_test
 
 import (
 	"database/sql"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
-	"github.com/predixus/analytics_framework/internal/datalayer"
-	"github.com/predixus/analytics_framework/internal/setup"
+	setup "github.com/predixus/analytics_framework/internal/setup"
 )
 
-// DBInterface defines the methods you use from *sql.DB
-type DBInterface interface {
-	Query(query string, args ...interface{}) (*sql.Rows, error)
-	Exec(query string, args ...interface{}) (sql.Result, error)
-}
+type MockDB struct{}
 
-// MockDB is a mock object that implements DBInterface
-type MockDB struct {
-	mock.Mock
-}
+func (d *MockDB) Connect() *sql.DB { return nil }
+func (d *MockDB) Close() error     { return nil }
 
-func (m *MockDB) Query(query string, args ...interface{}) (*sql.Rows, error) {
-	// Mock the Query method
-	argsMock := m.Called(query, args)
-	return argsMock.Get(0).(*sql.Rows), argsMock.Error(1)
-}
+type MockAPI struct{}
 
-func (m *MockDB) Exec(query string, args ...interface{}) (sql.Result, error) {
-	// Mock the Exec method
-	argsMock := m.Called(query, args)
-	return argsMock.Get(0).(sql.Result), argsMock.Error(1)
-}
+func (d *MockAPI) Start(wg *sync.WaitGroup) {}
 
-func (m *MockDB) ConnectDB() error {
-	// Mock implementation, return nil for success
-	return nil
-}
+type MockGrpc struct{}
 
-func (m *MockDB) Close() {
-	// Mock implementation, do nothing
-}
+func (d *MockGrpc) Start(wg *sync.WaitGroup) {}
 
-func TestSetup(t *testing.T) {
-	// Replace the original implementations with mocks
-	datalayer.StorageDB = &MockDB{}
+func TestSetupCompletes(t *testing.T) {
+	db := MockDB{}
+	api := MockAPI{}
+	grpc := MockGrpc{}
 
-	// Run the setup function
-	setup.Setup()
-
-	// Ensure that the setup completes without errors
-	// Here, you might want to add more specific assertions based on your requirements
+	setup.Setup(&db, &grpc, &api)
 	assert.True(t, true, "Setup completed successfully")
 }
