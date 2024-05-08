@@ -121,7 +121,7 @@ func generateAlterTableStatement(
 	)
 }
 
-func generateCreateTableStatement(
+func GenerateCreateTableStatement(
 	msg *protoreflect.ProtoMessage,
 	tableMap map[string]string,
 ) string {
@@ -168,7 +168,7 @@ func Provision() error {
 
 		pgFieldMap := generateTableSchema(&msg)
 
-		createStatement := generateCreateTableStatement(&msg, pgFieldMap)
+		createStatement := GenerateCreateTableStatement(&msg, pgFieldMap)
 		alterStatement := generateAlterTableStatement(&msg, pgFieldMap)
 		_, err = db.Query(createStatement)
 		if err != nil {
