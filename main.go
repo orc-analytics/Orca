@@ -1,31 +1,65 @@
 package main
 
 import (
-	api "github.com/predixus/analytics_framework/internal/api"
-	cli "github.com/predixus/analytics_framework/internal/cli"
+	"os"
+
+	"github.com/urfave/cli/v2"
+
+	"github.com/predixus/analytics_framework/internal/api"
 	dlyr "github.com/predixus/analytics_framework/internal/datalayer"
-	grpc "github.com/predixus/analytics_framework/internal/grpc"
+	"github.com/predixus/analytics_framework/internal/grpc"
 	li "github.com/predixus/analytics_framework/internal/logger"
-	provision "github.com/predixus/analytics_framework/internal/provision_store"
+	prov "github.com/predixus/analytics_framework/internal/provision_store"
 	setup "github.com/predixus/analytics_framework/internal/setup"
 )
 
-func main() {
-	CliArgs := cli.ParseInputs()
+var InitDB, Continue bool
 
-	if CliArgs.InitialiseDB {
-		println("Initialising local postgres DB")
-		err := provision.Provision()
+func parseInputs() {
+	app := &cli.App{
+		Name:  "pdb",
+		Usage: "Initialise and run the Predixus DB (PDB)",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:        "initDB",
+				Value:       false,
+				Usage:       "For provisioning a local Postgres DB",
+				Destination: &InitDB,
+			},
+			&cli.BoolFlag{
+				Name:        "continue",
+				Value:       false,
+				Usage:       "To continue to launching the platform after performing setup tasks",
+				Destination: &Continue,
+			},
+		},
+		Action: mainAction,
+	}
+	if err := app.Run(os.Args); err != nil {
+		li.Logger.Fatal(err)
+	}
+}
+
+func mainAction(ctx *cli.Context) error {
+	if InitDB {
+		li.Logger.Info("Initialising local DB")
+		err := prov.Provision()
 		if err != nil {
-			li.Logger.Fatal(err)
+			return err
 		}
-		if !CliArgs.Continue {
-			return
+		if !Continue {
+			li.Logger.Info("Continuing to run the framework")
+			return nil
 		}
 	}
 
 	db := &dlyr.Db{}
-	grpc_server := &grpc.GrpcServer{}
 	api_server := &api.HttpServer{}
-	setup.Setup(db, grpc_server, api_server)
+	grpc_server := &grpc.GrpcServer{}
+	err := setup.Setup(db, grpc_server, api_server)
+	return err
+}
+
+func main() {
+	parseInputs()
 }

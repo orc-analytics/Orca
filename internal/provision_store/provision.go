@@ -11,6 +11,7 @@ import (
 	_ "github.com/lib/pq"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	li "github.com/predixus/analytics_framework/internal/logger"
 	pb "github.com/predixus/analytics_framework/protobufs/go"
 )
 
@@ -121,7 +122,7 @@ func generateAlterTableStatement(
 	)
 }
 
-func GenerateCreateTableStatement(
+func generateCreateTableStatement(
 	msg *protoreflect.ProtoMessage,
 	tableMap map[string]string,
 ) string {
@@ -159,7 +160,7 @@ func Provision() error {
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
+		li.Logger.Error(err)
 		return err
 	}
 	defer db.Close()
@@ -168,17 +169,20 @@ func Provision() error {
 
 		pgFieldMap := generateTableSchema(&msg)
 
-		createStatement := GenerateCreateTableStatement(&msg, pgFieldMap)
+		// for creating a brand new set of tables
+		createStatement := generateCreateTableStatement(&msg, pgFieldMap)
+
+		// for altering a table if there are new fields.
 		alterStatement := generateAlterTableStatement(&msg, pgFieldMap)
 		_, err = db.Query(createStatement)
 		if err != nil {
-			log.Fatal(err)
+			li.Logger.Error(err)
 			return err
 		}
 
 		_, err = db.Query(alterStatement)
 		if err != nil {
-			log.Fatal(err)
+			li.Logger.Error(err)
 			return err
 		}
 	}

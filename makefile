@@ -39,6 +39,7 @@ test: .test_all
 .spin_up_datalayer:
 	@if [ ! -d "./local_storage/_datalayer" ]; then \
         sudo mkdir -p ./local_storage/_datalayer; \
+				sudo chmod 777 ./local_storage/_datalayer; \
 	fi
 	cd local_storage && docker-compose up -d
 
