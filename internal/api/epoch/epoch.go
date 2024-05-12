@@ -3,7 +3,7 @@ package epoch
 import (
 	"net/http"
 
-	li "github.com/predixus/analytics_framework/internal/logger"
+	li "github.com/predixus/pdb_framework/internal/logger"
 )
 
 func EpochHandler(w http.ResponseWriter, r *http.Request) {

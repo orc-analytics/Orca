@@ -7,10 +7,9 @@ import (
 	"os"
 	"sync"
 
+	"github.com/predixus/pdb_framework/internal/grpc/epoch"
+	infc "github.com/predixus/pdb_framework/protobufs/go"
 	"google.golang.org/grpc"
-
-	"github.com/predixus/analytics_framework/internal/grpc/epoch"
-	infc "github.com/predixus/analytics_framework/protobufs/go"
 )
 
 type GRPCServer interface {

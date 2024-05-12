@@ -4,9 +4,8 @@ import (
 	"sync"
 	"testing"
 
+	setup "github.com/predixus/pdb_framework/internal/setup"
 	"github.com/stretchr/testify/assert"
-
-	setup "github.com/predixus/analytics_framework/internal/setup"
 )
 
 type MockDB struct{}

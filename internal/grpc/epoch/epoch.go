@@ -3,7 +3,7 @@ package grpc_epoch
 import (
 	"context"
 
-	infc "github.com/predixus/analytics_framework/protobufs/go"
+	infc "github.com/predixus/pdb_framework/protobufs/go"
 )
 
 // struct level api for the GRPC service

@@ -9,10 +9,9 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	li "github.com/predixus/pdb_framework/internal/logger"
+	pb "github.com/predixus/pdb_framework/protobufs/go"
 	"google.golang.org/protobuf/reflect/protoreflect"
-
-	li "github.com/predixus/analytics_framework/internal/logger"
-	pb "github.com/predixus/analytics_framework/protobufs/go"
 )
 
 func protoToPostgresType(field *protoreflect.FieldDescriptor) string {
