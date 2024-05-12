@@ -1,6 +1,6 @@
 syntax="proto3";
 
-option go_package = "github.com/predixus/analytics_framework/protobufs/go";
+option go_package = "github.com/predixus/pdb_framework/protobufs/go";
 
 service  EpochService {
   // Unary Requests

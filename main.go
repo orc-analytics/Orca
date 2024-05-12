@@ -3,14 +3,13 @@ package main
 import (
 	"os"
 
+	"github.com/predixus/pdb_framework/internal/api"
+	dlyr "github.com/predixus/pdb_framework/internal/datalayer"
+	"github.com/predixus/pdb_framework/internal/grpc"
+	li "github.com/predixus/pdb_framework/internal/logger"
+	prov "github.com/predixus/pdb_framework/internal/provision_store"
+	setup "github.com/predixus/pdb_framework/internal/setup"
 	"github.com/urfave/cli/v2"
-
-	"github.com/predixus/analytics_framework/internal/api"
-	dlyr "github.com/predixus/analytics_framework/internal/datalayer"
-	"github.com/predixus/analytics_framework/internal/grpc"
-	li "github.com/predixus/analytics_framework/internal/logger"
-	prov "github.com/predixus/analytics_framework/internal/provision_store"
-	setup "github.com/predixus/analytics_framework/internal/setup"
 )
 
 var InitDB, Continue bool

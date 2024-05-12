@@ -3,9 +3,9 @@ package setup
 import (
 	"sync"
 
-	api "github.com/predixus/analytics_framework/internal/api"
-	dlyr "github.com/predixus/analytics_framework/internal/datalayer"
-	grpc "github.com/predixus/analytics_framework/internal/grpc"
+	api "github.com/predixus/pdb_framework/internal/api"
+	dlyr "github.com/predixus/pdb_framework/internal/datalayer"
+	grpc "github.com/predixus/pdb_framework/internal/grpc"
 )
 
 func Setup(

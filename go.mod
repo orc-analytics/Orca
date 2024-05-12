@@ -1,4 +1,4 @@
-module github.com/predixus/analytics_framework
+module github.com/predixus/pdb_framework
 
 go 1.21.4
 
