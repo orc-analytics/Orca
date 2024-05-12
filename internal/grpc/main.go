@@ -9,12 +9,20 @@ import (
 
 	"google.golang.org/grpc"
 
+	"github.com/predixus/analytics_framework/internal/grpc/epoch"
 	infc "github.com/predixus/analytics_framework/protobufs/go"
-	"github.com/predixus/analytics_framework/src/grpc/epoch"
 )
 
+type GRPCServer interface {
+	Start(wg *sync.WaitGroup)
+}
+
+type GrpcServer struct {
+	*grpc.Server
+}
+
 // implement the GRPC server requests
-func StartGRPCServer(wg *sync.WaitGroup) {
+func (s *GrpcServer) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	port := os.Getenv("GRPC_PORT")
@@ -24,20 +32,16 @@ func StartGRPCServer(wg *sync.WaitGroup) {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", os.Getenv("GRPC_PORT")))
 	if err != nil {
-		log.Fatalf("Cannnot create listener: %s", err)
+		log.Fatalf("Cannot create listener: %s", err)
 	}
 
-	// server opts
-	var opts []grpc.ServerOption
-
-	grpcServer := grpc.NewServer(opts...)
+	// register your gRPC service here
 	service := &grpc_epoch.EpochServiceServer{}
+	infc.RegisterEpochServiceServer(s.Server, service)
 
-	// register all the services here
-	defer wg.Done()
-	infc.RegisterEpochServiceServer(grpcServer, service)
-
-	grpcServer.Serve(lis)
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("Failed to serve: %v", err)
+	}
 
 	log.Println("GRPC: Shutting Down")
 }

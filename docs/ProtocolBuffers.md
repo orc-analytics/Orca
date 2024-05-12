@@ -56,8 +56,8 @@ complete DAG.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| start | [string](#string) |  | The start of the epoch, it the same units as the basis. |
-| end | [string](#string) |  | The end time of the epoch, in the same units as the basis. |
+| epoch_start | [string](#string) |  | The start of the epoch, it the same units as the basis. |
+| epoch_end | [string](#string) |  | The end time of the epoch, in the same units as the basis. |
 | origin | [Origin](#Origin) |  | Where the epoch was generated. E.g. by service A or locally. |
 | type | [Type](#Type) |  | The type of the epoch. It is the Epoch Type that is the fundamentally distinguishing characteristic between Epochs. E.g. Epoch A may define a region of time where a certain event happened and Epoch B may define a sub-region within Epoch A. |
 | payload | [Payload](#Payload) |  | Additional arbitrary information that can be taken along with the Epoch. |
