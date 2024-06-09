@@ -5,13 +5,13 @@
 
 - [interface.proto](#interface-proto)
     - [Algorithm](#-Algorithm)
+    - [AlgorithmDependency](#-AlgorithmDependency)
     - [Epoch](#-Epoch)
     - [EpochRequest](#-EpochRequest)
     - [EpochResponse](#-EpochResponse)
     - [Origin](#-Origin)
     - [Payload](#-Payload)
     - [Pipeline](#-Pipeline)
-    - [Pipeline.AlgorithmDependency](#-Pipeline-AlgorithmDependency)
     - [Type](#-Type)
     - [Version](#-Version)
   
@@ -39,6 +39,23 @@ The definition of an algorithm.
 | name | [string](#string) |  | The name of the algorithm. |
 | version | [string](#string) |  | The version of the algorithm. Follow [SemVer](https://semver.org/) convention |
 | EpochType | [Type](#Type) |  | The Epoch type that triggers the algorithm |
+
+
+
+
+
+
+<a name="-AlgorithmDependency"></a>
+
+### AlgorithmDependency
+Message struct for defnining the depencies between algorithms,
+in the context of a pipeline
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| parent_algorithm | [Algorithm](#Algorithm) |  | The parent algorithm, that creates the dependent result. |
+| dependent_algorithm | [Algorithm](#Algorithm) |  | The dependent algorithm that inherits the result of the parent algorithm. |
 
 
 
@@ -143,24 +160,7 @@ that should be triggered, and in what order, from a single epoch.
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | The name of the Pipeline. |
 | algorithms | [Algorithm](#Algorithm) | repeated | Algorithms to execute as part of the pipeline. |
-| dependencies | [Pipeline.AlgorithmDependency](#Pipeline-AlgorithmDependency) | repeated | Algorithm result dependencies |
-
-
-
-
-
-
-<a name="-Pipeline-AlgorithmDependency"></a>
-
-### Pipeline.AlgorithmDependency
-Message struct for defnining the depencies between algorithms,
-in the context of a pipeline
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| parent_algorithm | [Algorithm](#Algorithm) |  | The parent algorithm, that creates the dependent result. |
-| dependent_algorithm | [Algorithm](#Algorithm) |  | The dependent algorithm that inherits the result of the parent algorithm. |
+| dependencies | [AlgorithmDependency](#AlgorithmDependency) | repeated | Algorithm result dependencies |
 
 
 

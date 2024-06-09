@@ -3,13 +3,14 @@ package main
 import (
 	"os"
 
+	"github.com/urfave/cli/v2"
+
 	"github.com/predixus/pdb_framework/internal/api"
 	dlyr "github.com/predixus/pdb_framework/internal/datalayer"
 	"github.com/predixus/pdb_framework/internal/grpc"
 	li "github.com/predixus/pdb_framework/internal/logger"
-	prov "github.com/predixus/pdb_framework/internal/provision_store"
+	prov "github.com/predixus/pdb_framework/internal/provision_pg"
 	setup "github.com/predixus/pdb_framework/internal/setup"
-	"github.com/urfave/cli/v2"
 )
 
 var InitDB, Continue bool
@@ -20,7 +21,7 @@ func parseInputs() {
 		Usage: "Initialise and run the Predixus DB (PDB)",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
-				Name:        "initDB",
+				Name:        "init-db",
 				Value:       false,
 				Usage:       "For provisioning a local Postgres DB",
 				Destination: &InitDB,
@@ -46,12 +47,13 @@ func mainAction(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
+		li.Logger.Info("Finished initialisation")
 		if !Continue {
-			li.Logger.Info("Continuing to run the framework")
 			return nil
 		}
 	}
 
+	li.Logger.Info("Continuing to run the framework")
 	db := &dlyr.Db{}
 	api_server := &api.HttpServer{}
 	grpc_server := &grpc.GrpcServer{}

@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   postgres:
     container_name: container-pg
@@ -9,11 +9,15 @@ services:
       -c ssl_cert_file=/var/lib/postgresql/server.crt
       -c ssl_key_file=/var/lib/postgresql/server.key
     ports:
-      - "5432:5432"
+      - "8080:5432"
+    expose:
+      - "8080"
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: root
       POSTGRES_DB: test_db
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
     volumes:
       - datalayer:/var/lib/postgresql/data
       - ./_ca/server.crt:/var/lib/postgresql/server.crt:ro

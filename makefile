@@ -52,12 +52,11 @@ test: .test_all
 				sudo chmod 777 ./local_storage/_ca; \
 	fi
 	cd ./local_storage/_ca && \
-		sudo openssl req -new -text -passout pass:abcd -subj /CN=localhost -out server.req
+		sudo openssl req -new -text -passout pass:abcd -subj /CN=localhost -out server.req -keyout privkey.pem
 	cd ./local_storage/_ca && \
 		sudo openssl rsa -in privkey.pem -passin pass:abcd -out server.key
 	cd ./local_storage/_ca && \
 		sudo openssl req -x509 -in server.req -text -key server.key -out server.crt
-
 	sudo chown 0:70 local_storage/_ca/server.key
 	sudo chmod 640 local_storage/_ca/server.key
 
