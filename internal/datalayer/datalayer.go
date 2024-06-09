@@ -7,6 +7,7 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+
 	li "github.com/predixus/pdb_framework/internal/logger"
 	pb "github.com/predixus/pdb_framework/protobufs/go"
 )
@@ -69,17 +70,4 @@ func (c *Db) Close() error {
 //    e
 //
 // 	StorageDB.Query(insertSmt)
-// }
-
-//
-// func ReadEpoch(epoch *pb.Epoch) {
-//   ...
-// }
-
-// func (epoch *pb.Epoch) UpdateEpoch(ctx context.Context) {
-//   ...
-// }
-
-// func (epoch *pb.Epoch) UpdateEpoch(ctx context.Context){
-//   ...
 // }

@@ -2,6 +2,7 @@ package datalayer_provision
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -9,10 +10,22 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"google.golang.org/protobuf/reflect/protoreflect"
+
 	li "github.com/predixus/pdb_framework/internal/logger"
 	pb "github.com/predixus/pdb_framework/protobufs/go"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+func RemoveIndex[T any](s []*T, index int) ([]*T, error) {
+	if index < 0 || index >= len(s) {
+		return nil, errors.New("Index is greater than number of elements")
+	}
+
+	ret := make([]*T, 0)
+	ret = append(ret, s[:index]...)
+
+	return append(ret, s[index+1:]...), nil
+}
 
 func protoToPostgresType(field *protoreflect.FieldDescriptor) string {
 	kind := (*field).Kind()
@@ -48,52 +61,63 @@ func protoToPostgresType(field *protoreflect.FieldDescriptor) string {
 	}
 }
 
-func generateTableSchema(
+func generateColumnTypes(
 	msg *protoreflect.ProtoMessage,
 ) map[string]string {
+	var err error
 	desc := (*msg).ProtoReflect().Descriptor()
+
+	// the map from protobuf type to postgres type
 	pgFieldMap := make(map[string]string)
 
+	// stack of messages to convert - initially store the high level message
 	stack := []*protoreflect.MessageDescriptor{&desc}
-	prependParent := []bool{false}
+	tmpStr := string(desc.Name())
+	fieldNames := []*string{&tmpStr}
 
 	for len(stack) > 0 {
 		// get the current message
-		currMsg := stack[len(stack)-1]
-		prependCurrentMessage := prependParent[len(stack)-1]
-
-		// move the stack forward
-		stack = stack[:len(stack)-1]
-		prependParent = prependParent[:len(stack)-1]
+		currMsg := stack[0]
+		currFieldName := fieldNames[0]
 
 		fields := (*currMsg).Fields()
 		for i := 0; i < fields.Len(); i++ {
 			field := fields.Get(i)
 			fieldName := field.Name()
+			strFieldName := string(fieldName)
 			pgType := protoToPostgresType(&field)
 
 			if pgType == "UNKNOWN" {
-				log.Fatal(
-					fmt.Sprintf(
-						"Unsure how to translate pbuf type to PG type: %s",
-						field.Kind().String(),
-					),
+				log.Fatalf("Unsure how to translate pbuf type to PG type: %s",
+					field.Kind().String(),
 				)
 			}
+			index_name := fmt.Sprintf("%s_%s", *currFieldName, strFieldName)
 
 			if pgType == "MESSAGE" {
 				// we've encoutered a message. Add it to the stack to handle later
 				nestedMessage := field.Message()
 				stack = append(stack, &nestedMessage)
-				prependParent = append(prependParent, true)
+				fieldNames = append(fieldNames, &index_name)
 			} else {
-				if prependCurrentMessage {
-					pgFieldMap[fmt.Sprintf("%s_%s", field.ContainingMessage().Name(), fieldName)] = pgType
-				} else {
-					pgFieldMap[string(fieldName)] = pgType
-				}
+				pgFieldMap[index_name] = pgType
 			}
 		}
+		// remove the current message from the stack
+		stack, err = RemoveIndex(stack, 0)
+		if err != nil {
+			log.Fatal(
+				"Attempted to remove an index in the message stack that does not exist. Aborting.",
+			)
+		}
+
+		fieldNames, err = RemoveIndex(fieldNames, 0)
+		if err != nil {
+			log.Fatal(
+				"Attempted to remove an index in the field name stack that does not exist. Aborting.",
+			)
+		}
+
 	}
 
 	return pgFieldMap
@@ -154,7 +178,7 @@ func Provision() error {
 	messagesToTabularise[1] = &pb.Algorithm{}
 	messagesToTabularise[2] = &pb.Pipeline{}
 
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s",
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
 		host, port, user, password, dbname)
 
 	db, err := sql.Open("postgres", connStr)
@@ -166,7 +190,7 @@ func Provision() error {
 
 	for _, msg := range messagesToTabularise {
 
-		pgFieldMap := generateTableSchema(&msg)
+		pgFieldMap := generateColumnTypes(&msg)
 
 		// for creating a brand new set of tables
 		createStatement := generateCreateTableStatement(&msg, pgFieldMap)
@@ -184,6 +208,7 @@ func Provision() error {
 			li.Logger.Error(err)
 			return err
 		}
+
 	}
 	return nil
 }

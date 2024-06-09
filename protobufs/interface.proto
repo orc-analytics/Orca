@@ -55,10 +55,10 @@ message Payload {
 message Epoch {
 
     // The start of the epoch, it the same units as the basis.
-    string epoch_start = 1;
+    string start = 1;
 
     // The end time of the epoch, in the same units as the basis.
-    string epoch_end = 2; 
+    string end = 2; 
 
     // Where the epoch was generated. E.g. by service A or locally.
     Origin origin = 3; 
@@ -90,28 +90,26 @@ message Algorithm {
 
     // The version of the algorithm. Follow [SemVer](https://semver.org/)
     // convention
-    string version = 2;
+    Version version = 2;
 
     // The Epoch type that triggers the algorithm
-    Type EpochType = 3;
+    Type epoch_type = 3;
+}
+
+// Message struct for defnining the depencies between algorithms,
+// in the context of a pipeline
+message AlgorithmDependency {
+  // The parent algorithm, that creates the dependent result.
+  Algorithm parent_algorithm = 1;
+
+  // The dependent algorithm that inherits the result of the
+  // parent algorithm. 
+  Algorithm dependent_algorithm = 2;
 }
 
 // An explicit declaration of a proessing DAG, defining algorithms
 // that should be triggered, and in what order, from a single epoch.
 message Pipeline {
-
-    // Message struct for defnining the depencies between algorithms,
-    // in the context of a pipeline
-    message AlgorithmDependency {
-
-        // The parent algorithm, that creates the dependent result.
-        Algorithm parent_algorithm = 1;
-
-        // The dependent algorithm that inherits the result of the
-        // parent algorithm. 
-        Algorithm dependent_algorithm = 2;
-    }
-
     // The name of the Pipeline.
     string name = 1;
 
