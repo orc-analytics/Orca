@@ -3,8 +3,9 @@ package datalayer_test
 import (
 	"testing"
 
-	dlyr "github.com/predixus/pdb_framework/internal/datalayer"
 	"github.com/stretchr/testify/assert"
+
+	dlyr "github.com/predixus/pdb_framework/internal/datalayer"
 )
 
 type DummySQLDb struct {

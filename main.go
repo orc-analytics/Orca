@@ -9,7 +9,6 @@ import (
 	dlyr "github.com/predixus/pdb_framework/internal/datalayer"
 	"github.com/predixus/pdb_framework/internal/grpc"
 	li "github.com/predixus/pdb_framework/internal/logger"
-	prov "github.com/predixus/pdb_framework/internal/provision_pg"
 	setup "github.com/predixus/pdb_framework/internal/setup"
 )
 
@@ -43,7 +42,7 @@ func parseInputs() {
 func mainAction(ctx *cli.Context) error {
 	if InitDB {
 		li.Logger.Info("Initialising local DB")
-		err := prov.Provision()
+		err := dlyr.Provision()
 		if err != nil {
 			return err
 		}

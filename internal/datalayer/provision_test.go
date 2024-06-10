@@ -1,4 +1,4 @@
-package datalayer_provision_test
+package datalayer_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	provision "github.com/predixus/pdb_framework/internal/provision_pg"
+	datalayer "github.com/predixus/pdb_framework/internal/datalayer"
 )
 
 type MockProtoMessage struct {
@@ -35,7 +35,7 @@ func TestRemoveIndexWorks(t *testing.T) {
 			output_ptr[i] = &v
 		}
 
-		res, err := provision.RemoveIndex(input_ptr, tc.r_idx)
+		res, err := datalayer.RemoveIndex(input_ptr, tc.r_idx)
 		assert.True(t, len(res) == len(output_ptr), "Correct length of result")
 		assert.Nil(t, err)
 
@@ -53,11 +53,11 @@ func TestRemoveIndexOutOfRangeGivesError(t *testing.T) {
 		input_ptr[i] = &v
 	}
 
-	res, err := provision.RemoveIndex(input_ptr, 4)
+	res, err := datalayer.RemoveIndex(input_ptr, 4)
 	assert.NotNil(t, err)
 	assert.Nil(t, res)
 
-	res, err = provision.RemoveIndex(input_ptr, -1)
+	res, err = datalayer.RemoveIndex(input_ptr, -1)
 	assert.NotNil(t, err)
 	assert.Nil(t, res)
 }

@@ -1,4 +1,4 @@
-package datalayer_provision
+package datalayer
 
 import (
 	"database/sql"
@@ -59,6 +59,68 @@ func protoToPostgresType(field *protoreflect.FieldDescriptor) string {
 	default:
 		return "UNKNOWN"
 	}
+}
+
+func generateSchemaNames(
+	msg *protoreflect.ProtoMessage,
+) map[string]any {
+	var err error
+	desc := (*msg).ProtoReflect().Descriptor()
+
+	// the map from protobuf type to postgres type
+	pgFieldMap := make(map[string]string)
+
+	// stack of messages to convert - initially store the high level message
+	stack := []*protoreflect.MessageDescriptor{&desc}
+	tmpStr := string(desc.Name())
+	fieldNames := []*string{&tmpStr}
+
+	for len(stack) > 0 {
+		// get the current message
+		currMsg := stack[0]
+		currFieldName := fieldNames[0]
+
+		fields := (*currMsg).Fields()
+		for i := 0; i < fields.Len(); i++ {
+			field := fields.Get(i)
+			fieldName := field.Name()
+			strFieldName := string(fieldName)
+			pgType := protoToPostgresType(&field)
+
+			if pgType == "UNKNOWN" {
+				log.Fatalf("Unsure how to translate pbuf type to PG type: %s",
+					field.Kind().String(),
+				)
+			}
+			index_name := fmt.Sprintf("%s_%s", *currFieldName, strFieldName)
+
+			if pgType == "MESSAGE" {
+				// we've encoutered a message. Add it to the stack to handle later
+				nestedMessage := field.Message()
+				stack = append(stack, &nestedMessage)
+				fieldNames = append(fieldNames, &index_name)
+			} else {
+				pgFieldMap[index_name] = pgType
+			}
+		}
+		// remove the current message from the stack
+		stack, err = RemoveIndex(stack, 0)
+		if err != nil {
+			log.Fatal(
+				"Attempted to remove an index in the message stack that does not exist. Aborting.",
+			)
+		}
+
+		fieldNames, err = RemoveIndex(fieldNames, 0)
+		if err != nil {
+			log.Fatal(
+				"Attempted to remove an index in the field name stack that does not exist. Aborting.",
+			)
+		}
+
+	}
+
+	return pgFieldMap
 }
 
 func generateColumnTypes(

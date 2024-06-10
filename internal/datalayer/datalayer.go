@@ -9,11 +9,7 @@ import (
 	_ "github.com/lib/pq"
 
 	li "github.com/predixus/pdb_framework/internal/logger"
-	pb "github.com/predixus/pdb_framework/protobufs/go"
 )
-
-// Epoch represents an epoch instance
-type Epoch pb.Epoch
 
 // DBConnector abstracts the database connection functionality.
 type DB interface {
@@ -64,10 +60,8 @@ func (c *Db) Close() error {
 	return err
 }
 
-// func (epoch Epoch) WriteEpoch() {
-//   epoch.Type.Version.if
-// 	insertSmt := fmt.Sprintf("INSERT INTO epoch (epoch_start, epoch_end, origin, type, ) values ();")
-//    e
-//
-// 	StorageDB.Query(insertSmt)
-// }
+func (epoch *Epoch) Write() {
+	insertSmt := fmt.Sprintf(
+		"INSERT INTO epoch (epoch_start, epoch_end, origin, type, ) values ();",
+	)
+}
