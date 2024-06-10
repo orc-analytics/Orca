@@ -5,17 +5,15 @@
 
 - [interface.proto](#interface-proto)
     - [Algorithm](#-Algorithm)
-    - [AlgorithmDependency](#-AlgorithmDependency)
-    - [Epoch](#-Epoch)
-    - [EpochRequest](#-EpochRequest)
-    - [EpochResponse](#-EpochResponse)
     - [Origin](#-Origin)
     - [Payload](#-Payload)
-    - [Pipeline](#-Pipeline)
     - [Type](#-Type)
     - [Version](#-Version)
+    - [Window](#-Window)
+    - [WindowRequest](#-WindowRequest)
+    - [WindowResponse](#-WindowResponse)
   
-    - [EpochService](#-EpochService)
+    - [WindowService](#-WindowService)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -37,79 +35,8 @@ The definition of an algorithm.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | The name of the algorithm. |
-| version | [string](#string) |  | The version of the algorithm. Follow [SemVer](https://semver.org/) convention |
-| EpochType | [Type](#Type) |  | The Epoch type that triggers the algorithm |
-
-
-
-
-
-
-<a name="-AlgorithmDependency"></a>
-
-### AlgorithmDependency
-Message struct for defnining the depencies between algorithms,
-in the context of a pipeline
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| parent_algorithm | [Algorithm](#Algorithm) |  | The parent algorithm, that creates the dependent result. |
-| dependent_algorithm | [Algorithm](#Algorithm) |  | The dependent algorithm that inherits the result of the parent algorithm. |
-
-
-
-
-
-
-<a name="-Epoch"></a>
-
-### Epoch
-The epoch definition. The Epoch is the Cardinal trigger for all
-processing DAGs. It defines the complete set of information 
-required to successfully run an algorithm, pipeline and/or 
-complete DAG.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| epoch_start | [string](#string) |  | The start of the epoch, it the same units as the basis. |
-| epoch_end | [string](#string) |  | The end time of the epoch, in the same units as the basis. |
-| origin | [Origin](#Origin) |  | Where the epoch was generated. E.g. by service A or locally. |
-| type | [Type](#Type) |  | The type of the epoch. It is the Epoch Type that is the fundamentally distinguishing characteristic between Epochs. E.g. Epoch A may define a region of time where a certain event happened and Epoch B may define a sub-region within Epoch A. |
-| payload | [Payload](#Payload) |  | Additional arbitrary information that can be taken along with the Epoch. |
-| key | [string](#string) |  | A globally unique hash identifying this epoch |
-| parent_key | [string](#string) |  | If this epoch has been derived from an invoked algorithm within the Analytical Framework, then the `parent_key` is the key of that Algorithm. |
-
-
-
-
-
-
-<a name="-EpochRequest"></a>
-
-### EpochRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| epoch | [Epoch](#Epoch) |  |  |
-
-
-
-
-
-
-<a name="-EpochResponse"></a>
-
-### EpochResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| status | [int32](#int32) |  |  |
+| version | [Version](#Version) |  | The version of the algorithm. When versioning, the semver rules should be used in the context of the algorithms result. If the result is backwards compatible, then a minor change, etc. |
+| window_type | [Type](#Type) | repeated | The Window type that triggers the algorithm. Many different window types, can trigger one algorithm. |
 
 
 
@@ -119,7 +46,7 @@ complete DAG.
 <a name="-Origin"></a>
 
 ### Origin
-Defines an arbitrary location, for where an Epoch was generated.
+Defines an arbitrary location, for where an Window was generated.
 
 
 | Field | Type | Label | Description |
@@ -134,10 +61,11 @@ Defines an arbitrary location, for where an Epoch was generated.
 <a name="-Payload"></a>
 
 ### Payload
-Arbitrary information that can be carried along with the epoch.
+Arbitrary information that can be carried along with the window.
 It is often useful, when performing batch analysis, to include
-&#39;expensive&#39; data that can be queried once, in this field. Such
-data would be common across algorithms.
+&#39;expensive&#39; data that can be queried once, in this structure. This
+data can then be access by all algorithms that are triggered by
+this window.
 
 
 | Field | Type | Label | Description |
@@ -149,35 +77,17 @@ data would be common across algorithms.
 
 
 
-<a name="-Pipeline"></a>
-
-### Pipeline
-An explicit declaration of a proessing DAG, defining algorithms
-that should be triggered, and in what order, from a single epoch.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  | The name of the Pipeline. |
-| algorithms | [Algorithm](#Algorithm) | repeated | Algorithms to execute as part of the pipeline. |
-| dependencies | [AlgorithmDependency](#AlgorithmDependency) | repeated | Algorithm result dependencies |
-
-
-
-
-
-
 <a name="-Type"></a>
 
 ### Type
-Defines the type associated with an epoch. Can be freeform but
-must be used consistently across identical epochs.
+Defines the type associated with a window. Can be freeform but
+must be used consistently across identical window types.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  | Name of the type. |
-| version | [Version](#Version) |  |  |
+| version | [Version](#Version) |  | The version of the window type. |
 
 
 
@@ -200,24 +110,81 @@ A generic versioning struct.
 
 
 
- 
+
+<a name="-Window"></a>
+
+### Window
+The window definition. The Window is the Cardinal trigger for all
+processing DAGs. It defines the complete set of information 
+required to successfully run an algorithm, pipeline and/or 
+complete DAG.
+
+It should contain the minimal set of information required for the
+algorithm to get the relevant data and complete processing.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| start | [string](#string) |  | The start of the window, it the same units as the basis (e.g. Time). |
+| end | [string](#string) |  | The end time of the window, in the same units as the basis (e.g. Time). |
+| origin | [Origin](#Origin) |  | Where the window was generated. E.g. by an automated service or locally. |
+| type | [Type](#Type) |  | The type of the window. It is the Window Type that is the fundamentally distinguishing characteristic between Windows. E.g. Window A may define a region of time where a certain event happened, and Window B may define a sub-region within Window A. Both of these windows will have a unique `` |
+| payload | [Payload](#Payload) |  | The additional arbitrary information that can be taken along with the Window. |
+| key | [string](#string) |  | A globally unique hash identifying this epoch. |
+| parent_key | [string](#string) |  | If this window has been derived from an invoked algorithm within the framework, then the `parent_key` is the key of that Algorithm. |
+
+
+
+
+
+
+<a name="-WindowRequest"></a>
+
+### WindowRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| window | [Window](#Window) |  |  |
+
+
+
+
+
+
+<a name="-WindowResponse"></a>
+
+### WindowResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| status | [int32](#int32) |  |  |
+
+
+
+
 
  
 
  
 
+ 
 
-<a name="-EpochService"></a>
 
-### EpochService
+<a name="-WindowService"></a>
+
+### WindowService
 
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| RegisterEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) | Unary Requests |
-| DeleteEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
-| ReprocessEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
-| ModifyEpoch | [.EpochRequest](#EpochRequest) | [.EpochResponse](#EpochResponse) |  |
+| RegisterWindow | [.WindowRequest](#WindowRequest) | [.WindowResponse](#WindowResponse) | Unary Requests - i.e. no open connection whilst processes happen. |
+| DeleteWindow | [.WindowRequest](#WindowRequest) | [.WindowResponse](#WindowResponse) |  |
+| ReprocessWindow | [.WindowRequest](#WindowRequest) | [.WindowResponse](#WindowResponse) |  |
+| ModifyWindow | [.WindowRequest](#WindowRequest) | [.WindowResponse](#WindowResponse) |  |
 
  
 

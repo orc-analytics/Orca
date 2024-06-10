@@ -18,196 +18,196 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// EpochServiceClient is the client API for EpochService service.
+// WindowServiceClient is the client API for WindowService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type EpochServiceClient interface {
-	// Unary Requests
-	RegisterEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
-	DeleteEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
-	ReprocessEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
-	ModifyEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error)
+type WindowServiceClient interface {
+	// Unary Requests - i.e. no open connection whilst processes happen.
+	RegisterWindow(ctx context.Context, in *WindowRequest, opts ...grpc.CallOption) (*WindowResponse, error)
+	DeleteWindow(ctx context.Context, in *WindowRequest, opts ...grpc.CallOption) (*WindowResponse, error)
+	ReprocessWindow(ctx context.Context, in *WindowRequest, opts ...grpc.CallOption) (*WindowResponse, error)
+	ModifyWindow(ctx context.Context, in *WindowRequest, opts ...grpc.CallOption) (*WindowResponse, error)
 }
 
-type epochServiceClient struct {
+type windowServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewEpochServiceClient(cc grpc.ClientConnInterface) EpochServiceClient {
-	return &epochServiceClient{cc}
+func NewWindowServiceClient(cc grpc.ClientConnInterface) WindowServiceClient {
+	return &windowServiceClient{cc}
 }
 
-func (c *epochServiceClient) RegisterEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
-	out := new(EpochResponse)
-	err := c.cc.Invoke(ctx, "/EpochService/RegisterEpoch", in, out, opts...)
+func (c *windowServiceClient) RegisterWindow(ctx context.Context, in *WindowRequest, opts ...grpc.CallOption) (*WindowResponse, error) {
+	out := new(WindowResponse)
+	err := c.cc.Invoke(ctx, "/WindowService/RegisterWindow", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *epochServiceClient) DeleteEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
-	out := new(EpochResponse)
-	err := c.cc.Invoke(ctx, "/EpochService/DeleteEpoch", in, out, opts...)
+func (c *windowServiceClient) DeleteWindow(ctx context.Context, in *WindowRequest, opts ...grpc.CallOption) (*WindowResponse, error) {
+	out := new(WindowResponse)
+	err := c.cc.Invoke(ctx, "/WindowService/DeleteWindow", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *epochServiceClient) ReprocessEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
-	out := new(EpochResponse)
-	err := c.cc.Invoke(ctx, "/EpochService/ReprocessEpoch", in, out, opts...)
+func (c *windowServiceClient) ReprocessWindow(ctx context.Context, in *WindowRequest, opts ...grpc.CallOption) (*WindowResponse, error) {
+	out := new(WindowResponse)
+	err := c.cc.Invoke(ctx, "/WindowService/ReprocessWindow", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *epochServiceClient) ModifyEpoch(ctx context.Context, in *EpochRequest, opts ...grpc.CallOption) (*EpochResponse, error) {
-	out := new(EpochResponse)
-	err := c.cc.Invoke(ctx, "/EpochService/ModifyEpoch", in, out, opts...)
+func (c *windowServiceClient) ModifyWindow(ctx context.Context, in *WindowRequest, opts ...grpc.CallOption) (*WindowResponse, error) {
+	out := new(WindowResponse)
+	err := c.cc.Invoke(ctx, "/WindowService/ModifyWindow", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// EpochServiceServer is the server API for EpochService service.
-// All implementations must embed UnimplementedEpochServiceServer
+// WindowServiceServer is the server API for WindowService service.
+// All implementations must embed UnimplementedWindowServiceServer
 // for forward compatibility
-type EpochServiceServer interface {
-	// Unary Requests
-	RegisterEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
-	DeleteEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
-	ReprocessEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
-	ModifyEpoch(context.Context, *EpochRequest) (*EpochResponse, error)
-	mustEmbedUnimplementedEpochServiceServer()
+type WindowServiceServer interface {
+	// Unary Requests - i.e. no open connection whilst processes happen.
+	RegisterWindow(context.Context, *WindowRequest) (*WindowResponse, error)
+	DeleteWindow(context.Context, *WindowRequest) (*WindowResponse, error)
+	ReprocessWindow(context.Context, *WindowRequest) (*WindowResponse, error)
+	ModifyWindow(context.Context, *WindowRequest) (*WindowResponse, error)
+	mustEmbedUnimplementedWindowServiceServer()
 }
 
-// UnimplementedEpochServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedEpochServiceServer struct {
+// UnimplementedWindowServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedWindowServiceServer struct {
 }
 
-func (UnimplementedEpochServiceServer) RegisterEpoch(context.Context, *EpochRequest) (*EpochResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterEpoch not implemented")
+func (UnimplementedWindowServiceServer) RegisterWindow(context.Context, *WindowRequest) (*WindowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterWindow not implemented")
 }
-func (UnimplementedEpochServiceServer) DeleteEpoch(context.Context, *EpochRequest) (*EpochResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteEpoch not implemented")
+func (UnimplementedWindowServiceServer) DeleteWindow(context.Context, *WindowRequest) (*WindowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteWindow not implemented")
 }
-func (UnimplementedEpochServiceServer) ReprocessEpoch(context.Context, *EpochRequest) (*EpochResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReprocessEpoch not implemented")
+func (UnimplementedWindowServiceServer) ReprocessWindow(context.Context, *WindowRequest) (*WindowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReprocessWindow not implemented")
 }
-func (UnimplementedEpochServiceServer) ModifyEpoch(context.Context, *EpochRequest) (*EpochResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ModifyEpoch not implemented")
+func (UnimplementedWindowServiceServer) ModifyWindow(context.Context, *WindowRequest) (*WindowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ModifyWindow not implemented")
 }
-func (UnimplementedEpochServiceServer) mustEmbedUnimplementedEpochServiceServer() {}
+func (UnimplementedWindowServiceServer) mustEmbedUnimplementedWindowServiceServer() {}
 
-// UnsafeEpochServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to EpochServiceServer will
+// UnsafeWindowServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to WindowServiceServer will
 // result in compilation errors.
-type UnsafeEpochServiceServer interface {
-	mustEmbedUnimplementedEpochServiceServer()
+type UnsafeWindowServiceServer interface {
+	mustEmbedUnimplementedWindowServiceServer()
 }
 
-func RegisterEpochServiceServer(s grpc.ServiceRegistrar, srv EpochServiceServer) {
-	s.RegisterService(&EpochService_ServiceDesc, srv)
+func RegisterWindowServiceServer(s grpc.ServiceRegistrar, srv WindowServiceServer) {
+	s.RegisterService(&WindowService_ServiceDesc, srv)
 }
 
-func _EpochService_RegisterEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EpochRequest)
+func _WindowService_RegisterWindow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WindowRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EpochServiceServer).RegisterEpoch(ctx, in)
+		return srv.(WindowServiceServer).RegisterWindow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/EpochService/RegisterEpoch",
+		FullMethod: "/WindowService/RegisterWindow",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EpochServiceServer).RegisterEpoch(ctx, req.(*EpochRequest))
+		return srv.(WindowServiceServer).RegisterWindow(ctx, req.(*WindowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EpochService_DeleteEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EpochRequest)
+func _WindowService_DeleteWindow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WindowRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EpochServiceServer).DeleteEpoch(ctx, in)
+		return srv.(WindowServiceServer).DeleteWindow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/EpochService/DeleteEpoch",
+		FullMethod: "/WindowService/DeleteWindow",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EpochServiceServer).DeleteEpoch(ctx, req.(*EpochRequest))
+		return srv.(WindowServiceServer).DeleteWindow(ctx, req.(*WindowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EpochService_ReprocessEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EpochRequest)
+func _WindowService_ReprocessWindow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WindowRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EpochServiceServer).ReprocessEpoch(ctx, in)
+		return srv.(WindowServiceServer).ReprocessWindow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/EpochService/ReprocessEpoch",
+		FullMethod: "/WindowService/ReprocessWindow",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EpochServiceServer).ReprocessEpoch(ctx, req.(*EpochRequest))
+		return srv.(WindowServiceServer).ReprocessWindow(ctx, req.(*WindowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EpochService_ModifyEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EpochRequest)
+func _WindowService_ModifyWindow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WindowRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EpochServiceServer).ModifyEpoch(ctx, in)
+		return srv.(WindowServiceServer).ModifyWindow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/EpochService/ModifyEpoch",
+		FullMethod: "/WindowService/ModifyWindow",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EpochServiceServer).ModifyEpoch(ctx, req.(*EpochRequest))
+		return srv.(WindowServiceServer).ModifyWindow(ctx, req.(*WindowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// EpochService_ServiceDesc is the grpc.ServiceDesc for EpochService service.
+// WindowService_ServiceDesc is the grpc.ServiceDesc for WindowService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var EpochService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "EpochService",
-	HandlerType: (*EpochServiceServer)(nil),
+var WindowService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "WindowService",
+	HandlerType: (*WindowServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "RegisterEpoch",
-			Handler:    _EpochService_RegisterEpoch_Handler,
+			MethodName: "RegisterWindow",
+			Handler:    _WindowService_RegisterWindow_Handler,
 		},
 		{
-			MethodName: "DeleteEpoch",
-			Handler:    _EpochService_DeleteEpoch_Handler,
+			MethodName: "DeleteWindow",
+			Handler:    _WindowService_DeleteWindow_Handler,
 		},
 		{
-			MethodName: "ReprocessEpoch",
-			Handler:    _EpochService_ReprocessEpoch_Handler,
+			MethodName: "ReprocessWindow",
+			Handler:    _WindowService_ReprocessWindow_Handler,
 		},
 		{
-			MethodName: "ModifyEpoch",
-			Handler:    _EpochService_ModifyEpoch_Handler,
+			MethodName: "ModifyWindow",
+			Handler:    _WindowService_ModifyWindow_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
