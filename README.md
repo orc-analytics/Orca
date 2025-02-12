@@ -1,5 +1,5 @@
 # Orca
-Streamline the analytics, amplify the insight.
+Streamline the analytics and amplify the insight.
 
 ## Functionality
 
