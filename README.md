@@ -1,8 +1,5 @@
-# Predixus DB - Framework
-
-The framework for the Predixus DB.
-
-This repository contains the back end scaffolding for the Predixus DB.
+# Orca
+Streamline the analytics, amplify the insight.
 
 ## Functionality
 
