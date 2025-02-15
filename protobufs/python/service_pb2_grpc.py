@@ -25,7 +25,7 @@ if _version_not_supported:
     )
 
 
-class WindowServiceStub(object):
+class OrcaServiceStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -35,13 +35,13 @@ class WindowServiceStub(object):
             channel: A grpc.Channel.
         """
         self.RegisterWindow = channel.unary_unary(
-                '/WindowService/RegisterWindow',
+                '/OrcaService/RegisterWindow',
                 request_serializer=service__pb2.Window.SerializeToString,
                 response_deserializer=service__pb2.Status.FromString,
                 _registered_method=True)
 
 
-class WindowServiceServicer(object):
+class OrcaServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def RegisterWindow(self, request, context):
@@ -51,7 +51,7 @@ class WindowServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
 
-def add_WindowServiceServicer_to_server(servicer, server):
+def add_OrcaServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'RegisterWindow': grpc.unary_unary_rpc_method_handler(
                     servicer.RegisterWindow,
@@ -60,13 +60,13 @@ def add_WindowServiceServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'WindowService', rpc_method_handlers)
+            'OrcaService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('WindowService', rpc_method_handlers)
+    server.add_registered_method_handlers('OrcaService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class WindowService(object):
+class OrcaService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
@@ -83,7 +83,7 @@ class WindowService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/WindowService/RegisterWindow',
+            '/OrcaService/RegisterWindow',
             service__pb2.Window.SerializeToString,
             service__pb2.Status.FromString,
             options,

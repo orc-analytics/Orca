@@ -2,7 +2,7 @@ syntax="proto3";
 
 option go_package = "github.com/predixus/orca/protobufs/go";
 
-service WindowService {
+service OrcaService {
   rpc RegisterWindow(Window) returns (Status);
 }
 

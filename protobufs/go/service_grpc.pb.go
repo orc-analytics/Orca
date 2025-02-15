@@ -19,101 +19,101 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WindowService_RegisterWindow_FullMethodName = "/WindowService/RegisterWindow"
+	OrcaService_RegisterWindow_FullMethodName = "/OrcaService/RegisterWindow"
 )
 
-// WindowServiceClient is the client API for WindowService service.
+// OrcaServiceClient is the client API for OrcaService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type WindowServiceClient interface {
+type OrcaServiceClient interface {
 	RegisterWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*Status, error)
 }
 
-type windowServiceClient struct {
+type orcaServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewWindowServiceClient(cc grpc.ClientConnInterface) WindowServiceClient {
-	return &windowServiceClient{cc}
+func NewOrcaServiceClient(cc grpc.ClientConnInterface) OrcaServiceClient {
+	return &orcaServiceClient{cc}
 }
 
-func (c *windowServiceClient) RegisterWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*Status, error) {
+func (c *orcaServiceClient) RegisterWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*Status, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Status)
-	err := c.cc.Invoke(ctx, WindowService_RegisterWindow_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, OrcaService_RegisterWindow_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// WindowServiceServer is the server API for WindowService service.
-// All implementations must embed UnimplementedWindowServiceServer
+// OrcaServiceServer is the server API for OrcaService service.
+// All implementations must embed UnimplementedOrcaServiceServer
 // for forward compatibility.
-type WindowServiceServer interface {
+type OrcaServiceServer interface {
 	RegisterWindow(context.Context, *Window) (*Status, error)
-	mustEmbedUnimplementedWindowServiceServer()
+	mustEmbedUnimplementedOrcaServiceServer()
 }
 
-// UnimplementedWindowServiceServer must be embedded to have
+// UnimplementedOrcaServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedWindowServiceServer struct{}
+type UnimplementedOrcaServiceServer struct{}
 
-func (UnimplementedWindowServiceServer) RegisterWindow(context.Context, *Window) (*Status, error) {
+func (UnimplementedOrcaServiceServer) RegisterWindow(context.Context, *Window) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterWindow not implemented")
 }
-func (UnimplementedWindowServiceServer) mustEmbedUnimplementedWindowServiceServer() {}
-func (UnimplementedWindowServiceServer) testEmbeddedByValue()                       {}
+func (UnimplementedOrcaServiceServer) mustEmbedUnimplementedOrcaServiceServer() {}
+func (UnimplementedOrcaServiceServer) testEmbeddedByValue()                     {}
 
-// UnsafeWindowServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to WindowServiceServer will
+// UnsafeOrcaServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to OrcaServiceServer will
 // result in compilation errors.
-type UnsafeWindowServiceServer interface {
-	mustEmbedUnimplementedWindowServiceServer()
+type UnsafeOrcaServiceServer interface {
+	mustEmbedUnimplementedOrcaServiceServer()
 }
 
-func RegisterWindowServiceServer(s grpc.ServiceRegistrar, srv WindowServiceServer) {
-	// If the following call pancis, it indicates UnimplementedWindowServiceServer was
+func RegisterOrcaServiceServer(s grpc.ServiceRegistrar, srv OrcaServiceServer) {
+	// If the following call pancis, it indicates UnimplementedOrcaServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&WindowService_ServiceDesc, srv)
+	s.RegisterService(&OrcaService_ServiceDesc, srv)
 }
 
-func _WindowService_RegisterWindow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrcaService_RegisterWindow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Window)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WindowServiceServer).RegisterWindow(ctx, in)
+		return srv.(OrcaServiceServer).RegisterWindow(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: WindowService_RegisterWindow_FullMethodName,
+		FullMethod: OrcaService_RegisterWindow_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WindowServiceServer).RegisterWindow(ctx, req.(*Window))
+		return srv.(OrcaServiceServer).RegisterWindow(ctx, req.(*Window))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// WindowService_ServiceDesc is the grpc.ServiceDesc for WindowService service.
+// OrcaService_ServiceDesc is the grpc.ServiceDesc for OrcaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var WindowService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "WindowService",
-	HandlerType: (*WindowServiceServer)(nil),
+var OrcaService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "OrcaService",
+	HandlerType: (*OrcaServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "RegisterWindow",
-			Handler:    _WindowService_RegisterWindow_Handler,
+			Handler:    _OrcaService_RegisterWindow_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
