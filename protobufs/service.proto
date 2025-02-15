@@ -1,0 +1,25 @@
+syntax="proto3";
+
+option go_package = "github.com/predixus/orca/protobufs/go";
+
+service WindowService {
+  rpc RegisterWindow(Window) returns (Status);
+}
+
+message Window {
+
+  // Time that the window starts - nanoseconds since epoch
+  uint64 from = 1;
+
+  // Time that the window ends - nanoseconds since epoch
+  uint64 to = 2;
+  
+  // The canonical name of the window. This uniquely identifiers the window
+  string name = 3;
+}
+
+
+message Status {
+  //  Whether the window was successfully processed
+  bool recieved = 1;
+}

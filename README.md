@@ -1,5 +1,18 @@
 # Orca
+
 Streamline the analytics and amplify the insight.
+
+### Building
+
+Install the proto compiler:
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+
+Install the proto GRPC compiler:
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+Install the python GRPC code generator:
+
+python -m pip install grpcio grpcio-tools
 
 ## Functionality
 

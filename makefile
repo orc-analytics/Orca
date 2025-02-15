@@ -2,6 +2,7 @@
 
 all: build_proto
 
+proto: .proto
 build_proto: .proto .proto_docs 
 build_store: .create_ssl_cert .spin_up_datalayer
 start_store: .start_datalayer
@@ -18,6 +19,12 @@ test: .test_all
 	--go-grpc_out=go \
 	--go-grpc_opt=paths=source_relative \
 	*.proto
+	python -m grpc_tools.protoc \
+		-I./protobufs \
+		--python_out=./protobufs/python \
+		--pyi_out=./protobufs/python \
+		--grpc_python_out=./protobufs/python \
+		./protobufs/*.proto
 
 .proto_docs:
 	cd protobufs && docker run --rm \
