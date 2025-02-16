@@ -4,10 +4,11 @@ option go_package = "github.com/predixus/orca/protobufs/go";
 
 service OrcaService {
   rpc RegisterWindow(Window) returns (Status);
+  rpc RegisterWindowType(WindowType) returns (Status);
+  rpc RegisterAlgorithmType(AlgorithmType) returns (Status);
 }
 
 message Window {
-
   // Time that the window starts - nanoseconds since epoch
   uint64 from = 1;
 
@@ -18,8 +19,35 @@ message Window {
   string name = 3;
 }
 
+message WindowType {
+  // Name of the window - globally unique
+  string name = 1;
+}
+
+message AlgorithmDependency {
+
+  // Name of the algorithm that this depends on
+  string name = 1;
+
+  // Version of the algorithm that this depends on
+  string version = 2;
+}
+
+message AlgorithmType {
+  // Name of the algorithm - globally unique
+  string name = 1;
+
+  // Version of the algorithm - must follow semver
+  string version = 2;
+
+  // Type of window that triggers this algorithm
+  string window_type_name = 3;
+
+  // Other algorithms that this algorithm depends on
+  repeated AlgorithmDependency dependencies = 4;
+}
 
 message Status {
-  //  Whether the window was successfully processed
+  //  Generic recieved flag
   bool recieved = 1;
 }

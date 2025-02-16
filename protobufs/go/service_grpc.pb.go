@@ -19,7 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrcaService_RegisterWindow_FullMethodName = "/OrcaService/RegisterWindow"
+	OrcaService_RegisterWindow_FullMethodName        = "/OrcaService/RegisterWindow"
+	OrcaService_RegisterWindowType_FullMethodName    = "/OrcaService/RegisterWindowType"
+	OrcaService_RegisterAlgorithmType_FullMethodName = "/OrcaService/RegisterAlgorithmType"
 )
 
 // OrcaServiceClient is the client API for OrcaService service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OrcaServiceClient interface {
 	RegisterWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*Status, error)
+	RegisterWindowType(ctx context.Context, in *WindowType, opts ...grpc.CallOption) (*Status, error)
+	RegisterAlgorithmType(ctx context.Context, in *AlgorithmType, opts ...grpc.CallOption) (*Status, error)
 }
 
 type orcaServiceClient struct {
@@ -47,11 +51,33 @@ func (c *orcaServiceClient) RegisterWindow(ctx context.Context, in *Window, opts
 	return out, nil
 }
 
+func (c *orcaServiceClient) RegisterWindowType(ctx context.Context, in *WindowType, opts ...grpc.CallOption) (*Status, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Status)
+	err := c.cc.Invoke(ctx, OrcaService_RegisterWindowType_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orcaServiceClient) RegisterAlgorithmType(ctx context.Context, in *AlgorithmType, opts ...grpc.CallOption) (*Status, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Status)
+	err := c.cc.Invoke(ctx, OrcaService_RegisterAlgorithmType_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrcaServiceServer is the server API for OrcaService service.
 // All implementations must embed UnimplementedOrcaServiceServer
 // for forward compatibility.
 type OrcaServiceServer interface {
 	RegisterWindow(context.Context, *Window) (*Status, error)
+	RegisterWindowType(context.Context, *WindowType) (*Status, error)
+	RegisterAlgorithmType(context.Context, *AlgorithmType) (*Status, error)
 	mustEmbedUnimplementedOrcaServiceServer()
 }
 
@@ -64,6 +90,12 @@ type UnimplementedOrcaServiceServer struct{}
 
 func (UnimplementedOrcaServiceServer) RegisterWindow(context.Context, *Window) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterWindow not implemented")
+}
+func (UnimplementedOrcaServiceServer) RegisterWindowType(context.Context, *WindowType) (*Status, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterWindowType not implemented")
+}
+func (UnimplementedOrcaServiceServer) RegisterAlgorithmType(context.Context, *AlgorithmType) (*Status, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterAlgorithmType not implemented")
 }
 func (UnimplementedOrcaServiceServer) mustEmbedUnimplementedOrcaServiceServer() {}
 func (UnimplementedOrcaServiceServer) testEmbeddedByValue()                     {}
@@ -104,6 +136,42 @@ func _OrcaService_RegisterWindow_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrcaService_RegisterWindowType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WindowType)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaServiceServer).RegisterWindowType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaService_RegisterWindowType_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaServiceServer).RegisterWindowType(ctx, req.(*WindowType))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrcaService_RegisterAlgorithmType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AlgorithmType)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaServiceServer).RegisterAlgorithmType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaService_RegisterAlgorithmType_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaServiceServer).RegisterAlgorithmType(ctx, req.(*AlgorithmType))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrcaService_ServiceDesc is the grpc.ServiceDesc for OrcaService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +182,14 @@ var OrcaService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterWindow",
 			Handler:    _OrcaService_RegisterWindow_Handler,
+		},
+		{
+			MethodName: "RegisterWindowType",
+			Handler:    _OrcaService_RegisterWindowType_Handler,
+		},
+		{
+			MethodName: "RegisterAlgorithmType",
+			Handler:    _OrcaService_RegisterAlgorithmType_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rservice.proto\"0\n\x06Window\x12\x0c\n\x04\x66rom\x18\x01 \x01(\x04\x12\n\n\x02to\x18\x02 \x01(\x04\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x1a\n\x06Status\x12\x10\n\x08recieved\x18\x01 \x01(\x08\x32\x31\n\x0bOrcaService\x12\"\n\x0eRegisterWindow\x12\x07.Window\x1a\x07.StatusB\'Z%github.com/predixus/orca/protobufs/gob\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rservice.proto\"0\n\x06Window\x12\x0c\n\x04\x66rom\x18\x01 \x01(\x04\x12\n\n\x02to\x18\x02 \x01(\x04\x12\x0c\n\x04name\x18\x03 \x01(\t\"\x1a\n\nWindowType\x12\x0c\n\x04name\x18\x01 \x01(\t\"4\n\x13\x41lgorithmDependency\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\"t\n\rAlgorithmType\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\t\x12\x18\n\x10window_type_name\x18\x03 \x01(\t\x12*\n\x0c\x64\x65pendencies\x18\x04 \x03(\x0b\x32\x14.AlgorithmDependency\"\x1a\n\x06Status\x12\x10\n\x08recieved\x18\x01 \x01(\x08\x32\x8f\x01\n\x0bOrcaService\x12\"\n\x0eRegisterWindow\x12\x07.Window\x1a\x07.Status\x12*\n\x12RegisterWindowType\x12\x0b.WindowType\x1a\x07.Status\x12\x30\n\x15RegisterAlgorithmType\x12\x0e.AlgorithmType\x1a\x07.StatusB\'Z%github.com/predixus/orca/protobufs/gob\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,8 +34,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._serialized_options = b'Z%github.com/predixus/orca/protobufs/go'
   _globals['_WINDOW']._serialized_start=17
   _globals['_WINDOW']._serialized_end=65
-  _globals['_STATUS']._serialized_start=67
-  _globals['_STATUS']._serialized_end=93
-  _globals['_ORCASERVICE']._serialized_start=95
-  _globals['_ORCASERVICE']._serialized_end=144
+  _globals['_WINDOWTYPE']._serialized_start=67
+  _globals['_WINDOWTYPE']._serialized_end=93
+  _globals['_ALGORITHMDEPENDENCY']._serialized_start=95
+  _globals['_ALGORITHMDEPENDENCY']._serialized_end=147
+  _globals['_ALGORITHMTYPE']._serialized_start=149
+  _globals['_ALGORITHMTYPE']._serialized_end=265
+  _globals['_STATUS']._serialized_start=267
+  _globals['_STATUS']._serialized_end=293
+  _globals['_ORCASERVICE']._serialized_start=296
+  _globals['_ORCASERVICE']._serialized_end=439
 # @@protoc_insertion_point(module_scope)

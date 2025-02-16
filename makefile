@@ -1,7 +1,9 @@
-.PHONY: build_proto build_store remove_store refresh_store
+.PHONY: all build_proto build_store remove_store refresh_store
 
+all: .proto .datalayer
 proto: .proto
 datalayer: .datalayer
+
 build_proto: .proto .proto_docs 
 build_store: .create_ssl_cert .spin_up_datalayer
 start_store: .start_datalayer

@@ -8,20 +8,26 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AlgorithmDependency struct {
+	AlgorithmName    string
+	AlgorithmVersion string
+	DependsOnName    string
+	DependsOnVersion string
+}
+
 type AlgorithmType struct {
-	Name       string
-	Version    string
-	WindowType string
-	DependsOn  pgtype.Text
-	CreatedAt  pgtype.Timestamp
+	Name           string
+	Version        string
+	WindowTypeName string
+	CreatedAt      pgtype.Timestamp
 }
 
 type Window struct {
-	ID         int32
-	TimeFrom   int64
-	TimeTo     int64
-	WindowType string
-	CreatedAt  pgtype.Timestamp
+	ID             int32
+	TimeFrom       int64
+	TimeTo         int64
+	WindowTypeName string
+	CreatedAt      pgtype.Timestamp
 }
 
 type WindowType struct {
