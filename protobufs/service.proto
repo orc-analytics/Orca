@@ -6,6 +6,7 @@ service OrcaService {
   rpc RegisterWindow(Window) returns (Status);
   rpc RegisterWindowType(WindowType) returns (Status);
   rpc RegisterAlgorithmType(AlgorithmType) returns (Status);
+  rpc RegisterResult(Result) returns (Status);
 }
 
 message Window {
@@ -45,6 +46,24 @@ message AlgorithmType {
 
   // Other algorithms that this algorithm depends on
   repeated AlgorithmDependency dependencies = 4;
+}
+
+enum ResultStatus {
+  RESULT_STATUS_HANDLED_FAILED = 0;
+  RESULT_STATUS_UNHANDLED_FAILED = 1;
+  RESULT_STATUS_SUCEEDED = 2;
+}
+
+// Result of an algorithm
+message Result {
+  // Name of the algorithm that produced the result
+  string algorithm_name = 1;
+
+  // Version of the algorithm that produced the result
+  string version = 2;
+  
+  // Status of the result
+  ResultStatus status = 3;
 }
 
 message Status {

@@ -35,3 +35,7 @@ CREATE TABLE algorithm_dependencies (
     FOREIGN KEY (depends_on_name, depends_on_version) REFERENCES algorithm_types(name, version),
     CHECK (NOT (algorithm_name = depends_on_name AND algorithm_version = depends_on_version))
 );
+
+
+-- Store results
+

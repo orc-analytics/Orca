@@ -49,6 +49,11 @@ class OrcaServiceStub(object):
                 request_serializer=service__pb2.AlgorithmType.SerializeToString,
                 response_deserializer=service__pb2.Status.FromString,
                 _registered_method=True)
+        self.RegisterResult = channel.unary_unary(
+                '/OrcaService/RegisterResult',
+                request_serializer=service__pb2.Result.SerializeToString,
+                response_deserializer=service__pb2.Status.FromString,
+                _registered_method=True)
 
 
 class OrcaServiceServicer(object):
@@ -72,6 +77,12 @@ class OrcaServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def RegisterResult(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_OrcaServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -88,6 +99,11 @@ def add_OrcaServiceServicer_to_server(servicer, server):
             'RegisterAlgorithmType': grpc.unary_unary_rpc_method_handler(
                     servicer.RegisterAlgorithmType,
                     request_deserializer=service__pb2.AlgorithmType.FromString,
+                    response_serializer=service__pb2.Status.SerializeToString,
+            ),
+            'RegisterResult': grpc.unary_unary_rpc_method_handler(
+                    servicer.RegisterResult,
+                    request_deserializer=service__pb2.Result.FromString,
                     response_serializer=service__pb2.Status.SerializeToString,
             ),
     }
@@ -171,6 +187,33 @@ class OrcaService(object):
             target,
             '/OrcaService/RegisterAlgorithmType',
             service__pb2.AlgorithmType.SerializeToString,
+            service__pb2.Status.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RegisterResult(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrcaService/RegisterResult',
+            service__pb2.Result.SerializeToString,
             service__pb2.Status.FromString,
             options,
             channel_credentials,

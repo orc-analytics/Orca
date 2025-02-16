@@ -25,6 +25,33 @@ func (w *orcaService) RegisterWindow(ctx context.Context, window *pb.Window) (*p
 	}, nil
 }
 
+func (w *orcaService) RegisterWindowType(
+	ctx context.Context,
+	windowType *pb.WindowType,
+) (*pb.Status, error) {
+	slog.Debug("Recieved window type", "windowType", windowType)
+	return &pb.Status{
+		Recieved: true,
+	}, nil
+}
+
+func (w *orcaService) RegisterAlgorithmType(
+	ctx context.Context,
+	algorithmType *pb.AlgorithmType,
+) (*pb.Status, error) {
+	slog.Debug("Recieved algorithm type", "AlgorithmType", algorithmType)
+	return &pb.Status{
+		Recieved: true,
+	}, nil
+}
+
+func (w *orcaService) RegisterResult(ctx context.Context, result *pb.Result) (*pb.Status, error) {
+	slog.Debug("Recieved result", "result", result)
+	return &pb.Status{
+		Recieved: true,
+	}, nil
+}
+
 func newServer() *orcaService {
 	s := &orcaService{}
 	return s
