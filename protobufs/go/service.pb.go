@@ -7,12 +7,11 @@
 package _go
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -161,13 +160,11 @@ func file_service_proto_rawDescGZIP() []byte {
 	return file_service_proto_rawDescData
 }
 
-var (
-	file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-	file_service_proto_goTypes  = []any{
-		(*Window)(nil), // 0: Window
-		(*Status)(nil), // 1: Status
-	}
-)
+var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_service_proto_goTypes = []any{
+	(*Window)(nil), // 0: Window
+	(*Status)(nil), // 1: Status
+}
 var file_service_proto_depIdxs = []int32{
 	0, // 0: OrcaService.RegisterWindow:input_type -> Window
 	1, // 1: OrcaService.RegisterWindow:output_type -> Status
