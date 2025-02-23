@@ -2,11 +2,26 @@ syntax="proto3";
 
 option go_package = "github.com/predixus/orca/protobufs/go";
 
-service OrcaService {
-  rpc RegisterWindow(Window) returns (Status);
+// Services for the core orchestrator
+service OrcaCore {
+  // Will log a window ready for processing and emit to relevant
+  // algorithms their processor RPC
+  rpc EmitWindow(Window) returns (Status);
+
+  // Will register that a window type has been created
   rpc RegisterWindowType(WindowType) returns (Status);
-  rpc RegisterAlgorithmType(AlgorithmType) returns (Status);
+
+  // Will register that an algorithm has been created by a processor  
+  rpc RegisterAlgorithm(AlgorithmType) returns (Status);
+
+  // Will register the result from an algorithm
   rpc RegisterResult(Result) returns (Status);
+}
+
+// Services for the processor node
+service OrcaProcessor {
+  // Will start a processing request from a processor
+  rpc Process(ProcessingRequest) returns (status);
 }
 
 message Window {
@@ -34,7 +49,7 @@ message AlgorithmDependency {
   string version = 2;
 }
 
-message AlgorithmType {
+message Algorithm {
   // Name of the algorithm - globally unique
   string name = 1;
 
