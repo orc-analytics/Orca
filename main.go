@@ -13,47 +13,97 @@ import (
 )
 
 type (
-	orcaService struct {
-		pb.UnimplementedOrcaServiceServer
+	orcaCoreServer struct {
+		pb.UnimplementedOrcaCoreServer
 	}
 )
 
-func (w *orcaService) RegisterWindow(ctx context.Context, window *pb.Window) (*pb.Status, error) {
-	slog.Debug("Recieved window", "window", window)
-	return &pb.Status{
-		Recieved: true,
+var (
+	MAX_PROCESSORS = 20
+	processors     = make(
+		[]grpc.ServerStreamingServer[pb.ProcessingTask],
+		MAX_PROCESSORS,
+		MAX_PROCESSORS,
+	)
+)
+
+// Register a processor with orca-core. Called on processor startup.
+func (orcaCoreServer) RegisterProcessor(
+	reg *pb.ProcessorRegistration,
+	stream grpc.ServerStreamingServer[pb.ProcessingTask],
+) error {
+	slog.Info("registering processor",
+		"id", reg.ProcessorId,
+		"runtime", reg.Runtime)
+
+	// do stuff
+
+	// register the processors
+	processors = append(processors, stream)
+
+	return nil
+}
+
+func (orcaCoreServer) EmitWindow(
+	ctx context.Context,
+	window *pb.Window,
+) (*pb.WindowEmitStatus, error) {
+	slog.Info("received window",
+		"name", window.Name,
+		"from", window.From,
+		"to", window.To)
+	return &pb.WindowEmitStatus{
+		Status: pb.WindowEmitStatus_NO_TRIGGERED_ALGORITHMS,
 	}, nil
 }
 
-func (w *orcaService) RegisterWindowType(
+func (orcaCoreServer) RegisterWindowType(
 	ctx context.Context,
 	windowType *pb.WindowType,
 ) (*pb.Status, error) {
-	slog.Debug("Recieved window type", "windowType", windowType)
+	slog.Info("registering window type",
+		"name", windowType.Name)
 	return &pb.Status{
-		Recieved: true,
+		Received: true,
 	}, nil
 }
 
-func (w *orcaService) RegisterAlgorithmType(
+func (orcaCoreServer) RegisterAlgorithm(
 	ctx context.Context,
-	algorithmType *pb.AlgorithmType,
+	algorithm *pb.Algorithm,
 ) (*pb.Status, error) {
-	slog.Debug("Recieved algorithm type", "AlgorithmType", algorithmType)
+	slog.Info("registering algorithm",
+		"name", algorithm.Name,
+		"version", algorithm.Version)
 	return &pb.Status{
-		Recieved: true,
+		Received: true,
 	}, nil
 }
 
-func (w *orcaService) RegisterResult(ctx context.Context, result *pb.Result) (*pb.Status, error) {
-	slog.Debug("Recieved result", "result", result)
+func (orcaCoreServer) SubmitResult(
+	ctx context.Context,
+	result *pb.Result,
+) (*pb.Status, error) {
+	slog.Info("received result",
+		"algorithm", result.AlgorithmName,
+		"version", result.Version,
+		"status", result.Status)
 	return &pb.Status{
-		Recieved: true,
+		Received: true,
 	}, nil
 }
 
-func newServer() *orcaService {
-	s := &orcaService{}
+func (orcaCoreServer) GetDagState(
+	ctx context.Context,
+	request *pb.DagStateRequest,
+) (*pb.DagState, error) {
+	slog.Info("getting DAG state",
+		"window_id", request.WindowId)
+	return &pb.DagState{}, nil
+}
+
+func newServer() *orcaCoreServer {
+	s := &orcaCoreServer{}
 	return s
 }
 
@@ -71,7 +121,7 @@ func main() {
 	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterOrcaServiceServer(grpcServer, newServer())
+	pb.RegisterOrcaCoreServer(grpcServer, newServer())
 	reflection.Register(grpcServer)
 	err = grpcServer.Serve(lis)
 	if err != nil {

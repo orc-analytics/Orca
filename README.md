@@ -26,6 +26,10 @@ python -m pip install grpcio grpcio-tools
 6. Results flow back to core
 7. Core triggers dependent algorithms when dependencies complete
 
+### Orca Teardown / replacement
+
+On teardown / replacement,
+
 ### The Datalayer
 
 The datalayer refers to the utilities required to connect algorithms to storage. This includes, writing windows, results and algorithm definitions.

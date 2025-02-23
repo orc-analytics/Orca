@@ -163,17 +163,13 @@ message FloatArray {
 // ProcessorRegistration is sent by processors when they start up to announce their capabilities
 // to the orchestrator. This establishes a long-lived connection for receiving tasks.
 message ProcessorRegistration {
-  // Unique ID for this processor instance
-  // Must be unique across all running processors
-  string processor_id = 1;
-
   // Language/runtime of the processor
   // Examples: "python3.9", "go1.19", "R4.1"
-  string runtime = 2;
+  string runtime = 1;
 
   // Algorithms this processor can execute
   // The processor must implement all listed algorithms
-  repeated Algorithm supported_algorithms = 3;
+  repeated Algorithm supported_algorithms = 2;
 }
 
 // ProcessingTask represents a single algorithm execution request sent to a processor.

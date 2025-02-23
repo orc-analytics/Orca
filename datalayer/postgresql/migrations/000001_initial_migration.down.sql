@@ -1,4 +1,3 @@
-DROP TABLE IF EXISTS windows;
-DROP TABLE IF EXISTS window_types;
-DROP TABLE IF EXISTS algorithm_types;
-DROP TABLE IF EXISTS algorithm_dependencies;
+-- Drop tables in reverse order of dependencies
+DROP TABLE IF EXISTS processors;
+DROP TABLE IF EXISTS runtimes;
