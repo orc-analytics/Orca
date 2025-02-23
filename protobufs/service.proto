@@ -2,26 +2,34 @@ syntax="proto3";
 
 option go_package = "github.com/predixus/orca/protobufs/go";
 
-// Services for the core orchestrator
+// Services for the core orchestrator that processors connect to
 service OrcaCore {
-  // Will log a window ready for processing and emit to relevant
-  // algorithms their processor RPC
+  // Register a processor node and its supported algorithms
+  rpc RegisterProcessor(ProcessorRegistration) returns (stream ProcessingTask);
+
+  // Submit a window for processing
   rpc EmitWindow(Window) returns (Status);
 
-  // Will register that a window type has been created
+  // Register a new window type
   rpc RegisterWindowType(WindowType) returns (Status);
 
-  // Will register that an algorithm has been created by a processor  
-  rpc RegisterAlgorithm(AlgorithmType) returns (Status);
+  // Register a new algorithm type
+  rpc RegisterAlgorithm(Algorithm) returns (Status);
 
-  // Will register the result from an algorithm
-  rpc RegisterResult(Result) returns (Status);
+  // Submit results from algorithm execution
+  rpc SubmitResult(Result) returns (Status);
+
+  // Get the current state of a DAG execution
+  rpc GetDagState(DagStateRequest) returns (DagState);
 }
 
-// Services for the processor node
+// Services that each processor node must implement
 service OrcaProcessor {
-  // Will start a processing request from a processor
-  rpc Process(ProcessingRequest) returns (status);
+  // Execute an algorithm with given inputs
+  rpc ExecuteAlgorithm(ExecutionRequest) returns (ExecutionResult);
+
+  // Check health/status of processor
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
 }
 
 message Window {
@@ -81,7 +89,66 @@ message Result {
   ResultStatus status = 3;
 }
 
+message ProcessorRegistration {
+  // Unique ID for this processor instance
+  string processor_id = 1;
+  // Language/runtime of the processor
+  string runtime = 2;
+  // Algorithms this processor can execute
+  repeated Algorithm supported_algorithms = 3;
+}
+
+message ProcessingTask {
+  // ID of the task
+  string task_id = 1;
+  // Algorithm to execute
+  Algorithm algorithm = 2;
+  // Window that triggered this task
+  Window window = 3;
+  // Results from dependent algorithms
+  repeated Result dependency_results = 4;
+}
+
+message ExecutionRequest {
+  // Task ID from ProcessingTask
+  string task_id = 1;
+  // Algorithm to execute
+  Algorithm algorithm = 2;
+  // Input data/parameters
+  map<string, bytes> inputs = 3;
+}
+
+message ExecutionResult {
+  // Task ID
+  string task_id = 1;
+  // Execution status
+  ResultStatus status = 2;
+  // Output data
+  map<string, bytes> outputs = 3;
+}
+
+message DagStateRequest {
+  // Window ID to query
+  string window_id = 1;
+}
+
+message DagState {
+  // Window being processed
+  Window window = 1;
+  // Status of each algorithm
+  repeated AlgorithmState algorithm_states = 2;
+}
+
+message AlgorithmState {
+  // Algorithm info
+  Algorithm algorithm = 1;
+  // Current status
+  string status = 2;
+  // Result if completed
+  Result result = 3;
+}
+
 message Status {
-  //  Generic recieved flag
-  bool recieved = 1;
+  bool received = 1;
+  string message = 2;
 }

@@ -16,6 +16,16 @@ python -m pip install grpcio grpcio-tools
 
 ## Functionality
 
+### Orca Execution Flow
+
+1. Processors start up and register with the Orca-core service
+2. Window arrives at the core
+3. Core identifies affected algorithms
+4. Core creates execution plan based on DAG
+5. Tasks streamed to appropriate processors
+6. Results flow back to core
+7. Core triggers dependent algorithms when dependencies complete
+
 ### The Datalayer
 
 The datalayer refers to the utilities required to connect algorithms to storage. This includes, writing windows, results and algorithm definitions.
