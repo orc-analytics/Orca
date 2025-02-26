@@ -33,13 +33,9 @@ func (orcaCoreServer) RegisterProcessor(
 	stream grpc.ServerStreamingServer[pb.ProcessingTask],
 ) error {
 	slog.Info("registering processor",
-		"id", reg.ProcessorId,
 		"runtime", reg.Runtime)
 
 	// do stuff
-
-	// register the processors
-	processors = append(processors, stream)
 
 	return nil
 }

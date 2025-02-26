@@ -9,86 +9,35 @@ import (
 	"context"
 )
 
-const createAlgorithmDependency = `-- name: CreateAlgorithmDependency :one
-INSERT INTO algorithm_dependencies (
-    algorithm_name,
-    algorithm_version,
-    depends_on_name,
-    depends_on_version
+const addProcessor = `-- name: AddProcessor :one
+INSERT INTO processors (
+  name,
+  runtime_id,
+  active
 ) VALUES (
-    $1,
-    $2,
-    $3,
-    $4
-) RETURNING algorithm_name, algorithm_version, depends_on_name, depends_on_version
+  $1,
+  $2,
+  true
+) ON CONFLICT (name) DO UPDATE 
+SET 
+  runtime_id = EXCLUDED.runtime_id,
+  active = EXCLUDED.active
+RETURNING name, runtime_id, active, created
 `
 
-type CreateAlgorithmDependencyParams struct {
-	AlgorithmName    string
-	AlgorithmVersion string
-	DependsOnName    string
-	DependsOnVersion string
+type AddProcessorParams struct {
+	Name      string
+	RuntimeID int32
 }
 
-func (q *Queries) CreateAlgorithmDependency(ctx context.Context, arg CreateAlgorithmDependencyParams) (AlgorithmDependency, error) {
-	row := q.db.QueryRow(ctx, createAlgorithmDependency,
-		arg.AlgorithmName,
-		arg.AlgorithmVersion,
-		arg.DependsOnName,
-		arg.DependsOnVersion,
-	)
-	var i AlgorithmDependency
-	err := row.Scan(
-		&i.AlgorithmName,
-		&i.AlgorithmVersion,
-		&i.DependsOnName,
-		&i.DependsOnVersion,
-	)
-	return i, err
-}
-
-const createAlgorithmType = `-- name: CreateAlgorithmType :one
-INSERT INTO algorithm_types (
-    name,
-    version,
-    window_type_name
-) VALUES (
-    $1,
-    $2,
-    $3
-) RETURNING name, version, window_type_name, created_at
-`
-
-type CreateAlgorithmTypeParams struct {
-	Name           string
-	Version        string
-	WindowTypeName string
-}
-
-func (q *Queries) CreateAlgorithmType(ctx context.Context, arg CreateAlgorithmTypeParams) (AlgorithmType, error) {
-	row := q.db.QueryRow(ctx, createAlgorithmType, arg.Name, arg.Version, arg.WindowTypeName)
-	var i AlgorithmType
+func (q *Queries) AddProcessor(ctx context.Context, arg AddProcessorParams) (Processor, error) {
+	row := q.db.QueryRow(ctx, addProcessor, arg.Name, arg.RuntimeID)
+	var i Processor
 	err := row.Scan(
 		&i.Name,
-		&i.Version,
-		&i.WindowTypeName,
-		&i.CreatedAt,
+		&i.RuntimeID,
+		&i.Active,
+		&i.Created,
 	)
-	return i, err
-}
-
-const createWindowType = `-- name: CreateWindowType :one
-INSERT INTO window_types (
-    name
-) VALUES (
-    $1
-) ON CONFLICT (name) DO NOTHING
-RETURNING name, created_at
-`
-
-func (q *Queries) CreateWindowType(ctx context.Context, name string) (WindowType, error) {
-	row := q.db.QueryRow(ctx, createWindowType, name)
-	var i WindowType
-	err := row.Scan(&i.Name, &i.CreatedAt)
 	return i, err
 }

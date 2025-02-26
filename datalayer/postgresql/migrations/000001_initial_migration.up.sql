@@ -8,6 +8,8 @@ CREATE TABLE runtimes (
 CREATE TABLE processors (
   name TEXT NOT NULL,
   runtime_id INTEGER NOT NULL,
+  active BOOLEAN NOT NULL,
+  created TIMESATMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (runtime_id) REFERENCES runtimes(id) 
     ON DELETE RESTRICT  -- Prevent deletion of runtimes that have processors
     ON UPDATE CASCADE   -- If runtime.id changes, update all references

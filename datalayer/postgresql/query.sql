@@ -1,3 +1,18 @@
+-- name: AddProcessor :one
+INSERT INTO processors (
+  name,
+  runtime_id,
+  active
+) VALUES (
+  sqlc.arg('name'),
+  sqlc.arg('runtime_id'),
+  true
+) ON CONFLICT (name) DO UPDATE 
+SET 
+  runtime_id = EXCLUDED.runtime_id,
+  active = EXCLUDED.active
+RETURNING *;
+
 -- -- name: CreateAlgorithmType :one
 -- INSERT INTO algorithm_types (
 --     name,
