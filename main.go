@@ -121,6 +121,6 @@ func main() {
 	reflection.Register(grpcServer)
 	err = grpcServer.Serve(lis)
 	if err != nil {
-		slog.Error("message", err)
+		slog.Error("failed to serve", "error", err)
 	}
 }

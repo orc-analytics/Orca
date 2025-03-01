@@ -17,7 +17,7 @@ const (
 )
 
 // check if the platform is supported
-func (p Platform) IsValid() bool {
+func (p Platform) isValid() bool {
 	switch p {
 	case PostgreSQL:
 		return true
@@ -26,12 +26,12 @@ func (p Platform) IsValid() bool {
 	}
 }
 
-func NewDatalayerClient(
+func NewClient(
 	ctx context.Context,
 	platform Platform,
 	connStr string,
 ) (inte.Datalayer, error) {
-	if !platform.IsValid() {
+	if !platform.isValid() {
 		return nil, fmt.Errorf("unsupported platform: %s", platform)
 	}
 
