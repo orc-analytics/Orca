@@ -1,22 +1,10 @@
--- Runtimes supported by Orca
-CREATE TABLE runtimes (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL UNIQUE
-);
-
 -- Processors that can execute algorithms
 CREATE TABLE processors (
   name TEXT NOT NULL,
-  runtime_id INTEGER NOT NULL,
+  runtime TEXT NOT NULL, -- e.g. py3.*, go1.*, etc.
   active BOOLEAN NOT NULL,
-  created TIMESATMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (runtime_id) REFERENCES runtimes(id) 
-    ON DELETE RESTRICT  -- Prevent deletion of runtimes that have processors
-    ON UPDATE CASCADE   -- If runtime.id changes, update all references
+  created TIMESATMP DEFAULT CURRENT_TIMESTAMP
 );
-
--- Initial runtimes that will be supported
-INSERT INTO runtimes (name) VALUES ('py-3.*'), ('go-1.*');
 
 -- -- Types of windows
 -- CREATE TABLE window_types (

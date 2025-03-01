@@ -86,12 +86,14 @@ class FloatArray(_message.Message):
     def __init__(self, values: _Optional[_Iterable[float]] = ...) -> None: ...
 
 class ProcessorRegistration(_message.Message):
-    __slots__ = ("runtime", "supported_algorithms")
+    __slots__ = ("name", "runtime", "supported_algorithms")
+    NAME_FIELD_NUMBER: _ClassVar[int]
     RUNTIME_FIELD_NUMBER: _ClassVar[int]
     SUPPORTED_ALGORITHMS_FIELD_NUMBER: _ClassVar[int]
+    name: str
     runtime: str
     supported_algorithms: _containers.RepeatedCompositeFieldContainer[Algorithm]
-    def __init__(self, runtime: _Optional[str] = ..., supported_algorithms: _Optional[_Iterable[_Union[Algorithm, _Mapping]]] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., runtime: _Optional[str] = ..., supported_algorithms: _Optional[_Iterable[_Union[Algorithm, _Mapping]]] = ...) -> None: ...
 
 class ProcessingTask(_message.Message):
     __slots__ = ("task_id", "algorithm", "window", "dependency_results")

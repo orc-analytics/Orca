@@ -12,7 +12,7 @@ import (
 const addProcessor = `-- name: AddProcessor :one
 INSERT INTO processors (
   name,
-  runtime_id,
+  runtime,
   active
 ) VALUES (
   $1,
@@ -22,20 +22,20 @@ INSERT INTO processors (
 SET 
   runtime_id = EXCLUDED.runtime_id,
   active = EXCLUDED.active
-RETURNING name, runtime_id, active, created
+RETURNING name, runtime, active, created
 `
 
 type AddProcessorParams struct {
-	Name      string
-	RuntimeID int32
+	Name    string
+	Runtime string
 }
 
 func (q *Queries) AddProcessor(ctx context.Context, arg AddProcessorParams) (Processor, error) {
-	row := q.db.QueryRow(ctx, addProcessor, arg.Name, arg.RuntimeID)
+	row := q.db.QueryRow(ctx, addProcessor, arg.Name, arg.Runtime)
 	var i Processor
 	err := row.Scan(
 		&i.Name,
-		&i.RuntimeID,
+		&i.Runtime,
 		&i.Active,
 		&i.Created,
 	)

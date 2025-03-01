@@ -5,13 +5,8 @@
 package postgresql
 
 type Processor struct {
-	Name      string
-	RuntimeID int32
-	Active    bool
-	Created   interface{}
-}
-
-type Runtime struct {
-	ID   int32
-	Name string
+	Name    string
+	Runtime string
+	Active  bool
+	Created interface{}
 }

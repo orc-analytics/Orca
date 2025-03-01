@@ -1,10 +1,12 @@
 package internal
 
 import (
+	"context"
+
 	pb "github.com/predixus/orca/protobufs/go"
 )
 
 // the interface that all datalayers must implement to be compatible
 type Datalayer interface {
-	AddProcessor(pb.ProcessorRegistration) error
+	AddProcessor(ctx context.Context, proc *pb.ProcessorRegistration) error
 }

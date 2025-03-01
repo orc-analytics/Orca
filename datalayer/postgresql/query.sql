@@ -1,11 +1,11 @@
 -- name: AddProcessor :one
 INSERT INTO processors (
   name,
-  runtime_id,
+  runtime,
   active
 ) VALUES (
   sqlc.arg('name'),
-  sqlc.arg('runtime_id'),
+  sqlc.arg('runtime'),
   true
 ) ON CONFLICT (name) DO UPDATE 
 SET 

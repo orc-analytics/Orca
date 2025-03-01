@@ -23,5 +23,8 @@ go.work
 *.env*
 _*
 
+# custom
 *.vscode
 ./orca
+.null-ls*
+
