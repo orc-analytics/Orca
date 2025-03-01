@@ -1,7 +1,34 @@
 # Orca
+
 Streamline the analytics and amplify the insight.
 
+### Building
+
+Install the proto compiler:
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+
+Install the proto GRPC compiler:
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+Install the python GRPC code generator:
+
+python -m pip install grpcio grpcio-tools
+
 ## Functionality
+
+### Orca Execution Flow
+
+1. Processors start up and register with the Orca-core service
+2. Window arrives at the core
+3. Core identifies affected algorithms
+4. Core creates execution plan based on DAG
+5. Tasks streamed to appropriate processors
+6. Results flow back to core
+7. Core triggers dependent algorithms when dependencies complete
+
+### Orca Teardown / replacement
+
+On teardown / replacement,
 
 ### The Datalayer
 

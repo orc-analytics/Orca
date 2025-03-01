@@ -1,6 +1,8 @@
 .PHONY: all build_proto build_store remove_store refresh_store
 
-all: build_proto
+all: .proto .datalayer
+proto: .proto
+datalayer: .datalayer
 
 build_proto: .proto .proto_docs 
 build_store: .create_ssl_cert .spin_up_datalayer
@@ -18,6 +20,15 @@ test: .test_all
 	--go-grpc_out=go \
 	--go-grpc_opt=paths=source_relative \
 	*.proto
+	python -m grpc_tools.protoc \
+		-I./protobufs \
+		--python_out=./protobufs/python \
+		--pyi_out=./protobufs/python \
+		--grpc_python_out=./protobufs/python \
+		./protobufs/*.proto
+
+.datalayer:
+	sqlc generate -f datalayer/postgresql/sqlc.yaml
 
 .proto_docs:
 	cd protobufs && docker run --rm \
