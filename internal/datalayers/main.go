@@ -1,6 +1,7 @@
 package datalayers
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
@@ -17,7 +18,7 @@ const (
 
 // check if the platform is supported
 func (p Platform) IsValid() bool {
-	switch {
+	switch p {
 	case PostgreSQL:
 		return true
 	default:
@@ -25,14 +26,18 @@ func (p Platform) IsValid() bool {
 	}
 }
 
-func NewDatalayerClient(platform Platform) (inte.Datalayer, error) {
+func NewDatalayerClient(
+	ctx context.Context,
+	platform Platform,
+	connStr string,
+) (inte.Datalayer, error) {
 	if !platform.IsValid() {
 		return nil, fmt.Errorf("unsupported platform: %s", platform)
 	}
 
 	switch platform {
 	case PostgreSQL:
-		return psql.NewClient()
+		return psql.NewClient(ctx, &connStr)
 	default:
 		slog.Error("attempted to access unsuported platform", "platform", platform)
 		return nil, fmt.Errorf("platform not implemented: %s", platform)
