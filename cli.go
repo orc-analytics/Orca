@@ -1,13 +1,20 @@
-package cli
+package main
 
 import (
 	"fmt"
+	"log/slog"
+	"net"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	orca "github.com/predixus/orca/internal"
+	pb "github.com/predixus/orca/protobufs/go"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type state int
@@ -115,11 +122,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	var s strings.Builder
-
 	switch m.state {
 	case configuring:
-		s.WriteString("Welcome to Orca Server\n\n")
-		s.WriteString("Enter database connection string:\n")
+		s.WriteString("------------------------- ORCA ------------------------\n")
+		s.WriteString("The Orchestrated Robust-Compute and Analytics Framework\n")
+		s.WriteString("-------------------------------------------------------\n")
+		s.WriteString("\nEnter database connection string:\n")
 		s.WriteString(m.dbInput.View())
 		s.WriteString("\n\n")
 	case running:
@@ -141,9 +149,26 @@ func (m model) View() string {
 type serverStartedMsg struct{}
 
 func startGRPCServer(dbConnString string) tea.Cmd {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+	slog.SetDefault(logger)
+
+	port := 4040
+	slog.Debug("Running the server", "port", port)
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
+	if err != nil {
+		slog.Error("failed to listen", "message", err)
+	}
+	var opts []grpc.ServerOption
+	grpcServer := grpc.NewServer(opts...)
+	pb.RegisterOrcaCoreServer(grpcServer, orca.NewServer())
+	reflection.Register(grpcServer)
+	err = grpcServer.Serve(lis)
+	if err != nil {
+		slog.Error("failed to serve", "error", err)
+	}
 	return func() tea.Msg {
-		// Here you would start your actual gRPC server
-		// For now just return that we "started"
 		return serverStartedMsg{}
 	}
 }
