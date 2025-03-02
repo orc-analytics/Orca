@@ -18,27 +18,35 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+// valid datalayers - as they are displayed
+var datalayerSuggestions = []string{
+	"PostgreSQL",
+}
+
+// templates for filling out connection string
 type connStringTemplate struct {
 	prefix     string
 	components []string
+	separators []string
+}
+
+func (c connStringTemplate) getFullConnStr() string {
+	fullStr := c.prefix + "<" + c.components[0] + ">"
+	for i := 1; i < len(c.components); i++ {
+		fullStr += c.separators[i-1] + "<" + c.components[i] + ">"
+	}
+	return fullStr
 }
 
 var connectionTemplates = map[string]connStringTemplate{
-	"postgresql": {
+	"PostgreSQL": {
 		prefix:     "postgresql://",
-		components: []string{"user", "password", "host:port", "dbname"},
-	},
-	"mysql": {
-		prefix:     "mysql://",
-		components: []string{"user", "password", "host:port", "dbname"},
-	},
-	"mongodb": {
-		prefix:     "mongodb+srv://",
-		components: []string{"user", "password", "cluster.mongodb.net", "dbname"},
+		components: []string{"user", "password", "host", "port", "dbname"},
+		separators: []string{":", "@", ":", "/"}, // fence-post-panels
 	},
 }
 
-// Style for the placeholder text
+// style for the placeholder text
 var placeholderStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true)
 
 // cli/server state management
@@ -51,9 +59,18 @@ const (
 	closing
 )
 
+// configuration steps - what are we currently configuring?
+type configStep int
+
+const (
+	datalayer configStep = iota
+	connectionStr
+)
+
+// the cli model
 type model struct {
 	state         state
-	currentInput  int // 0 for datalayer, 1 for connection string
+	configStep    configStep
 	dlyr          textinput.Model
 	connStr       textinput.Model
 	help          help.Model
@@ -62,42 +79,30 @@ type model struct {
 	datalayerType dlyr.Platform
 }
 
-var datalayerSuggestions = []string{
-	"postgresql",
-	"mysql",
-	"mongodb",
-}
-
-var connectionPrefixes = map[string]string{
-	"postgresql": "postgresql://",
-	"mysql":      "mysql://",
-	"mongodb":    "mongo+srv://",
-}
-
-// Custom TUI messages
+// custom TUI messages
 type serverStartedMsg struct{}
 
-// Custom key bindings
+// custom key bindings
 type keyMap struct {
-	Start        key.Binding
+	Enter        key.Binding
 	Quit         key.Binding
 	Help         key.Binding
 	Autocomplete key.Binding
 }
 
-func (k keyMap) ShortHelp() []key.Binding {
+func (k keyMap) shortHelp() []key.Binding {
 	return []key.Binding{k.Help, k.Quit}
 }
 
-func (k keyMap) FullHelp() [][]key.Binding {
+func (k keyMap) fullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Start, k.Help, k.Quit},
+		{k.Enter, k.Help, k.Quit},
 	}
 }
 
 // initialise the key map
 var keys = keyMap{
-	Start: key.NewBinding(
+	Enter: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("↵", "submit answer"),
 	),
@@ -117,26 +122,30 @@ var keys = keyMap{
 
 // initialise the model
 func initialModel() model {
+	defaultDlyr := datalayerSuggestions[0]
+
+	// datalayer selection
 	tiDlyr := textinput.New()
-	tiDlyr.Placeholder = "postgresql"
+	tiDlyr.Placeholder = strings.ToLower(defaultDlyr)
 	tiDlyr.Focus()
-	tiDlyr.CharLimit = 156
+	tiDlyr.CharLimit = 50
 	tiDlyr.Width = 50
 	tiDlyr.ShowSuggestions = true
 	tiDlyr.SetSuggestions(datalayerSuggestions)
 
+	// datalayer placeholder
 	tiConnStr := textinput.New()
-	tiConnStr.Placeholder = "user:password@localhost:5432/dbname"
+	tiConnStr.Placeholder = connectionTemplates[defaultDlyr].getFullConnStr()
 	tiConnStr.CharLimit = 156
 	tiConnStr.Width = 50
 
 	return model{
-		state:        configuring,
-		currentInput: 0,
-		dlyr:         tiDlyr,
-		connStr:      tiConnStr,
-		help:         help.New(),
-		keys:         keys,
+		state:      configuring,
+		configStep: datalayer,
+		dlyr:       tiDlyr,
+		connStr:    tiConnStr,
+		help:       help.New(),
+		keys:       keys,
 	}
 }
 
@@ -155,6 +164,49 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
+		case msg.Type == tea.KeyTab && m.configStep == connectionStr:
+
+			// Handle tab navigation within connection string
+			if template, ok := connectionTemplates[m.dlyr.Value()]; ok {
+				currentValue := m.connStr.Value()
+				parts := strings.FieldsFunc(strings.TrimPrefix(currentValue, template.prefix), func(r rune) bool {
+					return r == ':' || r == '@' || r == '/'
+				})
+
+				m.currentField++
+				if m.currentField >= len(template.components) {
+					m.currentField = 0
+				}
+
+				// Rebuild connection string up to the current field
+				newValue := template.prefix
+				for i := 0; i < len(parts); i++ {
+					if i > 0 {
+						if i == 1 {
+							newValue += ":"
+						} else if i == 2 {
+							newValue += "@"
+						} else if i == 3 {
+							newValue += "/"
+						}
+					}
+					newValue += parts[i]
+				}
+
+				// Always add the appropriate separator when tabbing
+				if len(parts) == 1 {
+					newValue += ":"
+				} else if len(parts) == 2 {
+					newValue += "@"
+				} else if len(parts) == 3 {
+					newValue += "/"
+				}
+
+				m.connStr.SetValue(newValue)
+				// Position cursor after the separator
+				m.connStr.SetCursor(len(newValue))
+			}
+			return m, nil
 		case msg.Type == tea.KeyEnter:
 			if m.state == configuring {
 				if m.currentInput == 0 {
@@ -165,6 +217,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					// Set connection string prefix based on datalayer
 					if template, ok := connectionTemplates[m.dlyr.Value()]; ok {
 						m.connStr.SetValue(template.prefix)
+						m.currentField = 0
 					}
 				} else if m.connStr.Value() != "" {
 					// Start the server
@@ -218,7 +271,6 @@ func (m model) View() string {
 			// Get the template for the selected datalayer
 			if template, ok := connectionTemplates[m.dlyr.Value()]; ok {
 				currentValue := m.connStr.Value()
-				// cursor := strings.Repeat(" ", m.connStr.) + "█"
 				cursor := ""
 
 				if currentValue == template.prefix {
@@ -251,13 +303,18 @@ func (m model) View() string {
 
 					if len(parts) < len(template.components) {
 						remaining := template.components[len(parts):]
-						nextSep := ":"
-						if len(parts) == 1 {
-							nextSep = "@"
-						} else if len(parts) == 2 {
-							nextSep = "/"
+						// Only show separator if we're not at the end of a field
+						if !strings.HasSuffix(currentValue, ":") &&
+							!strings.HasSuffix(currentValue, "@") &&
+							!strings.HasSuffix(currentValue, "/") {
+							nextSep := ":"
+							if len(parts) == 1 {
+								nextSep = "@"
+							} else if len(parts) == 2 {
+								nextSep = "/"
+							}
+							s.WriteString(nextSep)
 						}
-						s.WriteString(nextSep)
 						s.WriteString(placeholderStyle.Render("<" + remaining[0] + ">"))
 
 						for i, comp := range remaining[1:] {
