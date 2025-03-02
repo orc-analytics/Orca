@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
-	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -12,32 +11,41 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	orca "github.com/predixus/orca/internal"
+	dlyr "github.com/predixus/orca/internal/datalayers"
 	pb "github.com/predixus/orca/protobufs/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
+// cli/server state management
 type state int
 
 const (
-	configuring state = iota
+	quitting state = iota
+	configuring
 	running
+	closing
 )
 
 type model struct {
-	state       state
-	dbInput     textinput.Model
-	help        help.Model
-	keys        keyMap
-	err         error
-	quitting    bool
-	serverState string
+	state         state
+	dlyr          textinput.Model
+	connStr       textinput.Model
+	help          help.Model
+	keys          keyMap
+	err           error
+	datalayerType dlyr.Platform
 }
 
+// Custom TUI messages
+type serverStartedMsg struct{}
+
+// Custom key bindings
 type keyMap struct {
-	Start key.Binding
-	Quit  key.Binding
-	Help  key.Binding
+	Start        key.Binding
+	Quit         key.Binding
+	Help         key.Binding
+	Autocomplete key.Binding
 }
 
 func (k keyMap) ShortHelp() []key.Binding {
@@ -50,10 +58,15 @@ func (k keyMap) FullHelp() [][]key.Binding {
 	}
 }
 
+// initialise the key map
 var keys = keyMap{
 	Start: key.NewBinding(
 		key.WithKeys("enter"),
-		key.WithHelp("↵", "start server"),
+		key.WithHelp("↵", "submit answer"),
+	),
+	Autocomplete: key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("⇥", "autocomplete"),
 	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),
@@ -65,19 +78,26 @@ var keys = keyMap{
 	),
 }
 
+// initialise the model
 func initialModel() model {
-	ti := textinput.New()
-	ti.Placeholder = "postgresql://user:pass@localhost:5432/dbname"
-	ti.Focus()
-	ti.CharLimit = 156
-	ti.Width = 50
+	tiDlyr := textinput.New()
+	tiDlyr.Placeholder = "PostgreSQL"
+	tiDlyr.Focus()
+	tiDlyr.CharLimit = 156
+	tiDlyr.Width = 50
+
+	tiConnStr := textinput.New()
+	tiConnStr.Placeholder = "postgresql://orca:orca_password@orca_postgres:5432/orca"
+	tiConnStr.Focus()
+	tiConnStr.CharLimit = 156
+	tiConnStr.Width = 50
 
 	return model{
-		state:       configuring,
-		dbInput:     ti,
-		help:        help.New(),
-		keys:        keys,
-		serverState: "stopped",
+		state:   configuring,
+		dlyr:    tiDlyr,
+		connStr: tiConnStr,
+		help:    help.New(),
+		keys:    keys,
 	}
 }
 
@@ -92,15 +112,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keys.Quit):
-			m.quitting = true
+			m.state = quitting
 			return m, tea.Quit
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keys.Start):
-			if m.state == configuring && m.dbInput.Value() != "" {
+			if m.state == configuring && m.connStr.Value() != "" {
 				m.state = running
-				m.serverState = "running"
-				return m, startGRPCServer(m.dbInput.Value())
+				return m, startGRPCServer(m.connStr.Value())
 			}
 		}
 
@@ -109,12 +128,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case serverStartedMsg:
-		m.serverState = "running"
+		m.state = running
 		return m, nil
 	}
 
 	if m.state == configuring {
-		m.dbInput, cmd = m.dbInput.Update(msg)
+		m.dlyr, cmd = m.dlyr.Update(msg)
+		m.connStr, cmd = m.connStr.Update(msg)
 	}
 
 	return m, cmd
@@ -127,12 +147,14 @@ func (m model) View() string {
 		s.WriteString("------------------------- ORCA ------------------------\n")
 		s.WriteString("The Orchestrated Robust-Compute and Analytics Framework\n")
 		s.WriteString("-------------------------------------------------------\n")
-		s.WriteString("\nEnter database connection string:\n")
-		s.WriteString(m.dbInput.View())
-		s.WriteString("\n\n")
+		s.WriteString("\nSelect datalayer\n")
+		s.WriteString(m.dlyr.View())
+		// s.WriteString("\nEnter database connection string:\n")
+		// s.WriteString(m.connStr.View())
+		// s.WriteString("\n\n")
 	case running:
-		s.WriteString(fmt.Sprintf("Server State: %s\n", m.serverState))
-		s.WriteString(fmt.Sprintf("Database: %s\n", m.dbInput.Value()))
+		s.WriteString(fmt.Sprintf("Server State: %s\n", m.state))
+		s.WriteString(fmt.Sprintf("Database: %s\n", m.connStr.Value()))
 	}
 
 	if m.err != nil {
@@ -145,15 +167,7 @@ func (m model) View() string {
 	return s.String()
 }
 
-// Server management
-type serverStartedMsg struct{}
-
 func startGRPCServer(dbConnString string) tea.Cmd {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
-	slog.SetDefault(logger)
-
 	port := 4040
 	slog.Debug("Running the server", "port", port)
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))

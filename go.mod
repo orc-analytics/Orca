@@ -7,7 +7,6 @@ toolchain go1.24.0
 require (
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.3.4
-	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/jackc/pgx/v5 v5.7.2
 	google.golang.org/grpc v1.70.0
 	google.golang.org/protobuf v1.36.5
@@ -16,6 +15,7 @@ require (
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
+	github.com/charmbracelet/lipgloss v1.0.0 // indirect
 	github.com/charmbracelet/x/ansi v0.8.0 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
