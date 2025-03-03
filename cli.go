@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -12,7 +14,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	orca "github.com/predixus/orca/internal"
-	dlyr "github.com/predixus/orca/internal/datalayers"
 	pb "github.com/predixus/orca/protobufs/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -25,24 +26,14 @@ var datalayerSuggestions = []string{
 
 // templates for filling out connection string
 type connStringTemplate struct {
-	prefix     string
-	components []string
-	separators []string
-}
-
-func (c connStringTemplate) getFullConnStr() string {
-	fullStr := c.prefix + "<" + c.components[0] + ">"
-	for i := 1; i < len(c.components); i++ {
-		fullStr += c.separators[i-1] + "<" + c.components[i] + ">"
-	}
-	return fullStr
+	regex          string
+	exampleConnStr string
 }
 
 var connectionTemplates = map[string]connStringTemplate{
 	"PostgreSQL": {
-		prefix:     "postgresql://",
-		components: []string{"user", "password", "host", "port", "dbname"},
-		separators: []string{":", "@", ":", "/"}, // fence-post-panels
+		regex:          `(postgresql|postgres):\/\/([^:@\s]*(?::[^@\s]*)?@)?([^\/\?\s]+)`,
+		exampleConnStr: "postgresql://<user>:<pass>@localhost:5432/orca?sslmode=prefer",
 	},
 }
 
@@ -62,6 +53,7 @@ const (
 // configuration steps - what are we currently configuring?
 type configStep int
 
+// this is the config step order
 const (
 	datalayer configStep = iota
 	connectionStr
@@ -69,14 +61,13 @@ const (
 
 // the cli model
 type model struct {
-	state         state
-	configStep    configStep
-	dlyr          textinput.Model
-	connStr       textinput.Model
-	help          help.Model
-	keys          keyMap
-	err           error
-	datalayerType dlyr.Platform
+	state      state
+	configStep configStep
+	help       help.Model
+	keys       keyMap
+	err        error
+	dlyr       *textinput.Model
+	connStr    *textinput.Model
 }
 
 // custom TUI messages
@@ -88,15 +79,16 @@ type keyMap struct {
 	Quit         key.Binding
 	Help         key.Binding
 	Autocomplete key.Binding
+	Esc          key.Binding
 }
 
-func (k keyMap) shortHelp() []key.Binding {
+func (k keyMap) ShortHelp() []key.Binding {
 	return []key.Binding{k.Help, k.Quit}
 }
 
-func (k keyMap) fullHelp() [][]key.Binding {
+func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Enter, k.Help, k.Quit},
+		{k.Enter, k.Help, k.Quit, k.Esc},
 	}
 }
 
@@ -118,6 +110,10 @@ var keys = keyMap{
 		key.WithKeys("ctrl+c", "ctrl+q"),
 		key.WithHelp("⌘+q", "quit"),
 	),
+	Esc: key.NewBinding(
+		key.WithKeys("esc"),
+		key.WithHelp("ESC", "go back"),
+	),
 }
 
 // initialise the model
@@ -128,22 +124,50 @@ func initialModel() model {
 	tiDlyr := textinput.New()
 	tiDlyr.Placeholder = strings.ToLower(defaultDlyr)
 	tiDlyr.Focus()
-	tiDlyr.CharLimit = 50
+	tiDlyr.CharLimit = 150
 	tiDlyr.Width = 50
 	tiDlyr.ShowSuggestions = true
+	tiDlyr.Validate = func(s string) error {
+		if s == "" {
+			return nil
+		}
+		for _, v := range datalayerSuggestions {
+			if strings.EqualFold(v, s) {
+				return nil
+			}
+		}
+		return fmt.Errorf("unsupported datalayer: %s", s)
+	}
 	tiDlyr.SetSuggestions(datalayerSuggestions)
 
-	// datalayer placeholder
+	// connection string placeholder
 	tiConnStr := textinput.New()
-	tiConnStr.Placeholder = connectionTemplates[defaultDlyr].getFullConnStr()
-	tiConnStr.CharLimit = 156
-	tiConnStr.Width = 50
+	tiConnStr.Placeholder = connectionTemplates[defaultDlyr].exampleConnStr
+	tiConnStr.CharLimit = 150
+	tiConnStr.Width = 80
+	tiConnStr.Validate = func(s string) error {
+		if s == "" {
+			return errors.New("Datalayer string cannot be empty")
+		}
+		template, ok := connectionTemplates[tiDlyr.Value()]
+		if !ok {
+			return fmt.Errorf("no template found for datalayer: %s", tiDlyr.Value())
+		}
+		matched, err := regexp.Match(template.regex, []byte(s))
+		if err != nil {
+			return fmt.Errorf("regex error: %v", err)
+		}
+		if !matched {
+			return fmt.Errorf("invalid connection string format")
+		}
+		return nil
+	}
 
 	return model{
 		state:      configuring,
 		configStep: datalayer,
-		dlyr:       tiDlyr,
-		connStr:    tiConnStr,
+		dlyr:       &tiDlyr,
+		connStr:    &tiConnStr,
 		help:       help.New(),
 		keys:       keys,
 	}
@@ -159,78 +183,50 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, m.keys.Esc):
+			if m.state == configuring {
+				if m.configStep == connectionStr {
+					m.configStep = datalayer
+					m.connStr.Blur()
+					m.dlyr.Focus()
+				}
+			}
+
 		case key.Matches(msg, m.keys.Quit):
 			m.state = quitting
 			return m, tea.Quit
+
 		case key.Matches(msg, m.keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
-		case msg.Type == tea.KeyTab && m.configStep == connectionStr:
 
-			// Handle tab navigation within connection string
-			if template, ok := connectionTemplates[m.dlyr.Value()]; ok {
-				currentValue := m.connStr.Value()
-				parts := strings.FieldsFunc(strings.TrimPrefix(currentValue, template.prefix), func(r rune) bool {
-					return r == ':' || r == '@' || r == '/'
-				})
-
-				m.currentField++
-				if m.currentField >= len(template.components) {
-					m.currentField = 0
-				}
-
-				// Rebuild connection string up to the current field
-				newValue := template.prefix
-				for i := 0; i < len(parts); i++ {
-					if i > 0 {
-						if i == 1 {
-							newValue += ":"
-						} else if i == 2 {
-							newValue += "@"
-						} else if i == 3 {
-							newValue += "/"
-						}
-					}
-					newValue += parts[i]
-				}
-
-				// Always add the appropriate separator when tabbing
-				if len(parts) == 1 {
-					newValue += ":"
-				} else if len(parts) == 2 {
-					newValue += "@"
-				} else if len(parts) == 3 {
-					newValue += "/"
-				}
-
-				m.connStr.SetValue(newValue)
-				// Position cursor after the separator
-				m.connStr.SetCursor(len(newValue))
-			}
-			return m, nil
 		case msg.Type == tea.KeyEnter:
 			if m.state == configuring {
-				if m.currentInput == 0 {
-					// Move from datalayer to connection string
-					m.currentInput = 1
+				if m.configStep == datalayer {
+					// validate datalayer selection
+					if err := m.dlyr.Validate(m.dlyr.Value()); err != nil {
+						m.err = err
+						return m, nil
+					} else {
+						m.err = nil
+					}
+
+					// move from datalayer to connection string
+					m.configStep = connectionStr
 					m.dlyr.Blur()
 					m.connStr.Focus()
-					// Set connection string prefix based on datalayer
-					if template, ok := connectionTemplates[m.dlyr.Value()]; ok {
-						m.connStr.SetValue(template.prefix)
-						m.currentField = 0
+
+				} else if m.configStep == connectionStr {
+					if err := m.connStr.Validate(m.connStr.Value()); err != nil {
+						m.err = err
+						return m, nil
+					} else {
+						m.err = nil
 					}
-				} else if m.connStr.Value() != "" {
-					// Start the server
+
+					// start the server
 					m.state = running
 					return m, startGRPCServer(m.connStr.Value())
 				}
-			}
-		case msg.Type == tea.KeyEsc:
-			if m.currentInput == 1 {
-				// Go back to datalayer selection
-				m.currentInput = 0
-				m.connStr.Blur()
-				m.dlyr.Focus()
 			}
 		}
 
@@ -244,11 +240,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.state == configuring {
-		if m.currentInput == 0 {
-			m.dlyr, cmd = m.dlyr.Update(msg)
-		} else {
-			m.connStr, cmd = m.connStr.Update(msg)
+		var dlyrNew textinput.Model
+		var connStrNew textinput.Model
+		if m.configStep == datalayer {
+			dlyrNew, cmd = (*m.dlyr).Update(msg)
+			m.dlyr = &dlyrNew
+		} else if m.configStep == connectionStr {
+			connStrNew, cmd = (*m.connStr).Update(msg)
+			m.connStr = &connStrNew
 		}
+
 	}
 
 	return m, cmd
@@ -263,71 +264,71 @@ func (m model) View() string {
 		s.WriteString("-------------------------------------------------------\n")
 
 		s.WriteString("\nSelect datalayer: \n")
-		s.WriteString(m.dlyr.View())
+		s.WriteString(strings.ToLower(m.dlyr.View()))
 
-		if m.currentInput == 1 {
-			s.WriteString("\n\nEnter connection string (ESC to go back):\n")
+		if m.configStep == connectionStr {
+			s.WriteString("\n\nEnter connection string:\n")
 
-			// Get the template for the selected datalayer
-			if template, ok := connectionTemplates[m.dlyr.Value()]; ok {
-				currentValue := m.connStr.Value()
-				cursor := ""
-
-				if currentValue == template.prefix {
-					// Show full template at start
-					s.WriteString(template.prefix)
-					s.WriteString(cursor)
-					for i, comp := range template.components {
-						if i > 0 {
-							if i == 2 {
-								s.WriteString("@")
-							} else if i == 3 {
-								s.WriteString("/")
-							} else {
-								s.WriteString(":")
-							}
-						}
-						s.WriteString(placeholderStyle.Render("<" + comp + ">"))
-					}
-					s.WriteString("\n")
-				} else {
-					// Show current value + remaining template
-					s.WriteString(currentValue)
-					s.WriteString(cursor)
-
-					// Calculate remaining parts based on separators
-					input := strings.TrimPrefix(currentValue, template.prefix)
-					parts := strings.FieldsFunc(input, func(r rune) bool {
-						return r == ':' || r == '@' || r == '/'
-					})
-
-					if len(parts) < len(template.components) {
-						remaining := template.components[len(parts):]
-						// Only show separator if we're not at the end of a field
-						if !strings.HasSuffix(currentValue, ":") &&
-							!strings.HasSuffix(currentValue, "@") &&
-							!strings.HasSuffix(currentValue, "/") {
-							nextSep := ":"
-							if len(parts) == 1 {
-								nextSep = "@"
-							} else if len(parts) == 2 {
-								nextSep = "/"
-							}
-							s.WriteString(nextSep)
-						}
-						s.WriteString(placeholderStyle.Render("<" + remaining[0] + ">"))
-
-						for i, comp := range remaining[1:] {
-							if i == 0 && len(parts) == 1 {
-								s.WriteString("/")
-							} else {
-								s.WriteString(":")
-							}
-							s.WriteString(placeholderStyle.Render("<" + comp + ">"))
-						}
-					}
-					s.WriteString("\n")
-				}
+			// get the template for the selected datalayer
+			if _, ok := connectionTemplates[m.dlyr.Value()]; ok {
+				// currentValue := m.connStr.Value()
+				// cursor := template.prefix
+				//
+				// if currentValue == template.prefix {
+				// 	// Show full template at start
+				// 	s.WriteString(template.prefix)
+				// 	s.WriteString(cursor)
+				// 	for i, comp := range template.components {
+				// 		if i > 0 {
+				// 			if i == 2 {
+				// 				s.WriteString("@")
+				// 			} else if i == 3 {
+				// 				s.WriteString("/")
+				// 			} else {
+				// 				s.WriteString(":")
+				// 			}
+				// 		}
+				// 		s.WriteString(placeholderStyle.Render("<" + comp + ">"))
+				// 	}
+				// 	s.WriteString("\n")
+				// } else {
+				// 	// Show current value + remaining template
+				// 	s.WriteString(currentValue)
+				// 	s.WriteString(cursor)
+				//
+				// 	// Calculate remaining parts based on separators
+				// 	input := strings.TrimPrefix(currentValue, template.prefix)
+				// 	parts := strings.FieldsFunc(input, func(r rune) bool {
+				// 		return r == ':' || r == '@' || r == '/'
+				// 	})
+				//
+				// 	if len(parts) < len(template.components) {
+				// 		remaining := template.components[len(parts):]
+				// 		// Only show separator if we're not at the end of a field
+				// 		if !strings.HasSuffix(currentValue, ":") &&
+				// 			!strings.HasSuffix(currentValue, "@") &&
+				// 			!strings.HasSuffix(currentValue, "/") {
+				// 			nextSep := ":"
+				// 			if len(parts) == 1 {
+				// 				nextSep = "@"
+				// 			} else if len(parts) == 2 {
+				// 				nextSep = "/"
+				// 			}
+				// 			s.WriteString(nextSep)
+				// 		}
+				// 		s.WriteString(placeholderStyle.Render("<" + remaining[0] + ">"))
+				//
+				// 		for i, comp := range remaining[1:] {
+				// 			if i == 0 && len(parts) == 1 {
+				// 				s.WriteString("/")
+				// 			} else {
+				// 				s.WriteString(":")
+				// 			}
+				// 			s.WriteString(placeholderStyle.Render("<" + comp + ">"))
+				// 		}
+				// 	}
+				// 	s.WriteString("\n")
+				// }
 			} else {
 				s.WriteString(m.connStr.View())
 			}
