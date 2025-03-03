@@ -21,7 +21,7 @@ import (
 
 // valid datalayers - as they are displayed
 var datalayerSuggestions = []string{
-	"PostgreSQL",
+	"postgresql",
 }
 
 // templates for filling out connection string
@@ -31,7 +31,7 @@ type connStringTemplate struct {
 }
 
 var connectionTemplates = map[string]connStringTemplate{
-	"PostgreSQL": {
+	"postgresql": {
 		regex:          `(postgresql|postgres):\/\/([^:@\s]*(?::[^@\s]*)?@)?([^\/\?\s]+)`,
 		exampleConnStr: "postgresql://<user>:<pass>@localhost:5432/orca?sslmode=prefer",
 	},
@@ -66,8 +66,8 @@ type model struct {
 	help       help.Model
 	keys       keyMap
 	err        error
-	dlyr       *textinput.Model
-	connStr    *textinput.Model
+	dlyr       textinput.Model
+	connStr    textinput.Model
 }
 
 // custom TUI messages
@@ -122,7 +122,7 @@ func initialModel() model {
 
 	// datalayer selection
 	tiDlyr := textinput.New()
-	tiDlyr.Placeholder = strings.ToLower(defaultDlyr)
+	tiDlyr.Placeholder = defaultDlyr
 	tiDlyr.Focus()
 	tiDlyr.CharLimit = 150
 	tiDlyr.Width = 50
@@ -132,7 +132,7 @@ func initialModel() model {
 			return nil
 		}
 		for _, v := range datalayerSuggestions {
-			if strings.EqualFold(v, s) {
+			if s == v {
 				return nil
 			}
 		}
@@ -166,8 +166,8 @@ func initialModel() model {
 	return model{
 		state:      configuring,
 		configStep: datalayer,
-		dlyr:       &tiDlyr,
-		connStr:    &tiConnStr,
+		dlyr:       tiDlyr,
+		connStr:    tiConnStr,
 		help:       help.New(),
 		keys:       keys,
 	}
@@ -240,16 +240,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.state == configuring {
-		var dlyrNew textinput.Model
-		var connStrNew textinput.Model
 		if m.configStep == datalayer {
-			dlyrNew, cmd = (*m.dlyr).Update(msg)
-			m.dlyr = &dlyrNew
+			m.dlyr, cmd = m.dlyr.Update(msg)
+			m.dlyr.SetValue(strings.ToLower(m.dlyr.Value()))
 		} else if m.configStep == connectionStr {
-			connStrNew, cmd = (*m.connStr).Update(msg)
-			m.connStr = &connStrNew
+			m.connStr, cmd = m.connStr.Update(msg)
+			m.connStr.SetValue(strings.ToLower(m.connStr.Value()))
 		}
-
 	}
 
 	return m, cmd
@@ -264,74 +261,11 @@ func (m model) View() string {
 		s.WriteString("-------------------------------------------------------\n")
 
 		s.WriteString("\nSelect datalayer: \n")
-		s.WriteString(strings.ToLower(m.dlyr.View()))
+		s.WriteString(m.dlyr.View())
 
 		if m.configStep == connectionStr {
 			s.WriteString("\n\nEnter connection string:\n")
-
-			// get the template for the selected datalayer
-			if _, ok := connectionTemplates[m.dlyr.Value()]; ok {
-				// currentValue := m.connStr.Value()
-				// cursor := template.prefix
-				//
-				// if currentValue == template.prefix {
-				// 	// Show full template at start
-				// 	s.WriteString(template.prefix)
-				// 	s.WriteString(cursor)
-				// 	for i, comp := range template.components {
-				// 		if i > 0 {
-				// 			if i == 2 {
-				// 				s.WriteString("@")
-				// 			} else if i == 3 {
-				// 				s.WriteString("/")
-				// 			} else {
-				// 				s.WriteString(":")
-				// 			}
-				// 		}
-				// 		s.WriteString(placeholderStyle.Render("<" + comp + ">"))
-				// 	}
-				// 	s.WriteString("\n")
-				// } else {
-				// 	// Show current value + remaining template
-				// 	s.WriteString(currentValue)
-				// 	s.WriteString(cursor)
-				//
-				// 	// Calculate remaining parts based on separators
-				// 	input := strings.TrimPrefix(currentValue, template.prefix)
-				// 	parts := strings.FieldsFunc(input, func(r rune) bool {
-				// 		return r == ':' || r == '@' || r == '/'
-				// 	})
-				//
-				// 	if len(parts) < len(template.components) {
-				// 		remaining := template.components[len(parts):]
-				// 		// Only show separator if we're not at the end of a field
-				// 		if !strings.HasSuffix(currentValue, ":") &&
-				// 			!strings.HasSuffix(currentValue, "@") &&
-				// 			!strings.HasSuffix(currentValue, "/") {
-				// 			nextSep := ":"
-				// 			if len(parts) == 1 {
-				// 				nextSep = "@"
-				// 			} else if len(parts) == 2 {
-				// 				nextSep = "/"
-				// 			}
-				// 			s.WriteString(nextSep)
-				// 		}
-				// 		s.WriteString(placeholderStyle.Render("<" + remaining[0] + ">"))
-				//
-				// 		for i, comp := range remaining[1:] {
-				// 			if i == 0 && len(parts) == 1 {
-				// 				s.WriteString("/")
-				// 			} else {
-				// 				s.WriteString(":")
-				// 			}
-				// 			s.WriteString(placeholderStyle.Render("<" + comp + ">"))
-				// 		}
-				// 	}
-				// 	s.WriteString("\n")
-				// }
-			} else {
-				s.WriteString(m.connStr.View())
-			}
+			s.WriteString(m.connStr.View())
 		}
 		s.WriteString("\n")
 	case running:
