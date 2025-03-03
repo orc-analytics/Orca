@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
-	"regexp"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	orca "github.com/predixus/orca/internal"
 	pb "github.com/predixus/orca/protobufs/go"
 	"google.golang.org/grpc"
@@ -26,20 +24,20 @@ var datalayerSuggestions = []string{
 var currentDatalayer = "postgresql"
 
 // templates for filling out connection string
-type connStringTemplate struct {
-	regex          string
-	exampleConnStr string
-}
+type (
+	ConnectionStrParser func(connectionStr string, example string) (map[string]string, error)
+	connStringTemplate  struct {
+		validationFunc ConnectionStrParser
+		exampleConnStr string
+	}
+)
 
 var connectionTemplates = map[string]connStringTemplate{
 	"postgresql": {
-		regex:          `(postgresql|postgres):\/\/([^:@\s]*(?::[^@\s]*)?@)?([^\/\?\s]+)`,
-		exampleConnStr: "postgresql://<user>:<pass>@localhost:5432/orca?sslmode=prefer",
+		validationFunc: ParsePostgresURL,
+		exampleConnStr: "postgresql://<user>:<pass>@<localhost>:<port>/<db>?<setting=value>",
 	},
 }
-
-// style for the placeholder text
-var placeholderStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240")).Italic(true)
 
 // cli/server state management
 type state int
@@ -117,6 +115,32 @@ var keys = keyMap{
 	),
 }
 
+// validation functions
+func ValidateDatalayer(s string) error {
+	if s == "" {
+		return fmt.Errorf("select a datalayer")
+	}
+	for _, v := range datalayerSuggestions {
+		if s == v {
+			currentDatalayer = v
+			return nil
+		}
+	}
+	return fmt.Errorf("unsupported datalayer: %s", s)
+}
+
+func ValidateConnStr(s string) error {
+	if s == "" {
+		return errors.New("Connection string cannot be empty")
+	}
+	template, ok := connectionTemplates[currentDatalayer]
+	if !ok { // should never occur
+		return fmt.Errorf("no template found for datalayer: %s", currentDatalayer)
+	}
+	_, err := template.validationFunc(s, template.exampleConnStr)
+	return err
+}
+
 // initialise the model
 func initialModel() model {
 	defaultDlyr := datalayerSuggestions[0]
@@ -128,18 +152,8 @@ func initialModel() model {
 	tiDlyr.CharLimit = 150
 	tiDlyr.Width = 50
 	tiDlyr.ShowSuggestions = true
-	tiDlyr.Validate = func(s string) error {
-		if s == "" {
-			return nil
-		}
-		for _, v := range datalayerSuggestions {
-			if s == v {
-				currentDatalayer = v
-				return nil
-			}
-		}
-		return fmt.Errorf("unsupported datalayer: %s", s)
-	}
+	tiDlyr.Validate = ValidateDatalayer
+
 	tiDlyr.SetSuggestions(datalayerSuggestions)
 
 	// connection string placeholder
@@ -147,23 +161,7 @@ func initialModel() model {
 	tiConnStr.Placeholder = connectionTemplates[defaultDlyr].exampleConnStr
 	tiConnStr.CharLimit = 150
 	tiConnStr.Width = 80
-	tiConnStr.Validate = func(s string) error {
-		if s == "" {
-			return errors.New("Datalayer string cannot be empty")
-		}
-		template, ok := connectionTemplates[currentDatalayer]
-		if !ok { // should never enter
-			return fmt.Errorf("no template found for datalayer: %s", currentDatalayer)
-		}
-		matched, err := regexp.Match(template.regex, []byte(s))
-		if err != nil {
-			return fmt.Errorf("regex error: %v", err)
-		}
-		if !matched {
-			return fmt.Errorf("invalid connection string format")
-		}
-		return nil
-	}
+	tiConnStr.Validate = ValidateConnStr
 
 	return model{
 		state:      configuring,
@@ -271,12 +269,12 @@ func (m model) View() string {
 		}
 		s.WriteString("\n")
 	case running:
-		s.WriteString(fmt.Sprintf("Server State: %s\n", m.state))
+		// s.WriteString(fmt.Sprintf("Server State: %s\n", m.state))
 		s.WriteString(fmt.Sprintf("Database: %s\n", m.connStr.Value()))
 	}
 
 	if m.err != nil {
-		s.WriteString(fmt.Sprintf("\nError: %v\n", m.err))
+		s.WriteString("\n" + m.err.Error() + "\n")
 	}
 
 	s.WriteString("\n")
