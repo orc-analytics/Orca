@@ -23,6 +23,7 @@ import (
 var datalayerSuggestions = []string{
 	"postgresql",
 }
+var currentDatalayer = "postgresql"
 
 // templates for filling out connection string
 type connStringTemplate struct {
@@ -133,6 +134,7 @@ func initialModel() model {
 		}
 		for _, v := range datalayerSuggestions {
 			if s == v {
+				currentDatalayer = v
 				return nil
 			}
 		}
@@ -149,9 +151,9 @@ func initialModel() model {
 		if s == "" {
 			return errors.New("Datalayer string cannot be empty")
 		}
-		template, ok := connectionTemplates[tiDlyr.Value()]
-		if !ok {
-			return fmt.Errorf("no template found for datalayer: %s", tiDlyr.Value())
+		template, ok := connectionTemplates[currentDatalayer]
+		if !ok { // should never enter
+			return fmt.Errorf("no template found for datalayer: %s", currentDatalayer)
 		}
 		matched, err := regexp.Match(template.regex, []byte(s))
 		if err != nil {
