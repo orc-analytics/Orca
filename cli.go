@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -56,6 +57,7 @@ type configStep int
 const (
 	datalayer configStep = iota
 	connectionStr
+	port
 )
 
 // the cli model
@@ -67,6 +69,7 @@ type model struct {
 	err        error
 	dlyr       textinput.Model
 	connStr    textinput.Model
+	port       textinput.Model
 }
 
 // custom TUI messages
@@ -118,7 +121,7 @@ var keys = keyMap{
 // validation functions
 func ValidateDatalayer(s string) error {
 	if s == "" {
-		return fmt.Errorf("select a datalayer")
+		return fmt.Errorf("Select a datalayer")
 	}
 	for _, v := range datalayerSuggestions {
 		if s == v {
@@ -126,7 +129,7 @@ func ValidateDatalayer(s string) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("unsupported datalayer: %s", s)
+	return fmt.Errorf("Unsuported datalayer: %s", s)
 }
 
 func ValidateConnStr(s string) error {
@@ -139,6 +142,26 @@ func ValidateConnStr(s string) error {
 	}
 	_, err := template.validationFunc(s, template.exampleConnStr)
 	return err
+}
+
+func ValidatePort(s string) error {
+	if s == "" {
+		return errors.New("Select a port number")
+	}
+
+	// try to lookup the port to validate it
+	if _, err := net.LookupPort("tcp", s); err != nil {
+		return fmt.Errorf("Invalid port number '%s' (must be between 1-65535)", s)
+	}
+
+	// check if port is already in use
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", s))
+	if err != nil {
+		return fmt.Errorf("Port %s is already in use", s)
+	}
+	listener.Close()
+
+	return nil
 }
 
 // initialise the model
@@ -163,11 +186,19 @@ func initialModel() model {
 	tiConnStr.Width = 80
 	tiConnStr.Validate = ValidateConnStr
 
+	// port selection
+	tiPort := textinput.New()
+	tiPort.Placeholder = "4040"
+	tiPort.CharLimit = 6
+	tiPort.Width = 6
+	tiPort.Validate = ValidatePort
+
 	return model{
 		state:      configuring,
 		configStep: datalayer,
 		dlyr:       tiDlyr,
 		connStr:    tiConnStr,
+		port:       tiPort,
 		help:       help.New(),
 		keys:       keys,
 	}
@@ -222,10 +253,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					} else {
 						m.err = nil
 					}
+					// move on to port selection
+					m.configStep = port
+					m.connStr.Blur()
+					m.port.Focus()
+				} else if m.configStep == port {
+					if err := m.port.Validate(m.port.Value()); err != nil {
+						m.err = err
+						return m, nil
+					} else {
+						m.err = nil
+					}
+					// move on
+					m.port.Blur()
 
-					// start the server
-					m.state = running
-					return m, startGRPCServer(m.connStr.Value())
+					port, _ := strconv.Atoi(m.port.Value())
+					return m, startGRPCServer(m.connStr.Value(), port)
 				}
 			}
 		}
@@ -246,6 +289,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if m.configStep == connectionStr {
 			m.connStr, cmd = m.connStr.Update(msg)
 			m.connStr.SetValue(strings.ToLower(m.connStr.Value()))
+		} else if m.configStep == port {
+			m.port, cmd = m.port.Update(msg)
 		}
 	}
 
@@ -260,16 +305,22 @@ func (m model) View() string {
 		s.WriteString("The Orchestrated Robust-Compute and Analytics Framework\n")
 		s.WriteString("-------------------------------------------------------\n")
 
-		s.WriteString("\nSelect datalayer: \n")
-		s.WriteString(m.dlyr.View())
+		if m.configStep == datalayer {
+			s.WriteString("\nSelect datalayer: \n")
+			s.WriteString(m.dlyr.View())
+		}
 
 		if m.configStep == connectionStr {
-			s.WriteString("\n\nEnter connection string:\n")
+			s.WriteString("\nEnter connection string: \n")
 			s.WriteString(m.connStr.View())
 		}
-		s.WriteString("\n")
+
+		if m.configStep == port {
+			s.WriteString("\nSelect a port number: \n")
+			s.WriteString(m.port.View())
+		}
 	case running:
-		// s.WriteString(fmt.Sprintf("Server State: %s\n", m.state))
+		s.WriteString(fmt.Sprintf("Server State: %v\n", m.state))
 		s.WriteString(fmt.Sprintf("Database: %s\n", m.connStr.Value()))
 	}
 
@@ -283,8 +334,7 @@ func (m model) View() string {
 	return s.String()
 }
 
-func startGRPCServer(dbConnString string) tea.Cmd {
-	port := 4040
+func startGRPCServer(dbConnString string, port int) tea.Cmd {
 	slog.Debug("Running the server", "port", port)
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
 	if err != nil {
