@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"net"
 	"strconv"
 	"strings"
@@ -12,10 +11,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	orca "github.com/predixus/orca/internal"
-	pb "github.com/predixus/orca/protobufs/go"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 // valid datalayers - as they are displayed
@@ -268,7 +263,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.port.Blur()
 
 					port, _ := strconv.Atoi(m.port.Value())
-					return m, startGRPCServer(m.connStr.Value(), port)
+					go startGRPCServer(m.connStr.Value(), port)
+					m.state = running
+					return m, nil
 				}
 			}
 		}
@@ -277,9 +274,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.err = msg
 		return m, nil
 
-	case serverStartedMsg:
-		m.state = running
-		return m, nil
 	}
 
 	if m.state == configuring {
@@ -332,23 +326,4 @@ func (m model) View() string {
 	s.WriteString(m.help.View(m.keys))
 
 	return s.String()
-}
-
-func startGRPCServer(dbConnString string, port int) tea.Cmd {
-	slog.Debug("Running the server", "port", port)
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
-	if err != nil {
-		slog.Error("failed to listen", "message", err)
-	}
-	var opts []grpc.ServerOption
-	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterOrcaCoreServer(grpcServer, orca.NewServer())
-	reflection.Register(grpcServer)
-	err = grpcServer.Serve(lis)
-	if err != nil {
-		slog.Error("failed to serve", "error", err)
-	}
-	return func() tea.Msg {
-		return serverStartedMsg{}
-	}
 }
