@@ -28,4 +28,4 @@ _*
 orca
 null-ls*
 .Binding
-
+*.log

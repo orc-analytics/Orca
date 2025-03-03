@@ -21,21 +21,36 @@ func Run() {
 	}
 }
 
-func startGRPCServer(dbConnString string, port int) error {
-	slog.Debug("Running the server", "port", port)
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
+func startGRPCServer(dbConnString string, port int) {
+	f, err := tea.LogToFile("debug.log", "debug")
 	if err != nil {
-		slog.Error("failed to listen", "message", err)
+		fmt.Println("fatal:", err)
+		os.Exit(1)
 	}
-	var opts []grpc.ServerOption
-	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterOrcaCoreServer(grpcServer, orca.NewServer())
-	reflection.Register(grpcServer)
-	err = grpcServer.Serve(lis)
-	if err != nil {
-		slog.Error("failed to serve", "error", err)
-	}
-	return err
+	// defer f.Close()
+
+	// Configure slog to use the same file
+	logger := slog.New(slog.NewTextHandler(f, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+	slog.SetDefault(logger)
+
+	go func() {
+		slog.Info("Launching server", "port", port)
+		slog.Debug("Debugging")
+		lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
+		if err != nil {
+			slog.Error("failed to listen", "message", err)
+		}
+		var opts []grpc.ServerOption
+		grpcServer := grpc.NewServer(opts...)
+		pb.RegisterOrcaCoreServer(grpcServer, orca.NewServer())
+		reflection.Register(grpcServer)
+		err = grpcServer.Serve(lis)
+		if err != nil {
+			slog.Error("failed to serve", "error", err)
+		}
+	}()
 }
 
 func main() {

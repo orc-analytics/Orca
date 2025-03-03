@@ -11,6 +11,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // valid datalayers - as they are displayed
@@ -141,7 +142,7 @@ func ValidateConnStr(s string) error {
 
 func ValidatePort(s string) error {
 	if s == "" {
-		return errors.New("Select a port number")
+		return errors.New("You have to select a port number")
 	}
 
 	// try to lookup the port to validate it
@@ -263,7 +264,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.port.Blur()
 
 					port, _ := strconv.Atoi(m.port.Value())
-					go startGRPCServer(m.connStr.Value(), port)
+					startGRPCServer(m.connStr.Value(), port)
 					m.state = running
 					return m, nil
 				}
@@ -295,9 +296,36 @@ func (m model) View() string {
 	var s strings.Builder
 	switch m.state {
 	case configuring:
-		s.WriteString("------------------------- ORCA ------------------------\n")
-		s.WriteString("The Orchestrated Robust-Compute and Analytics Framework\n")
-		s.WriteString("-------------------------------------------------------\n")
+		titleStyle := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#04B575")).
+			BorderStyle(lipgloss.RoundedBorder()).
+			Align(lipgloss.Center).
+			Padding(0, 1)
+
+		subtitleStyle := lipgloss.NewStyle().
+			Italic(true).
+			Foreground(lipgloss.Color("#7D56F4")).
+			Align(lipgloss.Center)
+
+		bannerStyle := lipgloss.NewStyle().
+			Border(lipgloss.DoubleBorder()).
+			BorderForeground(lipgloss.Color("#04B575")).
+			Padding(1, 0).
+			Width(60).
+			Align(lipgloss.Center)
+
+		title := titleStyle.Render("🐋 ORCA")
+		subtitle := subtitleStyle.Render("The Orchestrated Robust-Compute and Analytics Framework")
+
+		banner := bannerStyle.Render(
+			lipgloss.JoinVertical(lipgloss.Center,
+				title,
+				subtitle,
+			),
+		)
+
+		s.WriteString(banner + "\n")
 
 		if m.configStep == datalayer {
 			s.WriteString("\nSelect datalayer: \n")
@@ -310,12 +338,22 @@ func (m model) View() string {
 		}
 
 		if m.configStep == port {
-			s.WriteString("\nSelect a port number: \n")
+			s.WriteString("\nSelect a port number for the Orca server: \n")
 			s.WriteString(m.port.View())
 		}
+		s.WriteString("\n")
+
 	case running:
-		s.WriteString(fmt.Sprintf("Server State: %v\n", m.state))
-		s.WriteString(fmt.Sprintf("Database: %s\n", m.connStr.Value()))
+		style := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("#04B575")).
+			Border(lipgloss.RoundedBorder()).
+			Padding(1, 2)
+
+		msg := style.Render(
+			fmt.Sprintf("\n🐋 ORCA Server Running at grpc://localhost:%v\n", m.port.Value()),
+		)
+		s.WriteString(msg)
 	}
 
 	if m.err != nil {
