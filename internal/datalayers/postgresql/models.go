@@ -4,9 +4,22 @@
 
 package postgresql
 
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
 type Processor struct {
 	Name    string
 	Runtime string
 	Active  bool
-	Created interface{}
+	Created pgtype.Timestamp
+}
+
+type Window struct {
+	ID         int32
+	WindowName string
+	TimeFrom   int64
+	TimeTo     int64
+	Origin     string
+	Created    pgtype.Timestamp
 }

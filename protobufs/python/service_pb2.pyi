@@ -17,13 +17,15 @@ RESULT_STATUS_UNHANDLED_FAILED: ResultStatus
 RESULT_STATUS_SUCEEDED: ResultStatus
 
 class Window(_message.Message):
-    __slots__ = ("to", "name")
+    __slots__ = ("to", "name", "origin")
     FROM_FIELD_NUMBER: _ClassVar[int]
     TO_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
+    ORIGIN_FIELD_NUMBER: _ClassVar[int]
     to: int
     name: str
-    def __init__(self, to: _Optional[int] = ..., name: _Optional[str] = ..., **kwargs) -> None: ...
+    origin: str
+    def __init__(self, to: _Optional[int] = ..., name: _Optional[str] = ..., origin: _Optional[str] = ..., **kwargs) -> None: ...
 
 class WindowType(_message.Message):
     __slots__ = ("name",)

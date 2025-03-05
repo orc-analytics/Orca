@@ -264,7 +264,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.port.Blur()
 
 					port, _ := strconv.Atoi(m.port.Value())
-					startGRPCServer(m.connStr.Value(), port)
+					startGRPCServer(m.dlyr.Value(), m.connStr.Value(), port)
 					m.state = running
 					return m, nil
 				}

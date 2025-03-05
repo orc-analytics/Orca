@@ -4,13 +4,15 @@ import (
 	"context"
 	"log/slog"
 
+	dlyr "github.com/predixus/orca/internal/datalayers"
 	pb "github.com/predixus/orca/protobufs/go"
 	"google.golang.org/grpc"
 )
 
 type (
-	orcaCoreServer struct {
+	OrcaCoreServer struct {
 		pb.UnimplementedOrcaCoreServer
+		client dlyr.Datalayer
 	}
 )
 
@@ -23,20 +25,56 @@ var (
 	)
 )
 
-// Register a processor with orca-core. Called on processor startup.
-func (orcaCoreServer) RegisterProcessor(
-	reg *pb.ProcessorRegistration,
-	stream grpc.ServerStreamingServer[pb.ProcessingTask],
-) error {
-	slog.Info("registering processor",
-		"runtime", reg.Runtime)
+// NewServer produces a new ORCA gRPC server
+func NewServer(
+	ctx context.Context,
+	platform dlyr.Platform,
+	connStr string,
+) (*OrcaCoreServer, error) {
+	client, err := dlyr.NewDatalayerClient(ctx, platform, connStr)
+	if err != nil {
+		slog.Error(
+			"Could not initialise new platform client whilst initialising server",
+			"platform",
+			platform,
+			"error",
+			err,
+		)
 
-	// do stuff
+		return nil, err
+	}
 
-	return nil
+	s := &OrcaCoreServer{
+		client: client,
+	}
+	return s, nil
 }
 
-func (orcaCoreServer) EmitWindow(
+// Register a processor with orca-core. Called when a processor startsup.
+func (o *OrcaCoreServer) RegisterProcessor(
+	ctx context.Context,
+	proc *pb.ProcessorRegistration,
+) (*pb.Status, error) {
+	var status pb.Status
+
+	slog.Info("registering processor",
+		"runtime", proc.Runtime)
+
+	err := o.client.AddProcessor(context.Background(), proc)
+	if err != nil {
+		status = pb.Status{
+			Received: false,
+			Message:  "Could not register processor",
+		}
+		return &status, err
+	}
+	return &pb.Status{
+		Received: true,
+		Message:  "Successfull registered processor",
+	}, nil
+}
+
+func (o *OrcaCoreServer) EmitWindow(
 	ctx context.Context,
 	window *pb.Window,
 ) (*pb.WindowEmitStatus, error) {
@@ -49,7 +87,7 @@ func (orcaCoreServer) EmitWindow(
 	}, nil
 }
 
-func (orcaCoreServer) RegisterWindowType(
+func (o *OrcaCoreServer) RegisterWindowType(
 	ctx context.Context,
 	windowType *pb.WindowType,
 ) (*pb.Status, error) {
@@ -60,7 +98,7 @@ func (orcaCoreServer) RegisterWindowType(
 	}, nil
 }
 
-func (orcaCoreServer) RegisterAlgorithm(
+func (o *OrcaCoreServer) RegisterAlgorithm(
 	ctx context.Context,
 	algorithm *pb.Algorithm,
 ) (*pb.Status, error) {
@@ -72,7 +110,7 @@ func (orcaCoreServer) RegisterAlgorithm(
 	}, nil
 }
 
-func (orcaCoreServer) SubmitResult(
+func (o *OrcaCoreServer) SubmitResult(
 	ctx context.Context,
 	result *pb.Result,
 ) (*pb.Status, error) {
@@ -85,16 +123,11 @@ func (orcaCoreServer) SubmitResult(
 	}, nil
 }
 
-func (orcaCoreServer) GetDagState(
+func (o *OrcaCoreServer) GetDagState(
 	ctx context.Context,
 	request *pb.DagStateRequest,
 ) (*pb.DagState, error) {
 	slog.Info("getting DAG state",
 		"window_id", request.WindowId)
 	return &pb.DagState{}, nil
-}
-
-func NewServer() *orcaCoreServer {
-	s := &orcaCoreServer{}
-	return s
 }

@@ -26,6 +26,6 @@ _*
 # custom
 *.vscode
 orca
-null-ls*
+.null-ls*
 .Binding
 *.log

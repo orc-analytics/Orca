@@ -11,7 +11,7 @@ import "google/protobuf/struct.proto";
 // - Routes results between dependent algorithms
 service OrcaCore {
   // Register a processor node and its supported algorithms
-  rpc RegisterProcessor(ProcessorRegistration) returns (stream ProcessingTask);
+  rpc RegisterProcessor(ProcessorRegistration) returns (Status);
 
   // Submit a window for processing
   rpc EmitWindow(Window) returns (WindowEmitStatus);
@@ -57,6 +57,9 @@ message Window {
   // This allows tracking of window state and results across the system
   // Required: Must be unique within the system
   string name = 3;
+
+  // A unique identifier that defines where the window came from
+  string origin = 4;
 }
 
 // WindowType defines a category of window that can trigger algorithms.

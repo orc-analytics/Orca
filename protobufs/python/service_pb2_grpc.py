@@ -39,10 +39,10 @@ class OrcaCoreStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.RegisterProcessor = channel.unary_stream(
+        self.RegisterProcessor = channel.unary_unary(
                 '/OrcaCore/RegisterProcessor',
                 request_serializer=service__pb2.ProcessorRegistration.SerializeToString,
-                response_deserializer=service__pb2.ProcessingTask.FromString,
+                response_deserializer=service__pb2.Status.FromString,
                 _registered_method=True)
         self.EmitWindow = channel.unary_unary(
                 '/OrcaCore/EmitWindow',
@@ -124,10 +124,10 @@ class OrcaCoreServicer(object):
 
 def add_OrcaCoreServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'RegisterProcessor': grpc.unary_stream_rpc_method_handler(
+            'RegisterProcessor': grpc.unary_unary_rpc_method_handler(
                     servicer.RegisterProcessor,
                     request_deserializer=service__pb2.ProcessorRegistration.FromString,
-                    response_serializer=service__pb2.ProcessingTask.SerializeToString,
+                    response_serializer=service__pb2.Status.SerializeToString,
             ),
             'EmitWindow': grpc.unary_unary_rpc_method_handler(
                     servicer.EmitWindow,
@@ -181,12 +181,12 @@ class OrcaCore(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(
+        return grpc.experimental.unary_unary(
             request,
             target,
             '/OrcaCore/RegisterProcessor',
             service__pb2.ProcessorRegistration.SerializeToString,
-            service__pb2.ProcessingTask.FromString,
+            service__pb2.Status.FromString,
             options,
             channel_credentials,
             insecure,

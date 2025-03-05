@@ -3,25 +3,19 @@ CREATE TABLE processors (
   name TEXT NOT NULL,
   runtime TEXT NOT NULL, -- e.g. py3.*, go1.*, etc.
   active BOOLEAN NOT NULL,
-  created TIMESATMP DEFAULT CURRENT_TIMESTAMP
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- -- Types of windows
--- CREATE TABLE window_types (
---     name TEXT PRIMARY KEY NOT NULL,
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- );
---
--- -- Windows that trigger algorithms
--- CREATE TABLE windows (
---     id SERIAL PRIMARY KEY,
---     time_from BIGINT NOT NULL,
---     time_to BIGINT NOT NULL,
---     window_type_name TEXT NOT NULL,
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     FOREIGN KEY (window_type) REFERENCES window_types(name)
--- );
---
+-- Windows that trigger algorithms
+CREATE TABLE windows (
+  id SERIAL PRIMARY KEY,
+  window_name TEXT NOT NULL,
+  time_from BIGINT NOT NULL,
+  time_to BIGINT NOT NULL,
+  origin TEXT NOT NULL,
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- -- Store of all the algorithms
 -- CREATE TABLE algorithm_types (
 --     name TEXT NOT NULL,

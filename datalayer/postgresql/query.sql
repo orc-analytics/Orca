@@ -9,9 +9,22 @@ INSERT INTO processors (
   true
 ) ON CONFLICT (name) DO UPDATE 
 SET 
-  runtime_id = EXCLUDED.runtime_id,
+  runtime = EXCLUDED.runtime,
   active = EXCLUDED.active
 RETURNING *;
+
+-- name: RegisterWindow :one
+INSERT INTO windows (
+  window_name, 
+  time_from, 
+  time_to,
+  origin
+) VALUES (
+  sqlc.arg('window_name'),
+  sqlc.arg('time_from'),
+  sqlc.arg('time_to'),
+  sqlc.arg('origin')
+) RETURNING *;
 
 -- -- name: CreateAlgorithmType :one
 -- INSERT INTO algorithm_types (

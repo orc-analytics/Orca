@@ -20,7 +20,7 @@ INSERT INTO processors (
   true
 ) ON CONFLICT (name) DO UPDATE 
 SET 
-  runtime_id = EXCLUDED.runtime_id,
+  runtime = EXCLUDED.runtime,
   active = EXCLUDED.active
 RETURNING name, runtime, active, created
 `
@@ -37,6 +37,46 @@ func (q *Queries) AddProcessor(ctx context.Context, arg AddProcessorParams) (Pro
 		&i.Name,
 		&i.Runtime,
 		&i.Active,
+		&i.Created,
+	)
+	return i, err
+}
+
+const registerWindow = `-- name: RegisterWindow :one
+INSERT INTO windows (
+  window_name, 
+  time_from, 
+  time_to,
+  origin
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4
+) RETURNING id, window_name, time_from, time_to, origin, created
+`
+
+type RegisterWindowParams struct {
+	WindowName string
+	TimeFrom   int64
+	TimeTo     int64
+	Origin     string
+}
+
+func (q *Queries) RegisterWindow(ctx context.Context, arg RegisterWindowParams) (Window, error) {
+	row := q.db.QueryRow(ctx, registerWindow,
+		arg.WindowName,
+		arg.TimeFrom,
+		arg.TimeTo,
+		arg.Origin,
+	)
+	var i Window
+	err := row.Scan(
+		&i.ID,
+		&i.WindowName,
+		&i.TimeFrom,
+		&i.TimeTo,
+		&i.Origin,
 		&i.Created,
 	)
 	return i, err
