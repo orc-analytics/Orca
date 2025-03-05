@@ -28,6 +28,7 @@ test: .test_all
 		./protobufs/*.proto
 
 .datalayer:
+	sqlc vet -f datalayer/postgresql/sqlc.yaml
 	sqlc generate -f datalayer/postgresql/sqlc.yaml
 
 .proto_docs:

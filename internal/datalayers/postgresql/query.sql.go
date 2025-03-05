@@ -9,34 +9,215 @@ import (
 	"context"
 )
 
-const addProcessor = `-- name: AddProcessor :one
-INSERT INTO processors (
-  name,
-  runtime,
-  active
+const addProcessorAlgorithm = `-- name: AddProcessorAlgorithm :exec
+INSERT INTO processor_algorithm (
+  processor_name,
+  processor_runtime,
+  algorithm_name,
+  algorithm_version
 ) VALUES (
   $1,
   $2,
-  true
-) ON CONFLICT (name) DO UPDATE 
-SET 
-  runtime_id = EXCLUDED.runtime_id,
-  active = EXCLUDED.active
-RETURNING name, runtime, active, created
+  $3,
+  $4
+)
 `
 
-type AddProcessorParams struct {
-	Name    string
-	Runtime string
+type AddProcessorAlgorithmParams struct {
+	ProcessorName    string
+	ProcessorRuntime string
+	AlgorithmName    string
+	AlgorithmVersion string
 }
 
-func (q *Queries) AddProcessor(ctx context.Context, arg AddProcessorParams) (Processor, error) {
-	row := q.db.QueryRow(ctx, addProcessor, arg.Name, arg.Runtime)
-	var i Processor
+func (q *Queries) AddProcessorAlgorithm(ctx context.Context, arg AddProcessorAlgorithmParams) error {
+	_, err := q.db.Exec(ctx, addProcessorAlgorithm,
+		arg.ProcessorName,
+		arg.ProcessorRuntime,
+		arg.AlgorithmName,
+		arg.AlgorithmVersion,
+	)
+	return err
+}
+
+const createAlgorithm = `-- name: CreateAlgorithm :exec
+INSERT INTO algorithm (
+  name,
+  version,
+  processor_name,
+  processor_runtime,
+  window_type_name,
+  window_type_version
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6
+) ON CONFLICT (name, version, processor_name, processor_runtime) DO NOTHING
+`
+
+type CreateAlgorithmParams struct {
+	Name              string
+	Version           string
+	ProcessorName     string
+	ProcessorRuntime  string
+	WindowTypeName    string
+	WindowTypeVersion string
+}
+
+func (q *Queries) CreateAlgorithm(ctx context.Context, arg CreateAlgorithmParams) error {
+	_, err := q.db.Exec(ctx, createAlgorithm,
+		arg.Name,
+		arg.Version,
+		arg.ProcessorName,
+		arg.ProcessorRuntime,
+		arg.WindowTypeName,
+		arg.WindowTypeVersion,
+	)
+	return err
+}
+
+const createAlgorithmDependency = `-- name: CreateAlgorithmDependency :exec
+INSERT INTO algorithm_dependency (
+  from_algorithm_name,
+  from_algorithm_version,
+  from_processor_name,
+  from_processor_runtime, 
+  to_algorithm_name,
+  to_algorithm_version,
+  to_processor_name,
+  to_processor_runtime
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7,
+  $8
+) ON CONFLICT DO NOTHING
+`
+
+type CreateAlgorithmDependencyParams struct {
+	FromAlgorithmName    string
+	FromAlgorithmVersion string
+	FromProcessorName    string
+	FromProcessorRuntime string
+	ToAlgorithmName      string
+	ToAlgorithmVersion   string
+	ToProcessorName      string
+	ToProcessorRuntime   string
+}
+
+func (q *Queries) CreateAlgorithmDependency(ctx context.Context, arg CreateAlgorithmDependencyParams) error {
+	_, err := q.db.Exec(ctx, createAlgorithmDependency,
+		arg.FromAlgorithmName,
+		arg.FromAlgorithmVersion,
+		arg.FromProcessorName,
+		arg.FromProcessorRuntime,
+		arg.ToAlgorithmName,
+		arg.ToAlgorithmVersion,
+		arg.ToProcessorName,
+		arg.ToProcessorRuntime,
+	)
+	return err
+}
+
+const createProcessorAndPurgeAlgos = `-- name: CreateProcessorAndPurgeAlgos :exec
+WITH processor_insert AS (
+  INSERT INTO processor (
+    name,
+    runtime,
+    connection_string
+  ) VALUES (
+    $1,
+    $2,
+    $3
+  ) ON CONFLICT (name, runtime) DO UPDATE 
+  SET 
+    name = EXCLUDED.name,
+    runtime = EXCLUDED.runtime
+)
+
+DELETE FROM processor_algorithm
+WHERE processor_name = $1 AND processor_runtime = $2
+`
+
+type CreateProcessorAndPurgeAlgosParams struct {
+	Name             string
+	Runtime          string
+	ConnectionString string
+}
+
+// clean up old algorithm associations
+func (q *Queries) CreateProcessorAndPurgeAlgos(ctx context.Context, arg CreateProcessorAndPurgeAlgosParams) error {
+	_, err := q.db.Exec(ctx, createProcessorAndPurgeAlgos, arg.Name, arg.Runtime, arg.ConnectionString)
+	return err
+}
+
+const createWindowType = `-- name: CreateWindowType :exec
+INSERT INTO window_type (
+  name, 
+  version
+) VALUES (
+  $1,
+  $2
+) ON CONFLICT (name, version) DO NOTHING
+`
+
+type CreateWindowTypeParams struct {
+	Name    string
+	Version string
+}
+
+func (q *Queries) CreateWindowType(ctx context.Context, arg CreateWindowTypeParams) error {
+	_, err := q.db.Exec(ctx, createWindowType, arg.Name, arg.Version)
+	return err
+}
+
+const registerWindow = `-- name: RegisterWindow :one
+INSERT INTO windows (
+  window_type_name, 
+  window_type_version,
+  time_from, 
+  time_to,
+  origin
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5
+) RETURNING id, window_type_name, window_type_version, time_from, time_to, origin, created
+`
+
+type RegisterWindowParams struct {
+	WindowTypeName    string
+	WindowTypeVersion string
+	TimeFrom          int64
+	TimeTo            int64
+	Origin            string
+}
+
+func (q *Queries) RegisterWindow(ctx context.Context, arg RegisterWindowParams) (Window, error) {
+	row := q.db.QueryRow(ctx, registerWindow,
+		arg.WindowTypeName,
+		arg.WindowTypeVersion,
+		arg.TimeFrom,
+		arg.TimeTo,
+		arg.Origin,
+	)
+	var i Window
 	err := row.Scan(
-		&i.Name,
-		&i.Runtime,
-		&i.Active,
+		&i.ID,
+		&i.WindowTypeName,
+		&i.WindowTypeVersion,
+		&i.TimeFrom,
+		&i.TimeTo,
+		&i.Origin,
 		&i.Created,
 	)
 	return i, err

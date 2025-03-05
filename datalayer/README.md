@@ -1,14 +1,19 @@
 # Datalayers
 
-Details the available data layers for the Orca framework.
+## Logic Flow
 
-## Creating a New Datalayer
+### Registering a Processor
 
-When creating a new datalayer, Orca requires a standard interface. The interface can be found
-in `internal/types.go`, defined under:
+When a processor registers with the central orca server, the following
+needs to occur:
 
-```go
-interface Datalayers {
-    ...
-}
-```
+Begin transaction:
+
+1. Create any window types that do not exist
+2. Create algorithms with their window types and associated processor
+3. Create any algorithm dependencies
+4. Register the processor and remove old algorithm associations to that processor
+5. Associate the processor with it's supported algorithms
+
+If there are any errors in the process (e.g. cyclic dependencies on algorithms)
+then rollback the transaction.

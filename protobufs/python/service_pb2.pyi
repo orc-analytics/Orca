@@ -1,4 +1,5 @@
 from google.protobuf import struct_pb2 as _struct_pb2
+from vendor import validate_pb2 as _validate_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
@@ -17,19 +18,41 @@ RESULT_STATUS_UNHANDLED_FAILED: ResultStatus
 RESULT_STATUS_SUCEEDED: ResultStatus
 
 class Window(_message.Message):
-    __slots__ = ("to", "name")
+    __slots__ = ("to", "window_type_name", "window_type_version", "origin")
     FROM_FIELD_NUMBER: _ClassVar[int]
     TO_FIELD_NUMBER: _ClassVar[int]
-    NAME_FIELD_NUMBER: _ClassVar[int]
+    WINDOW_TYPE_NAME_FIELD_NUMBER: _ClassVar[int]
+    WINDOW_TYPE_VERSION_FIELD_NUMBER: _ClassVar[int]
+    ORIGIN_FIELD_NUMBER: _ClassVar[int]
     to: int
-    name: str
-    def __init__(self, to: _Optional[int] = ..., name: _Optional[str] = ..., **kwargs) -> None: ...
+    window_type_name: str
+    window_type_version: str
+    origin: str
+    def __init__(self, to: _Optional[int] = ..., window_type_name: _Optional[str] = ..., window_type_version: _Optional[str] = ..., origin: _Optional[str] = ..., **kwargs) -> None: ...
 
 class WindowType(_message.Message):
-    __slots__ = ("name",)
+    __slots__ = ("name", "version")
     NAME_FIELD_NUMBER: _ClassVar[int]
+    VERSION_FIELD_NUMBER: _ClassVar[int]
     name: str
-    def __init__(self, name: _Optional[str] = ...) -> None: ...
+    version: str
+    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ...) -> None: ...
+
+class WindowTypeRegisterStatus(_message.Message):
+    __slots__ = ("status", "message")
+    class StatusEnum(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        WINDOW_NOT_REGISTERED: _ClassVar[WindowTypeRegisterStatus.StatusEnum]
+        WINDOW_REGISTERED: _ClassVar[WindowTypeRegisterStatus.StatusEnum]
+        WINDOW_TYPE_ALREADY_EXISTS: _ClassVar[WindowTypeRegisterStatus.StatusEnum]
+    WINDOW_NOT_REGISTERED: WindowTypeRegisterStatus.StatusEnum
+    WINDOW_REGISTERED: WindowTypeRegisterStatus.StatusEnum
+    WINDOW_TYPE_ALREADY_EXISTS: WindowTypeRegisterStatus.StatusEnum
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    status: WindowTypeRegisterStatus.StatusEnum
+    message: str
+    def __init__(self, status: _Optional[_Union[WindowTypeRegisterStatus.StatusEnum, str]] = ..., message: _Optional[str] = ...) -> None: ...
 
 class WindowEmitStatus(_message.Message):
     __slots__ = ("status",)
@@ -44,46 +67,52 @@ class WindowEmitStatus(_message.Message):
     def __init__(self, status: _Optional[_Union[WindowEmitStatus.StatusEnum, str]] = ...) -> None: ...
 
 class AlgorithmDependency(_message.Message):
-    __slots__ = ("name", "version")
+    __slots__ = ("name", "version", "processor_name", "processor_runtime")
     NAME_FIELD_NUMBER: _ClassVar[int]
     VERSION_FIELD_NUMBER: _ClassVar[int]
+    PROCESSOR_NAME_FIELD_NUMBER: _ClassVar[int]
+    PROCESSOR_RUNTIME_FIELD_NUMBER: _ClassVar[int]
     name: str
     version: str
-    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ...) -> None: ...
+    processor_name: str
+    processor_runtime: str
+    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., processor_name: _Optional[str] = ..., processor_runtime: _Optional[str] = ...) -> None: ...
 
 class Algorithm(_message.Message):
-    __slots__ = ("name", "version", "window_type_name", "dependencies")
+    __slots__ = ("name", "version", "window_type", "dependencies")
     NAME_FIELD_NUMBER: _ClassVar[int]
     VERSION_FIELD_NUMBER: _ClassVar[int]
-    WINDOW_TYPE_NAME_FIELD_NUMBER: _ClassVar[int]
+    WINDOW_TYPE_FIELD_NUMBER: _ClassVar[int]
     DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
     name: str
     version: str
-    window_type_name: str
+    window_type: WindowType
     dependencies: _containers.RepeatedCompositeFieldContainer[AlgorithmDependency]
-    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., window_type_name: _Optional[str] = ..., dependencies: _Optional[_Iterable[_Union[AlgorithmDependency, _Mapping]]] = ...) -> None: ...
-
-class Result(_message.Message):
-    __slots__ = ("algorithm_name", "version", "status", "float_values", "struct_value", "timestamp")
-    ALGORITHM_NAME_FIELD_NUMBER: _ClassVar[int]
-    VERSION_FIELD_NUMBER: _ClassVar[int]
-    STATUS_FIELD_NUMBER: _ClassVar[int]
-    FLOAT_VALUES_FIELD_NUMBER: _ClassVar[int]
-    STRUCT_VALUE_FIELD_NUMBER: _ClassVar[int]
-    TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
-    algorithm_name: str
-    version: str
-    status: ResultStatus
-    float_values: FloatArray
-    struct_value: _struct_pb2.Struct
-    timestamp: int
-    def __init__(self, algorithm_name: _Optional[str] = ..., version: _Optional[str] = ..., status: _Optional[_Union[ResultStatus, str]] = ..., float_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., timestamp: _Optional[int] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., window_type: _Optional[_Union[WindowType, _Mapping]] = ..., dependencies: _Optional[_Iterable[_Union[AlgorithmDependency, _Mapping]]] = ...) -> None: ...
 
 class FloatArray(_message.Message):
     __slots__ = ("values",)
     VALUES_FIELD_NUMBER: _ClassVar[int]
     values: _containers.RepeatedScalarFieldContainer[float]
     def __init__(self, values: _Optional[_Iterable[float]] = ...) -> None: ...
+
+class Result(_message.Message):
+    __slots__ = ("algorithm_name", "version", "status", "single_value", "float_values", "struct_value", "timestamp")
+    ALGORITHM_NAME_FIELD_NUMBER: _ClassVar[int]
+    VERSION_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    SINGLE_VALUE_FIELD_NUMBER: _ClassVar[int]
+    FLOAT_VALUES_FIELD_NUMBER: _ClassVar[int]
+    STRUCT_VALUE_FIELD_NUMBER: _ClassVar[int]
+    TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    algorithm_name: str
+    version: str
+    status: ResultStatus
+    single_value: float
+    float_values: FloatArray
+    struct_value: _struct_pb2.Struct
+    timestamp: int
+    def __init__(self, algorithm_name: _Optional[str] = ..., version: _Optional[str] = ..., status: _Optional[_Union[ResultStatus, str]] = ..., single_value: _Optional[float] = ..., float_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
 class ProcessorRegistration(_message.Message):
     __slots__ = ("name", "runtime", "supported_algorithms")
