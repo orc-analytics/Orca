@@ -87,8 +87,6 @@ type model struct {
 	connStr    textinput.Model
 	port       textinput.Model
 	logLevel   textinput.Model
-	logs       []logMsg
-	logChan    chan logMsg
 }
 
 // custom TUI messages
@@ -250,8 +248,6 @@ func initialModel() model {
 		logLevel:   tiLogLevel,
 		help:       help.New(),
 		keys:       keys,
-		logs:       make([]logMsg, 0),
-		logChan:    make(chan logMsg, 100), // buffer size of 100
 	}
 }
 
@@ -329,7 +325,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.logLevel.Blur()
 
 					port, _ := strconv.Atoi(m.port.Value())
-					startGRPCServer(m.dlyr.Value(), m.connStr.Value(), port, strings.ToUpper(m.logLevel.Value()), m.logChan)
+					startGRPCServer(m.dlyr.Value(), m.connStr.Value(), port, strings.ToUpper(m.logLevel.Value()), nil)
 					m.state = running
 					return m, nil
 				}
@@ -355,14 +351,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.logLevel, cmd = m.logLevel.Update(msg)
 			m.logLevel.SetValue(strings.ToUpper(m.logLevel.Value()))
 		}
-	}
-
-	// Handle incoming log messages
-	select {
-	case logMsg := <-m.logChan:
-		m.logs = append(m.logs, logMsg)
-		return m, nil
-	default:
 	}
 
 	return m, cmd
@@ -425,43 +413,17 @@ func (m model) View() string {
 		s.WriteString("\n")
 
 	case running:
+		s.WriteString("\n\n")
 		style := lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#04B575")).
 			Border(lipgloss.RoundedBorder()).
-			Padding(1, 2)
+			Padding(2)
 
-		msg := style.Render(
+		s.WriteString(style.Render(
 			fmt.Sprintf("\n🐋 ORCA Server Running at grpc://localhost:%v\n", m.port.Value()),
-		)
-		s.WriteString(msg)
+		))
 
-		// Display logs
-		if len(m.logs) > 0 {
-			s.WriteString("\nServer Logs:\n")
-			// Show last 10 logs
-			start := len(m.logs) - 10
-			if start < 0 {
-				start = 0
-			}
-			for _, log := range m.logs[start:] {
-				logStyle := lipgloss.NewStyle()
-				switch log.level {
-				case slog.LevelDebug:
-					logStyle = logStyle.Foreground(lipgloss.Color("8")) // Gray
-				case slog.LevelInfo:
-					logStyle = logStyle.Foreground(lipgloss.Color("12")) // Blue
-				case slog.LevelWarn:
-					logStyle = logStyle.Foreground(lipgloss.Color("11")) // Yellow
-				case slog.LevelError:
-					logStyle = logStyle.Foreground(lipgloss.Color("9")) // Red
-				}
-				s.WriteString(logStyle.Render(fmt.Sprintf("[%s] %s: %s\n",
-					log.time.Format("15:04:05"),
-					strings.ToUpper(log.level.String()),
-					log.message)))
-			}
-		}
 	}
 
 	if m.err != nil {
