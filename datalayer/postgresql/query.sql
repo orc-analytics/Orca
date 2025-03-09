@@ -24,6 +24,12 @@ INSERT INTO algorithm (
   sqlc.arg('window_type_version')
 ) ON CONFLICT (name, version, processor_name, processor_runtime) DO NOTHING;
 
+-- name: ReadAlgorithmsForWindow :many
+SELECT * FROM algorithm
+WHERE
+  window_type_name = sqlc.arg('window_type_name') 
+  AND window_type_version = sqlc.arg('window_type_version');
+  
 -- name: CreateAlgorithmDependency :exec
 INSERT INTO algorithm_dependency (
   from_algorithm_name,
@@ -44,6 +50,13 @@ INSERT INTO algorithm_dependency (
   sqlc.arg('to_processor_name'),
   sqlc.arg('to_processor_runtime')
 ) ON CONFLICT DO NOTHING;
+
+-- name: ReadAlgorithmDependencies :many
+SELECT * FROM algorithm_dependency WHERE 
+  from_algorithm_name = sqlc.arg('algorithm_name')
+  AND from_algorithm_version = sqlc.arg('algorithm_version')
+  AND from_processor_name = sqlc.arg('processor_name')
+  AND from_processor_runtime = sqlc.arg('processor_runtime');
 
 -- name: CreateProcessorAndPurgeAlgos :exec
 WITH processor_insert AS (

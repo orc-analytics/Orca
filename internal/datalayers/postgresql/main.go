@@ -175,5 +175,29 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 		return err
 	}
 	slog.Debug("window record inserted into the datalayer", "window", insertedWindow)
+
+	// gather all affected algorithms
+	algorithms, err := d.queries.ReadAlgorithmsForWindow(ctx, ReadAlgorithmsForWindowParams{
+		WindowTypeName:    window.GetWindowTypeName(),
+		WindowTypeVersion: window.GetWindowTypeVersion(),
+	})
+
+	// for each algorithm get the dependencies
+	for _, algo := range algorithms {
+		dependency, err := d.queries.ReadAlgorithmDependencies(ctx, ReadAlgorithmDependenciesParams{
+			AlgorithmName:    algo.Name,
+			AlgorithmVersion: algo.Version,
+			ProcessorName:    algo.ProcessorName,
+			ProcessorRuntime: algo.ProcessorRuntime,
+		})
+		if err != nil {
+			slog.Error("could not read algorithm dependency", "error", err)
+			return err
+		}
+
+		// TODO: return fire off processing tasks to the processors.
+
+	}
+
 	return nil
 }

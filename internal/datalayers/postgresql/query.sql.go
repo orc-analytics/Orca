@@ -178,6 +178,95 @@ func (q *Queries) CreateWindowType(ctx context.Context, arg CreateWindowTypePara
 	return err
 }
 
+const readAlgorithmDependencies = `-- name: ReadAlgorithmDependencies :many
+SELECT from_algorithm_name, from_algorithm_version, from_processor_name, from_processor_runtime, to_algorithm_name, to_algorithm_version, to_processor_name, to_processor_runtime FROM algorithm_dependency WHERE 
+  from_algorithm_name = $1
+  AND from_algorithm_version = $2
+  AND from_processor_name = $3
+  AND from_processor_runtime = $4
+`
+
+type ReadAlgorithmDependenciesParams struct {
+	AlgorithmName    string
+	AlgorithmVersion string
+	ProcessorName    string
+	ProcessorRuntime string
+}
+
+func (q *Queries) ReadAlgorithmDependencies(ctx context.Context, arg ReadAlgorithmDependenciesParams) ([]AlgorithmDependency, error) {
+	rows, err := q.db.Query(ctx, readAlgorithmDependencies,
+		arg.AlgorithmName,
+		arg.AlgorithmVersion,
+		arg.ProcessorName,
+		arg.ProcessorRuntime,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AlgorithmDependency
+	for rows.Next() {
+		var i AlgorithmDependency
+		if err := rows.Scan(
+			&i.FromAlgorithmName,
+			&i.FromAlgorithmVersion,
+			&i.FromProcessorName,
+			&i.FromProcessorRuntime,
+			&i.ToAlgorithmName,
+			&i.ToAlgorithmVersion,
+			&i.ToProcessorName,
+			&i.ToProcessorRuntime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const readAlgorithmsForWindow = `-- name: ReadAlgorithmsForWindow :many
+SELECT name, version, processor_name, processor_runtime, window_type_name, window_type_version, created FROM algorithm
+WHERE
+  window_type_name = $1 
+  AND window_type_version = $2
+`
+
+type ReadAlgorithmsForWindowParams struct {
+	WindowTypeName    string
+	WindowTypeVersion string
+}
+
+func (q *Queries) ReadAlgorithmsForWindow(ctx context.Context, arg ReadAlgorithmsForWindowParams) ([]Algorithm, error) {
+	rows, err := q.db.Query(ctx, readAlgorithmsForWindow, arg.WindowTypeName, arg.WindowTypeVersion)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Algorithm
+	for rows.Next() {
+		var i Algorithm
+		if err := rows.Scan(
+			&i.Name,
+			&i.Version,
+			&i.ProcessorName,
+			&i.ProcessorRuntime,
+			&i.WindowTypeName,
+			&i.WindowTypeVersion,
+			&i.Created,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const registerWindow = `-- name: RegisterWindow :one
 INSERT INTO windows (
   window_type_name, 
