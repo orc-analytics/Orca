@@ -31,14 +31,14 @@ service OrcaCore {
 }
 
 // OrcaProcessor defines the interface that each processing node must implement.
-// Processors are language-specific services that:
+// Processors are language-agnostic services that:
 // - Execute individual algorithms
 // - Handle their own internal state
 // - Report results back to the orchestrator
-// Multiple processors can run simultaneously, supporting different languages/runtimes
+// Orca will schedule processors asynchronously as per the DAG
 service OrcaProcessor {
   // Execute an algorithm with given inputs
-  rpc ExecuteAlgorithm(ExecutionRequest) returns (ExecutionResult);
+  rpc ExecuteDAG(ExecutionRequest) returns (ExecutionResult);
 
   // Check health/status of processor
   rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
@@ -248,15 +248,16 @@ message ProcessingTask {
   repeated Result dependency_results = 4;
 }
 
-// ExecutionRequest contains all information needed for a processor to execute
+// ExecuteDAG contains all information needed for a processor to execute
 // a specific algorithm instance. Sent by the orchestrator to processors.
-message ExecutionRequest {
+message ExecuteDAG {
   // Task ID from the original ProcessingTask
   // Used to correlate results back to the task
   string task_id = 1 [(buf.validate.field).required = true];
 
   // Algorithm to execute with its full specification
   Algorithm algorithm = 2 [(buf.validate.field).required = true];
+  
 
   // Input data/parameters for the algorithm
   // Keys are parameter names, values are serialised data
@@ -278,25 +279,22 @@ message DagStateRequest {
   string window_id = 1 [(buf.validate.field).required = true];
 }
 
-// DagState provides a complete view of a processing DAG's execution status
-// for a specific window. Used for monitoring and debugging.
-message DagState {
-  // Window being processed
-  // Identifies which processing context this state belongs to
+// ExecutionRequest provides a complete view of a processing DAG's execution
+// status for a specific window. Used for monitoring and debugging.
+message ExecutionRequest {
+  // The window that triggered the DAG 
   Window window = 1 [(buf.validate.field).required = true];
+  
+  // Results from dependant algorithms
+  repeated AlgorithmResult algorithm_results = 2;
 
-  // Status of each algorithm in the DAG
-  // Includes both completed and pending algorithms
-  repeated AlgorithmState algorithm_states = 2 [(buf.validate.field).required = true];
+  // The execution DAG
 }
 
-message AlgorithmState {
-  // Algorithm info
-  Algorithm algorithm = 1 [(buf.validate.field).required = true];
-  // Current status
-  string status = 2 [(buf.validate.field).required = true];
-  // Result if completed
-  Result result = 3;
+// AlgorithmWindowResult Packaged algorithm and result to a window
+message AlgorithmResult {
+  Algorithm algorithm = 1 [(buf.validate.field).required=true];
+  Result result = 2 [(buf.validate.field).required=true];
 }
 
 message Status {
