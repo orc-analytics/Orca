@@ -2,12 +2,14 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/bufbuild/protovalidate-go"
 	dlyr "github.com/predixus/orca/internal/datalayers"
 	pb "github.com/predixus/orca/protobufs/go"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -76,12 +78,12 @@ func (o *OrcaCoreServer) RegisterProcessor(
 		return nil, err
 	}
 	slog.Info("registering processor")
-	slog.Debug("registered processor", "processor", proc)
 
 	err = o.client.CreateProcessor(context.Background(), proc)
 	if err != nil {
 		return nil, err
 	}
+	slog.Debug("registered processor", "processor", proc)
 	return &pb.Status{
 		Received: true,
 		Message:  "Successfully registered processor",

@@ -24,7 +24,6 @@ const (
 	OrcaCore_EmitWindow_FullMethodName         = "/OrcaCore/EmitWindow"
 	OrcaCore_RegisterAlgorithm_FullMethodName  = "/OrcaCore/RegisterAlgorithm"
 	OrcaCore_SubmitResult_FullMethodName       = "/OrcaCore/SubmitResult"
-	OrcaCore_GetDagState_FullMethodName        = "/OrcaCore/GetDagState"
 )
 
 // OrcaCoreClient is the client API for OrcaCore service.
@@ -47,8 +46,6 @@ type OrcaCoreClient interface {
 	RegisterAlgorithm(ctx context.Context, in *Algorithm, opts ...grpc.CallOption) (*Status, error)
 	// Submit results from algorithm execution
 	SubmitResult(ctx context.Context, in *Result, opts ...grpc.CallOption) (*Status, error)
-	// Get the current state of a DAG execution
-	GetDagState(ctx context.Context, in *DagStateRequest, opts ...grpc.CallOption) (*DagState, error)
 }
 
 type orcaCoreClient struct {
@@ -109,16 +106,6 @@ func (c *orcaCoreClient) SubmitResult(ctx context.Context, in *Result, opts ...g
 	return out, nil
 }
 
-func (c *orcaCoreClient) GetDagState(ctx context.Context, in *DagStateRequest, opts ...grpc.CallOption) (*DagState, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DagState)
-	err := c.cc.Invoke(ctx, OrcaCore_GetDagState_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // OrcaCoreServer is the server API for OrcaCore service.
 // All implementations must embed UnimplementedOrcaCoreServer
 // for forward compatibility.
@@ -139,8 +126,6 @@ type OrcaCoreServer interface {
 	RegisterAlgorithm(context.Context, *Algorithm) (*Status, error)
 	// Submit results from algorithm execution
 	SubmitResult(context.Context, *Result) (*Status, error)
-	// Get the current state of a DAG execution
-	GetDagState(context.Context, *DagStateRequest) (*DagState, error)
 	mustEmbedUnimplementedOrcaCoreServer()
 }
 
@@ -165,9 +150,6 @@ func (UnimplementedOrcaCoreServer) RegisterAlgorithm(context.Context, *Algorithm
 }
 func (UnimplementedOrcaCoreServer) SubmitResult(context.Context, *Result) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitResult not implemented")
-}
-func (UnimplementedOrcaCoreServer) GetDagState(context.Context, *DagStateRequest) (*DagState, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDagState not implemented")
 }
 func (UnimplementedOrcaCoreServer) mustEmbedUnimplementedOrcaCoreServer() {}
 func (UnimplementedOrcaCoreServer) testEmbeddedByValue()                  {}
@@ -280,24 +262,6 @@ func _OrcaCore_SubmitResult_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OrcaCore_GetDagState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DagStateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrcaCoreServer).GetDagState(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OrcaCore_GetDagState_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrcaCoreServer).GetDagState(ctx, req.(*DagStateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // OrcaCore_ServiceDesc is the grpc.ServiceDesc for OrcaCore service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -325,18 +289,14 @@ var OrcaCore_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "SubmitResult",
 			Handler:    _OrcaCore_SubmitResult_Handler,
 		},
-		{
-			MethodName: "GetDagState",
-			Handler:    _OrcaCore_GetDagState_Handler,
-		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "service.proto",
 }
 
 const (
-	OrcaProcessor_ExecuteAlgorithm_FullMethodName = "/OrcaProcessor/ExecuteAlgorithm"
-	OrcaProcessor_HealthCheck_FullMethodName      = "/OrcaProcessor/HealthCheck"
+	OrcaProcessor_ExecuteDAG_FullMethodName  = "/OrcaProcessor/ExecuteDAG"
+	OrcaProcessor_HealthCheck_FullMethodName = "/OrcaProcessor/HealthCheck"
 )
 
 // OrcaProcessorClient is the client API for OrcaProcessor service.
@@ -344,14 +304,14 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // OrcaProcessor defines the interface that each processing node must implement.
-// Processors are language-specific services that:
+// Processors are language-agnostic services that:
 // - Execute individual algorithms
 // - Handle their own internal state
 // - Report results back to the orchestrator
-// Multiple processors can run simultaneously, supporting different languages/runtimes
+// Orca will schedule processors asynchronously as per the DAG
 type OrcaProcessorClient interface {
 	// Execute an algorithm with given inputs
-	ExecuteAlgorithm(ctx context.Context, in *ExecutionRequest, opts ...grpc.CallOption) (*ExecutionResult, error)
+	ExecuteDAG(ctx context.Context, in *ExecutionRequest, opts ...grpc.CallOption) (*ExecutionResult, error)
 	// Check health/status of processor
 	HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error)
 }
@@ -364,10 +324,10 @@ func NewOrcaProcessorClient(cc grpc.ClientConnInterface) OrcaProcessorClient {
 	return &orcaProcessorClient{cc}
 }
 
-func (c *orcaProcessorClient) ExecuteAlgorithm(ctx context.Context, in *ExecutionRequest, opts ...grpc.CallOption) (*ExecutionResult, error) {
+func (c *orcaProcessorClient) ExecuteDAG(ctx context.Context, in *ExecutionRequest, opts ...grpc.CallOption) (*ExecutionResult, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ExecutionResult)
-	err := c.cc.Invoke(ctx, OrcaProcessor_ExecuteAlgorithm_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, OrcaProcessor_ExecuteDAG_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -389,14 +349,14 @@ func (c *orcaProcessorClient) HealthCheck(ctx context.Context, in *HealthCheckRe
 // for forward compatibility.
 //
 // OrcaProcessor defines the interface that each processing node must implement.
-// Processors are language-specific services that:
+// Processors are language-agnostic services that:
 // - Execute individual algorithms
 // - Handle their own internal state
 // - Report results back to the orchestrator
-// Multiple processors can run simultaneously, supporting different languages/runtimes
+// Orca will schedule processors asynchronously as per the DAG
 type OrcaProcessorServer interface {
 	// Execute an algorithm with given inputs
-	ExecuteAlgorithm(context.Context, *ExecutionRequest) (*ExecutionResult, error)
+	ExecuteDAG(context.Context, *ExecutionRequest) (*ExecutionResult, error)
 	// Check health/status of processor
 	HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
 	mustEmbedUnimplementedOrcaProcessorServer()
@@ -409,8 +369,8 @@ type OrcaProcessorServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrcaProcessorServer struct{}
 
-func (UnimplementedOrcaProcessorServer) ExecuteAlgorithm(context.Context, *ExecutionRequest) (*ExecutionResult, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ExecuteAlgorithm not implemented")
+func (UnimplementedOrcaProcessorServer) ExecuteDAG(context.Context, *ExecutionRequest) (*ExecutionResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExecuteDAG not implemented")
 }
 func (UnimplementedOrcaProcessorServer) HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HealthCheck not implemented")
@@ -436,20 +396,20 @@ func RegisterOrcaProcessorServer(s grpc.ServiceRegistrar, srv OrcaProcessorServe
 	s.RegisterService(&OrcaProcessor_ServiceDesc, srv)
 }
 
-func _OrcaProcessor_ExecuteAlgorithm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _OrcaProcessor_ExecuteDAG_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ExecutionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OrcaProcessorServer).ExecuteAlgorithm(ctx, in)
+		return srv.(OrcaProcessorServer).ExecuteDAG(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: OrcaProcessor_ExecuteAlgorithm_FullMethodName,
+		FullMethod: OrcaProcessor_ExecuteDAG_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrcaProcessorServer).ExecuteAlgorithm(ctx, req.(*ExecutionRequest))
+		return srv.(OrcaProcessorServer).ExecuteDAG(ctx, req.(*ExecutionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -480,8 +440,8 @@ var OrcaProcessor_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*OrcaProcessorServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ExecuteAlgorithm",
-			Handler:    _OrcaProcessor_ExecuteAlgorithm_Handler,
+			MethodName: "ExecuteDAG",
+			Handler:    _OrcaProcessor_ExecuteDAG_Handler,
 		},
 		{
 			MethodName: "HealthCheck",

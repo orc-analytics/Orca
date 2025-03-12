@@ -27,7 +27,7 @@ service OrcaCore {
   rpc SubmitResult(Result) returns (Status);
 
   // Get the current state of a DAG execution
-  rpc GetDagState(DagStateRequest) returns (DagState);
+  // rpc GetDagState(DagStateRequest) returns (DagState);
 }
 
 // OrcaProcessor defines the interface that each processing node must implement.
@@ -222,9 +222,13 @@ message ProcessorRegistration {
   // Examples: "python3.9", "go1.19", "R4.1"
   string runtime = 2 [(buf.validate.field).required = true];
 
+  // The connection string of the orca slave server
+  // e.g. grpc://localhost:5433
+  string connection_str = 3 [(buf.validate.field).required = true];
+
   // Algorithms this processor can execute
   // The processor must implement all listed algorithms
-  repeated Algorithm supported_algorithms = 3 [(buf.validate.field).required = true];
+  repeated Algorithm supported_algorithms = 4 [(buf.validate.field).required = true];
 }
 
 // ProcessingTask represents a single algorithm execution request sent to a processor.

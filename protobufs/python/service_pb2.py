@@ -26,7 +26,7 @@ from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 from vendor import validate_pb2 as vendor_dot_validate__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rservice.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x15vendor/validate.proto\"\xeb\x01\n\x06Window\x12\x18\n\x04\x66rom\x18\x01 \x01(\x04\x42\n\xbaH\x07\x32\x02 \x00\xc8\x01\x01\x12\x12\n\x02to\x18\x02 \x01(\x04\x42\x06\xbaH\x03\xc8\x01\x01\x12 \n\x10window_type_name\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12#\n\x13window_type_version\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x16\n\x06origin\x18\x05 \x01(\tB\x06\xbaH\x03\xc8\x01\x01:T\xbaHQ\x1aO\n\twindow.to\x12,`to` must be greater than or equal to `from`\x1a\x14this.to >= this.from\";\n\nWindowType\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07version\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\xc9\x01\n\x18WindowTypeRegisterStatus\x12<\n\x06status\x18\x01 \x01(\x0e\x32$.WindowTypeRegisterStatus.StatusEnumB\x06\xbaH\x03\xc8\x01\x01\x12\x0f\n\x07message\x18\x02 \x01(\t\"^\n\nStatusEnum\x12\x19\n\x15WINDOW_NOT_REGISTERED\x10\x00\x12\x15\n\x11WINDOW_REGISTERED\x10\x01\x12\x1e\n\x1aWINDOW_TYPE_ALREADY_EXISTS\x10\x02\"\x8d\x01\n\x10WindowEmitStatus\x12\x34\n\x06status\x18\x01 \x01(\x0e\x32\x1c.WindowEmitStatus.StatusEnumB\x06\xbaH\x03\xc8\x01\x01\"C\n\nStatusEnum\x12\x1b\n\x17NO_TRIGGERED_ALGORITHMS\x10\x00\x12\x18\n\x14PROCESSING_TRIGGERED\x10\x01\"\x87\x01\n\x13\x41lgorithmDependency\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07version\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1e\n\x0eprocessor_name\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12!\n\x11processor_runtime\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\x90\x01\n\tAlgorithm\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07version\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12(\n\x0bwindow_type\x18\x03 \x01(\x0b\x32\x0b.WindowTypeB\x06\xbaH\x03\xc8\x01\x01\x12*\n\x0c\x64\x65pendencies\x18\x04 \x03(\x0b\x32\x14.AlgorithmDependency\"\x1c\n\nFloatArray\x12\x0e\n\x06values\x18\x01 \x03(\x02\"\x80\x02\n\x06Result\x12\x1e\n\x0e\x61lgorithm_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07version\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12%\n\x06status\x18\x03 \x01(\x0e\x32\r.ResultStatusB\x06\xbaH\x03\xc8\x01\x01\x12\x16\n\x0csingle_value\x18\x04 \x01(\x02H\x00\x12#\n\x0c\x66loat_values\x18\x05 \x01(\x0b\x32\x0b.FloatArrayH\x00\x12/\n\x0cstruct_value\x18\x06 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x12\x19\n\ttimestamp\x18\x07 \x01(\x03\x42\x06\xbaH\x03\xc8\x01\x01\x42\r\n\x0bresult_data\"x\n\x15ProcessorRegistration\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07runtime\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x30\n\x14supported_algorithms\x18\x03 \x03(\x0b\x32\n.AlgorithmB\x06\xbaH\x03\xc8\x01\x01\"\x96\x01\n\x0eProcessingTask\x12\x17\n\x07task_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12%\n\talgorithm\x18\x02 \x01(\x0b\x32\n.AlgorithmB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\x06window\x18\x03 \x01(\x0b\x32\x07.WindowB\x06\xbaH\x03\xc8\x01\x01\x12#\n\x12\x64\x65pendency_results\x18\x04 \x03(\x0b\x32\x07.Result\"\xb0\x01\n\x10\x45xecutionRequest\x12\x17\n\x07task_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12%\n\talgorithm\x18\x02 \x01(\x0b\x32\n.AlgorithmB\x06\xbaH\x03\xc8\x01\x01\x12-\n\x06inputs\x18\x03 \x03(\x0b\x32\x1d.ExecutionRequest.InputsEntry\x1a-\n\x0bInputsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c:\x02\x38\x01\"\xb9\x01\n\x0f\x45xecutionResult\x12\x17\n\x07task_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12%\n\x06status\x18\x02 \x01(\x0e\x32\r.ResultStatusB\x06\xbaH\x03\xc8\x01\x01\x12\x36\n\x07outputs\x18\x03 \x03(\x0b\x32\x1d.ExecutionResult.OutputsEntryB\x06\xbaH\x03\xc8\x01\x01\x1a.\n\x0cOutputsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c:\x02\x38\x01\",\n\x0f\x44\x61gStateRequest\x12\x19\n\twindow_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"^\n\x08\x44\x61gState\x12\x1f\n\x06window\x18\x01 \x01(\x0b\x32\x07.WindowB\x06\xbaH\x03\xc8\x01\x01\x12\x31\n\x10\x61lgorithm_states\x18\x02 \x03(\x0b\x32\x0f.AlgorithmStateB\x06\xbaH\x03\xc8\x01\x01\"h\n\x0e\x41lgorithmState\x12%\n\talgorithm\x18\x01 \x01(\x0b\x32\n.AlgorithmB\x06\xbaH\x03\xc8\x01\x01\x12\x16\n\x06status\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x06result\x18\x03 \x01(\x0b\x32\x07.Result\"+\n\x06Status\x12\x10\n\x08received\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"/\n\x12HealthCheckRequest\x12\x19\n\ttimestamp\x18\x01 \x01(\x03\x42\x06\xbaH\x03\xc8\x01\x01\"\xe3\x01\n\x13HealthCheckResponse\x12\x33\n\x06status\x18\x01 \x01(\x0e\x32\x1b.HealthCheckResponse.StatusB\x06\xbaH\x03\xc8\x01\x01\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\"\n\x07metrics\x18\x03 \x01(\x0b\x32\x11.ProcessorMetrics\"b\n\x06Status\x12\x12\n\x0eSTATUS_UNKNOWN\x10\x00\x12\x12\n\x0eSTATUS_SERVING\x10\x01\x12\x18\n\x14STATUS_TRANSITIONING\x10\x02\x12\x16\n\x12STATUS_NOT_SERVING\x10\x03\"k\n\x10ProcessorMetrics\x12\x14\n\x0c\x61\x63tive_tasks\x18\x01 \x01(\x05\x12\x14\n\x0cmemory_bytes\x18\x02 \x01(\x03\x12\x13\n\x0b\x63pu_percent\x18\x03 \x01(\x02\x12\x16\n\x0euptime_seconds\x18\x04 \x01(\x03*p\n\x0cResultStatus\x12 \n\x1cRESULT_STATUS_HANDLED_FAILED\x10\x00\x12\"\n\x1eRESULT_STATUS_UNHANDLED_FAILED\x10\x01\x12\x1a\n\x16RESULT_STATUS_SUCEEDED\x10\x02\x32\xa0\x02\n\x08OrcaCore\x12\x34\n\x11RegisterProcessor\x12\x16.ProcessorRegistration\x1a\x07.Status\x12<\n\x12RegisterWindowType\x12\x0b.WindowType\x1a\x19.WindowTypeRegisterStatus\x12(\n\nEmitWindow\x12\x07.Window\x1a\x11.WindowEmitStatus\x12(\n\x11RegisterAlgorithm\x12\n.Algorithm\x1a\x07.Status\x12 \n\x0cSubmitResult\x12\x07.Result\x1a\x07.Status\x12*\n\x0bGetDagState\x12\x10.DagStateRequest\x1a\t.DagState2\x82\x01\n\rOrcaProcessor\x12\x37\n\x10\x45xecuteAlgorithm\x12\x11.ExecutionRequest\x1a\x10.ExecutionResult\x12\x38\n\x0bHealthCheck\x12\x13.HealthCheckRequest\x1a\x14.HealthCheckResponseB\'Z%github.com/predixus/orca/protobufs/gob\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rservice.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x15vendor/validate.proto\"\xeb\x01\n\x06Window\x12\x18\n\x04\x66rom\x18\x01 \x01(\x04\x42\n\xbaH\x07\x32\x02 \x00\xc8\x01\x01\x12\x12\n\x02to\x18\x02 \x01(\x04\x42\x06\xbaH\x03\xc8\x01\x01\x12 \n\x10window_type_name\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12#\n\x13window_type_version\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x16\n\x06origin\x18\x05 \x01(\tB\x06\xbaH\x03\xc8\x01\x01:T\xbaHQ\x1aO\n\twindow.to\x12,`to` must be greater than or equal to `from`\x1a\x14this.to >= this.from\";\n\nWindowType\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07version\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\xc9\x01\n\x18WindowTypeRegisterStatus\x12<\n\x06status\x18\x01 \x01(\x0e\x32$.WindowTypeRegisterStatus.StatusEnumB\x06\xbaH\x03\xc8\x01\x01\x12\x0f\n\x07message\x18\x02 \x01(\t\"^\n\nStatusEnum\x12\x19\n\x15WINDOW_NOT_REGISTERED\x10\x00\x12\x15\n\x11WINDOW_REGISTERED\x10\x01\x12\x1e\n\x1aWINDOW_TYPE_ALREADY_EXISTS\x10\x02\"\x8d\x01\n\x10WindowEmitStatus\x12\x34\n\x06status\x18\x01 \x01(\x0e\x32\x1c.WindowEmitStatus.StatusEnumB\x06\xbaH\x03\xc8\x01\x01\"C\n\nStatusEnum\x12\x1b\n\x17NO_TRIGGERED_ALGORITHMS\x10\x00\x12\x18\n\x14PROCESSING_TRIGGERED\x10\x01\"\x87\x01\n\x13\x41lgorithmDependency\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07version\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1e\n\x0eprocessor_name\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12!\n\x11processor_runtime\x18\x04 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"\x90\x01\n\tAlgorithm\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07version\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12(\n\x0bwindow_type\x18\x03 \x01(\x0b\x32\x0b.WindowTypeB\x06\xbaH\x03\xc8\x01\x01\x12*\n\x0c\x64\x65pendencies\x18\x04 \x03(\x0b\x32\x14.AlgorithmDependency\"\x1c\n\nFloatArray\x12\x0e\n\x06values\x18\x01 \x03(\x02\"\x80\x02\n\x06Result\x12\x1e\n\x0e\x61lgorithm_name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07version\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12%\n\x06status\x18\x03 \x01(\x0e\x32\r.ResultStatusB\x06\xbaH\x03\xc8\x01\x01\x12\x16\n\x0csingle_value\x18\x04 \x01(\x02H\x00\x12#\n\x0c\x66loat_values\x18\x05 \x01(\x0b\x32\x0b.FloatArrayH\x00\x12/\n\x0cstruct_value\x18\x06 \x01(\x0b\x32\x17.google.protobuf.StructH\x00\x12\x19\n\ttimestamp\x18\x07 \x01(\x03\x42\x06\xbaH\x03\xc8\x01\x01\x42\r\n\x0bresult_data\"\x98\x01\n\x15ProcessorRegistration\x12\x14\n\x04name\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x17\n\x07runtime\x18\x02 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x1e\n\x0e\x63onnection_str\x18\x03 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12\x30\n\x14supported_algorithms\x18\x04 \x03(\x0b\x32\n.AlgorithmB\x06\xbaH\x03\xc8\x01\x01\"\x96\x01\n\x0eProcessingTask\x12\x17\n\x07task_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12%\n\talgorithm\x18\x02 \x01(\x0b\x32\n.AlgorithmB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\x06window\x18\x03 \x01(\x0b\x32\x07.WindowB\x06\xbaH\x03\xc8\x01\x01\x12#\n\x12\x64\x65pendency_results\x18\x04 \x03(\x0b\x32\x07.Result\"\xa4\x01\n\nExecuteDAG\x12\x17\n\x07task_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12%\n\talgorithm\x18\x02 \x01(\x0b\x32\n.AlgorithmB\x06\xbaH\x03\xc8\x01\x01\x12\'\n\x06inputs\x18\x03 \x03(\x0b\x32\x17.ExecuteDAG.InputsEntry\x1a-\n\x0bInputsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c:\x02\x38\x01\"\xb9\x01\n\x0f\x45xecutionResult\x12\x17\n\x07task_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\x12%\n\x06status\x18\x02 \x01(\x0e\x32\r.ResultStatusB\x06\xbaH\x03\xc8\x01\x01\x12\x36\n\x07outputs\x18\x03 \x03(\x0b\x32\x1d.ExecutionResult.OutputsEntryB\x06\xbaH\x03\xc8\x01\x01\x1a.\n\x0cOutputsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c:\x02\x38\x01\",\n\x0f\x44\x61gStateRequest\x12\x19\n\twindow_id\x18\x01 \x01(\tB\x06\xbaH\x03\xc8\x01\x01\"`\n\x10\x45xecutionRequest\x12\x1f\n\x06window\x18\x01 \x01(\x0b\x32\x07.WindowB\x06\xbaH\x03\xc8\x01\x01\x12+\n\x11\x61lgorithm_results\x18\x02 \x03(\x0b\x32\x10.AlgorithmResult\"Y\n\x0f\x41lgorithmResult\x12%\n\talgorithm\x18\x01 \x01(\x0b\x32\n.AlgorithmB\x06\xbaH\x03\xc8\x01\x01\x12\x1f\n\x06result\x18\x02 \x01(\x0b\x32\x07.ResultB\x06\xbaH\x03\xc8\x01\x01\"+\n\x06Status\x12\x10\n\x08received\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"/\n\x12HealthCheckRequest\x12\x19\n\ttimestamp\x18\x01 \x01(\x03\x42\x06\xbaH\x03\xc8\x01\x01\"\xe3\x01\n\x13HealthCheckResponse\x12\x33\n\x06status\x18\x01 \x01(\x0e\x32\x1b.HealthCheckResponse.StatusB\x06\xbaH\x03\xc8\x01\x01\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\"\n\x07metrics\x18\x03 \x01(\x0b\x32\x11.ProcessorMetrics\"b\n\x06Status\x12\x12\n\x0eSTATUS_UNKNOWN\x10\x00\x12\x12\n\x0eSTATUS_SERVING\x10\x01\x12\x18\n\x14STATUS_TRANSITIONING\x10\x02\x12\x16\n\x12STATUS_NOT_SERVING\x10\x03\"k\n\x10ProcessorMetrics\x12\x14\n\x0c\x61\x63tive_tasks\x18\x01 \x01(\x05\x12\x14\n\x0cmemory_bytes\x18\x02 \x01(\x03\x12\x13\n\x0b\x63pu_percent\x18\x03 \x01(\x02\x12\x16\n\x0euptime_seconds\x18\x04 \x01(\x03*p\n\x0cResultStatus\x12 \n\x1cRESULT_STATUS_HANDLED_FAILED\x10\x00\x12\"\n\x1eRESULT_STATUS_UNHANDLED_FAILED\x10\x01\x12\x1a\n\x16RESULT_STATUS_SUCEEDED\x10\x02\x32\xf4\x01\n\x08OrcaCore\x12\x34\n\x11RegisterProcessor\x12\x16.ProcessorRegistration\x1a\x07.Status\x12<\n\x12RegisterWindowType\x12\x0b.WindowType\x1a\x19.WindowTypeRegisterStatus\x12(\n\nEmitWindow\x12\x07.Window\x1a\x11.WindowEmitStatus\x12(\n\x11RegisterAlgorithm\x12\n.Algorithm\x1a\x07.Status\x12 \n\x0cSubmitResult\x12\x07.Result\x1a\x07.Status2|\n\rOrcaProcessor\x12\x31\n\nExecuteDAG\x12\x11.ExecutionRequest\x1a\x10.ExecutionResult\x12\x38\n\x0bHealthCheck\x12\x13.HealthCheckRequest\x1a\x14.HealthCheckResponseB\'Z%github.com/predixus/orca/protobufs/gob\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -80,6 +80,8 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_PROCESSORREGISTRATION'].fields_by_name['name']._serialized_options = b'\272H\003\310\001\001'
   _globals['_PROCESSORREGISTRATION'].fields_by_name['runtime']._loaded_options = None
   _globals['_PROCESSORREGISTRATION'].fields_by_name['runtime']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_PROCESSORREGISTRATION'].fields_by_name['connection_str']._loaded_options = None
+  _globals['_PROCESSORREGISTRATION'].fields_by_name['connection_str']._serialized_options = b'\272H\003\310\001\001'
   _globals['_PROCESSORREGISTRATION'].fields_by_name['supported_algorithms']._loaded_options = None
   _globals['_PROCESSORREGISTRATION'].fields_by_name['supported_algorithms']._serialized_options = b'\272H\003\310\001\001'
   _globals['_PROCESSINGTASK'].fields_by_name['task_id']._loaded_options = None
@@ -88,12 +90,12 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_PROCESSINGTASK'].fields_by_name['algorithm']._serialized_options = b'\272H\003\310\001\001'
   _globals['_PROCESSINGTASK'].fields_by_name['window']._loaded_options = None
   _globals['_PROCESSINGTASK'].fields_by_name['window']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_EXECUTIONREQUEST_INPUTSENTRY']._loaded_options = None
-  _globals['_EXECUTIONREQUEST_INPUTSENTRY']._serialized_options = b'8\001'
-  _globals['_EXECUTIONREQUEST'].fields_by_name['task_id']._loaded_options = None
-  _globals['_EXECUTIONREQUEST'].fields_by_name['task_id']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_EXECUTIONREQUEST'].fields_by_name['algorithm']._loaded_options = None
-  _globals['_EXECUTIONREQUEST'].fields_by_name['algorithm']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_EXECUTEDAG_INPUTSENTRY']._loaded_options = None
+  _globals['_EXECUTEDAG_INPUTSENTRY']._serialized_options = b'8\001'
+  _globals['_EXECUTEDAG'].fields_by_name['task_id']._loaded_options = None
+  _globals['_EXECUTEDAG'].fields_by_name['task_id']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_EXECUTEDAG'].fields_by_name['algorithm']._loaded_options = None
+  _globals['_EXECUTEDAG'].fields_by_name['algorithm']._serialized_options = b'\272H\003\310\001\001'
   _globals['_EXECUTIONRESULT_OUTPUTSENTRY']._loaded_options = None
   _globals['_EXECUTIONRESULT_OUTPUTSENTRY']._serialized_options = b'8\001'
   _globals['_EXECUTIONRESULT'].fields_by_name['task_id']._loaded_options = None
@@ -104,20 +106,18 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_EXECUTIONRESULT'].fields_by_name['outputs']._serialized_options = b'\272H\003\310\001\001'
   _globals['_DAGSTATEREQUEST'].fields_by_name['window_id']._loaded_options = None
   _globals['_DAGSTATEREQUEST'].fields_by_name['window_id']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_DAGSTATE'].fields_by_name['window']._loaded_options = None
-  _globals['_DAGSTATE'].fields_by_name['window']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_DAGSTATE'].fields_by_name['algorithm_states']._loaded_options = None
-  _globals['_DAGSTATE'].fields_by_name['algorithm_states']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_ALGORITHMSTATE'].fields_by_name['algorithm']._loaded_options = None
-  _globals['_ALGORITHMSTATE'].fields_by_name['algorithm']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_ALGORITHMSTATE'].fields_by_name['status']._loaded_options = None
-  _globals['_ALGORITHMSTATE'].fields_by_name['status']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_EXECUTIONREQUEST'].fields_by_name['window']._loaded_options = None
+  _globals['_EXECUTIONREQUEST'].fields_by_name['window']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_ALGORITHMRESULT'].fields_by_name['algorithm']._loaded_options = None
+  _globals['_ALGORITHMRESULT'].fields_by_name['algorithm']._serialized_options = b'\272H\003\310\001\001'
+  _globals['_ALGORITHMRESULT'].fields_by_name['result']._loaded_options = None
+  _globals['_ALGORITHMRESULT'].fields_by_name['result']._serialized_options = b'\272H\003\310\001\001'
   _globals['_HEALTHCHECKREQUEST'].fields_by_name['timestamp']._loaded_options = None
   _globals['_HEALTHCHECKREQUEST'].fields_by_name['timestamp']._serialized_options = b'\272H\003\310\001\001'
   _globals['_HEALTHCHECKRESPONSE'].fields_by_name['status']._loaded_options = None
   _globals['_HEALTHCHECKRESPONSE'].fields_by_name['status']._serialized_options = b'\272H\003\310\001\001'
-  _globals['_RESULTSTATUS']._serialized_start=2614
-  _globals['_RESULTSTATUS']._serialized_end=2726
+  _globals['_RESULTSTATUS']._serialized_start=2622
+  _globals['_RESULTSTATUS']._serialized_end=2734
   _globals['_WINDOW']._serialized_start=71
   _globals['_WINDOW']._serialized_end=306
   _globals['_WINDOWTYPE']._serialized_start=308
@@ -138,36 +138,36 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_FLOATARRAY']._serialized_end=1030
   _globals['_RESULT']._serialized_start=1033
   _globals['_RESULT']._serialized_end=1289
-  _globals['_PROCESSORREGISTRATION']._serialized_start=1291
-  _globals['_PROCESSORREGISTRATION']._serialized_end=1411
-  _globals['_PROCESSINGTASK']._serialized_start=1414
-  _globals['_PROCESSINGTASK']._serialized_end=1564
-  _globals['_EXECUTIONREQUEST']._serialized_start=1567
-  _globals['_EXECUTIONREQUEST']._serialized_end=1743
-  _globals['_EXECUTIONREQUEST_INPUTSENTRY']._serialized_start=1698
-  _globals['_EXECUTIONREQUEST_INPUTSENTRY']._serialized_end=1743
-  _globals['_EXECUTIONRESULT']._serialized_start=1746
-  _globals['_EXECUTIONRESULT']._serialized_end=1931
-  _globals['_EXECUTIONRESULT_OUTPUTSENTRY']._serialized_start=1885
-  _globals['_EXECUTIONRESULT_OUTPUTSENTRY']._serialized_end=1931
-  _globals['_DAGSTATEREQUEST']._serialized_start=1933
-  _globals['_DAGSTATEREQUEST']._serialized_end=1977
-  _globals['_DAGSTATE']._serialized_start=1979
-  _globals['_DAGSTATE']._serialized_end=2073
-  _globals['_ALGORITHMSTATE']._serialized_start=2075
-  _globals['_ALGORITHMSTATE']._serialized_end=2179
-  _globals['_STATUS']._serialized_start=2181
-  _globals['_STATUS']._serialized_end=2224
-  _globals['_HEALTHCHECKREQUEST']._serialized_start=2226
-  _globals['_HEALTHCHECKREQUEST']._serialized_end=2273
-  _globals['_HEALTHCHECKRESPONSE']._serialized_start=2276
-  _globals['_HEALTHCHECKRESPONSE']._serialized_end=2503
-  _globals['_HEALTHCHECKRESPONSE_STATUS']._serialized_start=2405
-  _globals['_HEALTHCHECKRESPONSE_STATUS']._serialized_end=2503
-  _globals['_PROCESSORMETRICS']._serialized_start=2505
-  _globals['_PROCESSORMETRICS']._serialized_end=2612
-  _globals['_ORCACORE']._serialized_start=2729
-  _globals['_ORCACORE']._serialized_end=3017
-  _globals['_ORCAPROCESSOR']._serialized_start=3020
-  _globals['_ORCAPROCESSOR']._serialized_end=3150
+  _globals['_PROCESSORREGISTRATION']._serialized_start=1292
+  _globals['_PROCESSORREGISTRATION']._serialized_end=1444
+  _globals['_PROCESSINGTASK']._serialized_start=1447
+  _globals['_PROCESSINGTASK']._serialized_end=1597
+  _globals['_EXECUTEDAG']._serialized_start=1600
+  _globals['_EXECUTEDAG']._serialized_end=1764
+  _globals['_EXECUTEDAG_INPUTSENTRY']._serialized_start=1719
+  _globals['_EXECUTEDAG_INPUTSENTRY']._serialized_end=1764
+  _globals['_EXECUTIONRESULT']._serialized_start=1767
+  _globals['_EXECUTIONRESULT']._serialized_end=1952
+  _globals['_EXECUTIONRESULT_OUTPUTSENTRY']._serialized_start=1906
+  _globals['_EXECUTIONRESULT_OUTPUTSENTRY']._serialized_end=1952
+  _globals['_DAGSTATEREQUEST']._serialized_start=1954
+  _globals['_DAGSTATEREQUEST']._serialized_end=1998
+  _globals['_EXECUTIONREQUEST']._serialized_start=2000
+  _globals['_EXECUTIONREQUEST']._serialized_end=2096
+  _globals['_ALGORITHMRESULT']._serialized_start=2098
+  _globals['_ALGORITHMRESULT']._serialized_end=2187
+  _globals['_STATUS']._serialized_start=2189
+  _globals['_STATUS']._serialized_end=2232
+  _globals['_HEALTHCHECKREQUEST']._serialized_start=2234
+  _globals['_HEALTHCHECKREQUEST']._serialized_end=2281
+  _globals['_HEALTHCHECKRESPONSE']._serialized_start=2284
+  _globals['_HEALTHCHECKRESPONSE']._serialized_end=2511
+  _globals['_HEALTHCHECKRESPONSE_STATUS']._serialized_start=2413
+  _globals['_HEALTHCHECKRESPONSE_STATUS']._serialized_end=2511
+  _globals['_PROCESSORMETRICS']._serialized_start=2513
+  _globals['_PROCESSORMETRICS']._serialized_end=2620
+  _globals['_ORCACORE']._serialized_start=2737
+  _globals['_ORCACORE']._serialized_end=2981
+  _globals['_ORCAPROCESSOR']._serialized_start=2983
+  _globals['_ORCAPROCESSOR']._serialized_end=3107
 # @@protoc_insertion_point(module_scope)

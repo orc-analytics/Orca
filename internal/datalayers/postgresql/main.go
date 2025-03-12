@@ -56,7 +56,7 @@ func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegis
 	err = qtx.CreateProcessorAndPurgeAlgos(ctx, CreateProcessorAndPurgeAlgosParams{
 		Name:             proc.GetName(),
 		Runtime:          proc.GetRuntime(),
-		ConnectionString: "", // TODO: Get connection string
+		ConnectionString: proc.GetConnectionStr(),
 	})
 	if err != nil {
 		slog.Error("could not create processor", "error", err)
