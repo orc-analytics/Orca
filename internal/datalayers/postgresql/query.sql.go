@@ -67,7 +67,9 @@ INSERT INTO algorithm (
   $2,
   (SELECT id FROM processor_id),
   (SELECT id FROM window_type_id)
-) ON CONFLICT (name, version, processor_id) DO NOTHING
+) ON CONFLICT (name, version, processor_id) DO UPDATE
+SET
+  window_type_id = excluded.window_type_id
 `
 
 type CreateAlgorithmParams struct {
@@ -121,7 +123,10 @@ INSERT INTO algorithm_dependency (
     FROM from_algo, to_algo),
   (SELECT window_type_id FROM from_algo LIMIT 1),
   (SELECT window_type_id FROM to_algo LIMIT 1)
-) ON CONFLICT (from_algorithm_id, to_algorithm_id) DO NOTHING
+) ON CONFLICT (from_algorithm_id, to_algorithm_id) DO UPDATE
+  SET
+    from_window_type_id = excluded.from_window_type_id,
+    to_window_type_id = excluded.to_window_type_id
 `
 
 type CreateAlgorithmDependencyParams struct {
