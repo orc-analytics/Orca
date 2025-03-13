@@ -18,11 +18,13 @@ type Algorithm struct {
 }
 
 type AlgorithmDependency struct {
-	ID              int64
-	Path            string
-	FromAlgorithmID int64
-	ToAlgorithmID   int64
-	Created         pgtype.Timestamp
+	ID               int64
+	Path             string
+	FromAlgorithmID  int64
+	ToAlgorithmID    int64
+	FromWindowTypeID int64
+	ToWindowTypeID   int64
+	Created          pgtype.Timestamp
 }
 
 type Processor struct {

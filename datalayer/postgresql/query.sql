@@ -38,7 +38,7 @@ AND wt.version = sqlc.arg('window_type_version');
 
 -- name: CreateAlgorithmDependency :exec
 WITH from_algo AS (
-  SELECT a.id FROM algorithm a
+  SELECT a.id, a.window_type_id FROM algorithm a
   JOIN processor p ON a.processor_id = p.id
   WHERE a.name = sqlc.arg('from_algorithm_name')
   AND a.version = sqlc.arg('from_algorithm_version')
@@ -46,7 +46,7 @@ WITH from_algo AS (
   AND p.runtime = sqlc.arg('from_processor_runtime')
 ),
 to_algo AS (
-  SELECT a.id FROM algorithm a
+  SELECT a.id, a.window_type_id FROM algorithm a
   JOIN processor p ON a.processor_id = p.id
   WHERE a.name = sqlc.arg('to_algorithm_name')
   AND a.version = sqlc.arg('to_algorithm_version')
@@ -55,13 +55,17 @@ to_algo AS (
 )
 INSERT INTO algorithm_dependency (
   from_algorithm_id,
-  to_algorithm_id, 
-  path
+  to_algorithm_id,
+  path,
+  from_window_type_id,
+  to_window_type_id
 ) VALUES (
   (SELECT id FROM from_algo LIMIT 1),
   (SELECT id FROM to_algo LIMIT 1),
   (SELECT text2ltree(from_algo.id::text || '.' || to_algo.id::text)
-    FROM from_algo, to_algo)
+    FROM from_algo, to_algo),
+  (SELECT window_type_id FROM from_algo LIMIT 1),
+  (SELECT window_type_id FROM to_algo LIMIT 1)
 ) ON CONFLICT (from_algorithm_id, to_algorithm_id) DO NOTHING;
 
 -- name: ReadAlgorithmDependencies :many

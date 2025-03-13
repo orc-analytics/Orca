@@ -39,10 +39,14 @@ CREATE TABLE algorithm_dependency (
   path ltree NOT NULL, -- the dependency path of the algorithm ids, e.g. 5.6
   from_algorithm_id BIGINT NOT NULL,
   to_algorithm_id BIGINT NOT NULL,
+  from_window_type_id BIGINT NOT NULL,
+  to_window_type_id BIGINT NOT NULL,
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (from_algorithm_id, to_algorithm_id),
   FOREIGN KEY (from_algorithm_id) REFERENCES algorithm(id),
   FOREIGN KEY (to_algorithm_id) REFERENCES algorithm(id),
+  FOREIGN KEY (from_window_type_id) REFERENCES window_type(id),
+  FOREIGN KEY (to_window_type_id) REFERENCES window_type(id),
   -- Prevent self-dependencies
   CHECK (from_algorithm_id != to_algorithm_id)
 );
