@@ -40,10 +40,6 @@ func NewClient(ctx context.Context, connStr string) (*Datalayer, error) {
 func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegistration) error {
 	slog.Debug("creating processor", "protobuf", proc)
 
-	procRuntime := proc.GetRuntime()
-	procName := proc.GetName()
-	procAlgos := proc.GetSupportedAlgorithms()
-
 	tx, err := d.conn.Begin(ctx)
 	if err != nil {
 		slog.Error("could not start transaction when", "error", err)
@@ -63,7 +59,8 @@ func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegis
 		return err
 	}
 
-	for _, algo := range procAlgos {
+	// add all algorithms first
+	for _, algo := range proc.GetSupportedAlgorithms() {
 		// add window types
 		window_type := algo.GetWindowType()
 
@@ -89,15 +86,18 @@ func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegis
 			slog.Error("error creating algorithm", "error", err)
 			return err
 		}
+	}
 
-		// create the dependencies
+	// then add the dependencies and associate the processor with all the algos
+	for _, algo := range proc.GetSupportedAlgorithms() {
+
 		dependencies := algo.GetDependencies()
 		for _, algoDependentOn := range dependencies {
 			err := qtx.CreateAlgorithmDependency(ctx, CreateAlgorithmDependencyParams{
 				FromAlgorithmName:    algo.Name,
 				FromAlgorithmVersion: algo.Version,
-				FromProcessorName:    procName,
-				FromProcessorRuntime: procRuntime,
+				FromProcessorName:    proc.GetName(),
+				FromProcessorRuntime: proc.GetRuntime(),
 				ToAlgorithmName:      algoDependentOn.GetName(),
 				ToAlgorithmVersion:   algoDependentOn.GetVersion(),
 				ToProcessorName:      algoDependentOn.GetProcessorName(),
@@ -110,14 +110,13 @@ func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegis
 					algo,
 					"depends_on",
 					algoDependentOn,
+					"error",
+					err,
 				)
+				return err
 			}
 		}
 
-	}
-
-	// associate the processor with all the algos
-	for _, algo := range procAlgos {
 		err := qtx.AddProcessorAlgorithm(ctx, AddProcessorAlgorithmParams{
 			ProcessorName:    proc.GetName(),
 			ProcessorRuntime: proc.GetRuntime(),
@@ -139,20 +138,6 @@ func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegis
 	}
 
 	return tx.Commit(ctx)
-}
-
-func (d *Datalayer) RegisterWindowType(ctx context.Context, windowType *pb.WindowType) error {
-	slog.Info("registering window type", "windowType", windowType)
-
-	err := d.queries.CreateWindowType(ctx, CreateWindowTypeParams{
-		Name:    windowType.GetName(),
-		Version: windowType.GetVersion(),
-	})
-	if err != nil {
-		slog.Error("Issue registering window", "error", err.Error())
-		return err
-	}
-	return nil
 }
 
 func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
@@ -183,21 +168,26 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 	})
 
 	// for each algorithm get the dependencies
+	var dependencies []AlgorithmDependency
 	for _, algo := range algorithms {
-		dependency, err := d.queries.ReadAlgorithmDependencies(ctx, ReadAlgorithmDependenciesParams{
-			AlgorithmName:    algo.Name,
-			AlgorithmVersion: algo.Version,
-			ProcessorName:    algo.ProcessorName,
-			ProcessorRuntime: algo.ProcessorRuntime,
-		})
+		nodes, err := d.queries.ReadAlgorithmDependencies(ctx, algo.ID)
 		if err != nil {
 			slog.Error("could not read algorithm dependency", "error", err)
 			return err
 		}
-
-		// TODO: return fire off processing tasks to the processors.
-
+		dependencies = append(dependencies, nodes...)
 	}
+
+	// // for each algorithm as a dependency get the processor
+	// for _, algo := range dependencies {
+	// 	proc, err := d.queries.ReadProcessorForAlgorithm(ctx, algo.ToAlgorithmID)
+	// }
+	//
+	// // now create an execution list
+	// type Execution struct {
+	// 	processor_id       int64
+	// 	algo_execution_ids [][]int64 // gives execution paths that can be executed in parallel or need to be sequential
+	// }
 
 	return nil
 }

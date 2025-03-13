@@ -44,25 +44,10 @@ class OrcaCoreStub(object):
                 request_serializer=service__pb2.ProcessorRegistration.SerializeToString,
                 response_deserializer=service__pb2.Status.FromString,
                 _registered_method=True)
-        self.RegisterWindowType = channel.unary_unary(
-                '/OrcaCore/RegisterWindowType',
-                request_serializer=service__pb2.WindowType.SerializeToString,
-                response_deserializer=service__pb2.WindowTypeRegisterStatus.FromString,
-                _registered_method=True)
         self.EmitWindow = channel.unary_unary(
                 '/OrcaCore/EmitWindow',
                 request_serializer=service__pb2.Window.SerializeToString,
                 response_deserializer=service__pb2.WindowEmitStatus.FromString,
-                _registered_method=True)
-        self.RegisterAlgorithm = channel.unary_unary(
-                '/OrcaCore/RegisterAlgorithm',
-                request_serializer=service__pb2.Algorithm.SerializeToString,
-                response_deserializer=service__pb2.Status.FromString,
-                _registered_method=True)
-        self.SubmitResult = channel.unary_unary(
-                '/OrcaCore/SubmitResult',
-                request_serializer=service__pb2.Result.SerializeToString,
-                response_deserializer=service__pb2.Status.FromString,
                 _registered_method=True)
 
 
@@ -81,29 +66,8 @@ class OrcaCoreServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def RegisterWindowType(self, request, context):
-        """Register a new window type
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def EmitWindow(self, request, context):
         """Submit a window for processing
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def RegisterAlgorithm(self, request, context):
-        """Register a new algorithm type
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SubmitResult(self, request, context):
-        """Submit results from algorithm execution
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -117,25 +81,10 @@ def add_OrcaCoreServicer_to_server(servicer, server):
                     request_deserializer=service__pb2.ProcessorRegistration.FromString,
                     response_serializer=service__pb2.Status.SerializeToString,
             ),
-            'RegisterWindowType': grpc.unary_unary_rpc_method_handler(
-                    servicer.RegisterWindowType,
-                    request_deserializer=service__pb2.WindowType.FromString,
-                    response_serializer=service__pb2.WindowTypeRegisterStatus.SerializeToString,
-            ),
             'EmitWindow': grpc.unary_unary_rpc_method_handler(
                     servicer.EmitWindow,
                     request_deserializer=service__pb2.Window.FromString,
                     response_serializer=service__pb2.WindowEmitStatus.SerializeToString,
-            ),
-            'RegisterAlgorithm': grpc.unary_unary_rpc_method_handler(
-                    servicer.RegisterAlgorithm,
-                    request_deserializer=service__pb2.Algorithm.FromString,
-                    response_serializer=service__pb2.Status.SerializeToString,
-            ),
-            'SubmitResult': grpc.unary_unary_rpc_method_handler(
-                    servicer.SubmitResult,
-                    request_deserializer=service__pb2.Result.FromString,
-                    response_serializer=service__pb2.Status.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -181,33 +130,6 @@ class OrcaCore(object):
             _registered_method=True)
 
     @staticmethod
-    def RegisterWindowType(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/OrcaCore/RegisterWindowType',
-            service__pb2.WindowType.SerializeToString,
-            service__pb2.WindowTypeRegisterStatus.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
     def EmitWindow(request,
             target,
             options=(),
@@ -224,60 +146,6 @@ class OrcaCore(object):
             '/OrcaCore/EmitWindow',
             service__pb2.Window.SerializeToString,
             service__pb2.WindowEmitStatus.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def RegisterAlgorithm(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/OrcaCore/RegisterAlgorithm',
-            service__pb2.Algorithm.SerializeToString,
-            service__pb2.Status.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def SubmitResult(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/OrcaCore/SubmitResult',
-            service__pb2.Result.SerializeToString,
-            service__pb2.Status.FromString,
             options,
             channel_credentials,
             insecure,

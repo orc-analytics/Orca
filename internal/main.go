@@ -2,14 +2,12 @@ package internal
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/bufbuild/protovalidate-go"
 	dlyr "github.com/predixus/orca/internal/datalayers"
 	pb "github.com/predixus/orca/protobufs/go"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/peer"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -87,34 +85,6 @@ func (o *OrcaCoreServer) RegisterProcessor(
 	return &pb.Status{
 		Received: true,
 		Message:  "Successfully registered processor",
-	}, nil
-}
-
-func (o *OrcaCoreServer) RegisterWindowType(
-	ctx context.Context,
-	windowType *pb.WindowType,
-) (*pb.WindowTypeRegisterStatus, error) {
-	err := validate[*pb.WindowType](windowType)
-	if err != nil {
-		return nil, err
-	}
-
-	slog.Info("registering window type",
-		"name", windowType.Name)
-	err = o.client.RegisterWindowType(ctx, windowType)
-	if err != nil {
-		slog.Error("failed to register window type", "error", err)
-		status := pb.WindowTypeRegisterStatus{
-			Status:  pb.WindowTypeRegisterStatus_WINDOW_NOT_REGISTERED,
-			Message: err.Error(),
-		}
-		return &status, err
-	}
-	slog.Debug("registered window type", "windowType", windowType)
-
-	return &pb.WindowTypeRegisterStatus{
-		Status:  pb.WindowTypeRegisterStatus_WINDOW_REGISTERED,
-		Message: "window type registered",
 	}, nil
 }
 

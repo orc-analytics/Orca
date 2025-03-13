@@ -9,27 +9,24 @@ import (
 )
 
 type Algorithm struct {
-	Name              string
-	Version           string
-	ProcessorName     string
-	ProcessorRuntime  string
-	WindowTypeName    string
-	WindowTypeVersion string
-	Created           pgtype.Timestamp
+	ID           int64
+	Name         string
+	Version      string
+	ProcessorID  int64
+	WindowTypeID int64
+	Created      pgtype.Timestamp
 }
 
 type AlgorithmDependency struct {
-	FromAlgorithmName    string
-	FromAlgorithmVersion string
-	FromProcessorName    string
-	FromProcessorRuntime string
-	ToAlgorithmName      string
-	ToAlgorithmVersion   string
-	ToProcessorName      string
-	ToProcessorRuntime   string
+	ID              int64
+	Path            string
+	FromAlgorithmID int64
+	ToAlgorithmID   int64
+	Created         pgtype.Timestamp
 }
 
 type Processor struct {
+	ID               int64
 	Name             string
 	Runtime          string
 	ConnectionString string
@@ -37,24 +34,23 @@ type Processor struct {
 }
 
 type ProcessorAlgorithm struct {
-	ProcessorName    string
-	ProcessorRuntime string
-	AlgorithmName    string
-	AlgorithmVersion string
-	Created          pgtype.Timestamp
+	ID          int64
+	ProcessorID int64
+	AlgorithmID int64
+	Created     pgtype.Timestamp
 }
 
 type Window struct {
-	ID                int64
-	WindowTypeName    string
-	WindowTypeVersion string
-	TimeFrom          int64
-	TimeTo            int64
-	Origin            string
-	Created           pgtype.Timestamp
+	ID           int64
+	WindowTypeID int64
+	TimeFrom     int64
+	TimeTo       int64
+	Origin       string
+	Created      pgtype.Timestamp
 }
 
 type WindowType struct {
+	ID      int64
 	Name    string
 	Version string
 	Created pgtype.Timestamp

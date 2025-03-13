@@ -10,16 +10,22 @@ import (
 )
 
 const addProcessorAlgorithm = `-- name: AddProcessorAlgorithm :exec
+WITH processor_id AS (
+  SELECT id FROM processor p
+  WHERE p.name = $1 
+  AND p.runtime = $2
+),
+algorithm_id AS (
+  SELECT id FROM algorithm a
+  WHERE a.name = $3 
+  AND a.version = $4
+)
 INSERT INTO processor_algorithm (
-  processor_name,
-  processor_runtime,
-  algorithm_name,
-  algorithm_version
+  processor_id,
+  algorithm_id
 ) VALUES (
-  $1,
-  $2,
-  $3,
-  $4
+  (SELECT id FROM processor_id),
+  (SELECT id FROM algorithm_id)
 )
 `
 
@@ -41,21 +47,27 @@ func (q *Queries) AddProcessorAlgorithm(ctx context.Context, arg AddProcessorAlg
 }
 
 const createAlgorithm = `-- name: CreateAlgorithm :exec
+WITH processor_id AS (
+  SELECT id FROM processor p
+  WHERE p.name = $3 
+  AND p.runtime = $4
+),
+window_type_id AS (
+  SELECT id FROM window_type w
+  WHERE w.name = $5 
+  AND w.version = $6
+)
 INSERT INTO algorithm (
   name,
   version,
-  processor_name,
-  processor_runtime,
-  window_type_name,
-  window_type_version
+  processor_id,
+  window_type_id
 ) VALUES (
   $1,
   $2,
-  $3,
-  $4,
-  $5,
-  $6
-) ON CONFLICT (name, version, processor_name, processor_runtime) DO NOTHING
+  (SELECT id FROM processor_id),
+  (SELECT id FROM window_type_id)
+) ON CONFLICT (name, version, processor_id) DO NOTHING
 `
 
 type CreateAlgorithmParams struct {
@@ -80,25 +92,32 @@ func (q *Queries) CreateAlgorithm(ctx context.Context, arg CreateAlgorithmParams
 }
 
 const createAlgorithmDependency = `-- name: CreateAlgorithmDependency :exec
+WITH from_algo AS (
+  SELECT a.id FROM algorithm a
+  JOIN processor p ON a.processor_id = p.id
+  WHERE a.name = $1
+  AND a.version = $2
+  AND p.name = $3
+  AND p.runtime = $4
+),
+to_algo AS (
+  SELECT a.id FROM algorithm a
+  JOIN processor p ON a.processor_id = p.id
+  WHERE a.name = $5
+  AND a.version = $6
+  AND p.name = $7
+  AND p.runtime = $8
+)
 INSERT INTO algorithm_dependency (
-  from_algorithm_name,
-  from_algorithm_version,
-  from_processor_name,
-  from_processor_runtime, 
-  to_algorithm_name,
-  to_algorithm_version,
-  to_processor_name,
-  to_processor_runtime
+  from_algorithm_id,
+  to_algorithm_id, 
+  path
 ) VALUES (
-  $1,
-  $2,
-  $3,
-  $4,
-  $5,
-  $6,
-  $7,
-  $8
-) ON CONFLICT DO NOTHING
+  (SELECT id FROM from_algo LIMIT 1),
+  (SELECT id FROM to_algo LIMIT 1),
+  (SELECT text2ltree(from_algo.id::text || '.' || to_algo.id::text)
+    FROM from_algo, to_algo)
+) ON CONFLICT (from_algorithm_id, to_algorithm_id) DO NOTHING
 `
 
 type CreateAlgorithmDependencyParams struct {
@@ -140,10 +159,14 @@ WITH processor_insert AS (
   SET 
     name = EXCLUDED.name,
     runtime = EXCLUDED.runtime
+  RETURNING id
 )
-
 DELETE FROM processor_algorithm
-WHERE processor_name = $1 AND processor_runtime = $2
+WHERE processor_id = (
+  SELECT id FROM processor p
+  WHERE p.name = $1 
+  AND p.runtime = $2
+)
 `
 
 type CreateProcessorAndPurgeAlgosParams struct {
@@ -179,27 +202,11 @@ func (q *Queries) CreateWindowType(ctx context.Context, arg CreateWindowTypePara
 }
 
 const readAlgorithmDependencies = `-- name: ReadAlgorithmDependencies :many
-SELECT from_algorithm_name, from_algorithm_version, from_processor_name, from_processor_runtime, to_algorithm_name, to_algorithm_version, to_processor_name, to_processor_runtime FROM algorithm_dependency WHERE 
-  from_algorithm_name = $1
-  AND from_algorithm_version = $2
-  AND from_processor_name = $3
-  AND from_processor_runtime = $4
+SELECT ad.id, ad.path, ad.from_algorithm_id, ad.to_algorithm_id, ad.created FROM algorithm_dependency ad WHERE ad.from_algorithm_id = $1
 `
 
-type ReadAlgorithmDependenciesParams struct {
-	AlgorithmName    string
-	AlgorithmVersion string
-	ProcessorName    string
-	ProcessorRuntime string
-}
-
-func (q *Queries) ReadAlgorithmDependencies(ctx context.Context, arg ReadAlgorithmDependenciesParams) ([]AlgorithmDependency, error) {
-	rows, err := q.db.Query(ctx, readAlgorithmDependencies,
-		arg.AlgorithmName,
-		arg.AlgorithmVersion,
-		arg.ProcessorName,
-		arg.ProcessorRuntime,
-	)
+func (q *Queries) ReadAlgorithmDependencies(ctx context.Context, algorithmID int64) ([]AlgorithmDependency, error) {
+	rows, err := q.db.Query(ctx, readAlgorithmDependencies, algorithmID)
 	if err != nil {
 		return nil, err
 	}
@@ -208,14 +215,11 @@ func (q *Queries) ReadAlgorithmDependencies(ctx context.Context, arg ReadAlgorit
 	for rows.Next() {
 		var i AlgorithmDependency
 		if err := rows.Scan(
-			&i.FromAlgorithmName,
-			&i.FromAlgorithmVersion,
-			&i.FromProcessorName,
-			&i.FromProcessorRuntime,
-			&i.ToAlgorithmName,
-			&i.ToAlgorithmVersion,
-			&i.ToProcessorName,
-			&i.ToProcessorRuntime,
+			&i.ID,
+			&i.Path,
+			&i.FromAlgorithmID,
+			&i.ToAlgorithmID,
+			&i.Created,
 		); err != nil {
 			return nil, err
 		}
@@ -228,10 +232,10 @@ func (q *Queries) ReadAlgorithmDependencies(ctx context.Context, arg ReadAlgorit
 }
 
 const readAlgorithmsForWindow = `-- name: ReadAlgorithmsForWindow :many
-SELECT name, version, processor_name, processor_runtime, window_type_name, window_type_version, created FROM algorithm
-WHERE
-  window_type_name = $1 
-  AND window_type_version = $2
+SELECT a.id, a.name, a.version, a.processor_id, a.window_type_id, a.created FROM algorithm a
+JOIN window_type wt ON a.window_type_id = wt.id
+WHERE wt.name = $1 
+AND wt.version = $2
 `
 
 type ReadAlgorithmsForWindowParams struct {
@@ -249,12 +253,11 @@ func (q *Queries) ReadAlgorithmsForWindow(ctx context.Context, arg ReadAlgorithm
 	for rows.Next() {
 		var i Algorithm
 		if err := rows.Scan(
+			&i.ID,
 			&i.Name,
 			&i.Version,
-			&i.ProcessorName,
-			&i.ProcessorRuntime,
-			&i.WindowTypeName,
-			&i.WindowTypeVersion,
+			&i.ProcessorID,
+			&i.WindowTypeID,
 			&i.Created,
 		); err != nil {
 			return nil, err
@@ -268,42 +271,44 @@ func (q *Queries) ReadAlgorithmsForWindow(ctx context.Context, arg ReadAlgorithm
 }
 
 const registerWindow = `-- name: RegisterWindow :one
+WITH window_type_id AS (
+  SELECT id FROM window_type 
+  WHERE name = $4 
+  AND version = $5
+)
 INSERT INTO windows (
-  window_type_name, 
-  window_type_version,
+  window_type_id,
   time_from, 
   time_to,
   origin
 ) VALUES (
+  (SELECT id FROM window_type_id),
   $1,
   $2,
-  $3,
-  $4,
-  $5
-) RETURNING id, window_type_name, window_type_version, time_from, time_to, origin, created
+  $3
+) RETURNING id, window_type_id, time_from, time_to, origin, created
 `
 
 type RegisterWindowParams struct {
-	WindowTypeName    string
-	WindowTypeVersion string
 	TimeFrom          int64
 	TimeTo            int64
 	Origin            string
+	WindowTypeName    string
+	WindowTypeVersion string
 }
 
 func (q *Queries) RegisterWindow(ctx context.Context, arg RegisterWindowParams) (Window, error) {
 	row := q.db.QueryRow(ctx, registerWindow,
-		arg.WindowTypeName,
-		arg.WindowTypeVersion,
 		arg.TimeFrom,
 		arg.TimeTo,
 		arg.Origin,
+		arg.WindowTypeName,
+		arg.WindowTypeVersion,
 	)
 	var i Window
 	err := row.Scan(
 		&i.ID,
-		&i.WindowTypeName,
-		&i.WindowTypeVersion,
+		&i.WindowTypeID,
 		&i.TimeFrom,
 		&i.TimeTo,
 		&i.Origin,

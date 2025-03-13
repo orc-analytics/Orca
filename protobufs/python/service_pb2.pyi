@@ -38,22 +38,6 @@ class WindowType(_message.Message):
     version: str
     def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ...) -> None: ...
 
-class WindowTypeRegisterStatus(_message.Message):
-    __slots__ = ("status", "message")
-    class StatusEnum(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-        __slots__ = ()
-        WINDOW_NOT_REGISTERED: _ClassVar[WindowTypeRegisterStatus.StatusEnum]
-        WINDOW_REGISTERED: _ClassVar[WindowTypeRegisterStatus.StatusEnum]
-        WINDOW_TYPE_ALREADY_EXISTS: _ClassVar[WindowTypeRegisterStatus.StatusEnum]
-    WINDOW_NOT_REGISTERED: WindowTypeRegisterStatus.StatusEnum
-    WINDOW_REGISTERED: WindowTypeRegisterStatus.StatusEnum
-    WINDOW_TYPE_ALREADY_EXISTS: WindowTypeRegisterStatus.StatusEnum
-    STATUS_FIELD_NUMBER: _ClassVar[int]
-    MESSAGE_FIELD_NUMBER: _ClassVar[int]
-    status: WindowTypeRegisterStatus.StatusEnum
-    message: str
-    def __init__(self, status: _Optional[_Union[WindowTypeRegisterStatus.StatusEnum, str]] = ..., message: _Optional[str] = ...) -> None: ...
-
 class WindowEmitStatus(_message.Message):
     __slots__ = ("status",)
     class StatusEnum(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):

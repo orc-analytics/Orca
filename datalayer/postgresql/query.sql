@@ -8,55 +8,64 @@ INSERT INTO window_type (
 ) ON CONFLICT (name, version) DO NOTHING;
 
 -- name: CreateAlgorithm :exec
+WITH processor_id AS (
+  SELECT id FROM processor p
+  WHERE p.name = sqlc.arg('processor_name') 
+  AND p.runtime = sqlc.arg('processor_runtime')
+),
+window_type_id AS (
+  SELECT id FROM window_type w
+  WHERE w.name = sqlc.arg('window_type_name') 
+  AND w.version = sqlc.arg('window_type_version')
+)
 INSERT INTO algorithm (
   name,
   version,
-  processor_name,
-  processor_runtime,
-  window_type_name,
-  window_type_version
+  processor_id,
+  window_type_id
 ) VALUES (
   sqlc.arg('name'),
   sqlc.arg('version'),
-  sqlc.arg('processor_name'),
-  sqlc.arg('processor_runtime'),
-  sqlc.arg('window_type_name'),
-  sqlc.arg('window_type_version')
-) ON CONFLICT (name, version, processor_name, processor_runtime) DO NOTHING;
+  (SELECT id FROM processor_id),
+  (SELECT id FROM window_type_id)
+) ON CONFLICT (name, version, processor_id) DO NOTHING;
 
 -- name: ReadAlgorithmsForWindow :many
-SELECT * FROM algorithm
-WHERE
-  window_type_name = sqlc.arg('window_type_name') 
-  AND window_type_version = sqlc.arg('window_type_version');
-  
+SELECT a.* FROM algorithm a
+JOIN window_type wt ON a.window_type_id = wt.id
+WHERE wt.name = sqlc.arg('window_type_name') 
+AND wt.version = sqlc.arg('window_type_version');
+
 -- name: CreateAlgorithmDependency :exec
+WITH from_algo AS (
+  SELECT a.id FROM algorithm a
+  JOIN processor p ON a.processor_id = p.id
+  WHERE a.name = sqlc.arg('from_algorithm_name')
+  AND a.version = sqlc.arg('from_algorithm_version')
+  AND p.name = sqlc.arg('from_processor_name')
+  AND p.runtime = sqlc.arg('from_processor_runtime')
+),
+to_algo AS (
+  SELECT a.id FROM algorithm a
+  JOIN processor p ON a.processor_id = p.id
+  WHERE a.name = sqlc.arg('to_algorithm_name')
+  AND a.version = sqlc.arg('to_algorithm_version')
+  AND p.name = sqlc.arg('to_processor_name')
+  AND p.runtime = sqlc.arg('to_processor_runtime')
+)
 INSERT INTO algorithm_dependency (
-  from_algorithm_name,
-  from_algorithm_version,
-  from_processor_name,
-  from_processor_runtime, 
-  to_algorithm_name,
-  to_algorithm_version,
-  to_processor_name,
-  to_processor_runtime
+  from_algorithm_id,
+  to_algorithm_id, 
+  path
 ) VALUES (
-  sqlc.arg('from_algorithm_name'),
-  sqlc.arg('from_algorithm_version'),
-  sqlc.arg('from_processor_name'),
-  sqlc.arg('from_processor_runtime'),
-  sqlc.arg('to_algorithm_name'),
-  sqlc.arg('to_algorithm_version'),
-  sqlc.arg('to_processor_name'),
-  sqlc.arg('to_processor_runtime')
-) ON CONFLICT DO NOTHING;
+  (SELECT id FROM from_algo LIMIT 1),
+  (SELECT id FROM to_algo LIMIT 1),
+  (SELECT text2ltree(from_algo.id::text || '.' || to_algo.id::text)
+    FROM from_algo, to_algo)
+) ON CONFLICT (from_algorithm_id, to_algorithm_id) DO NOTHING;
 
 -- name: ReadAlgorithmDependencies :many
-SELECT * FROM algorithm_dependency WHERE 
-  from_algorithm_name = sqlc.arg('algorithm_name')
-  AND from_algorithm_version = sqlc.arg('algorithm_version')
-  AND from_processor_name = sqlc.arg('processor_name')
-  AND from_processor_runtime = sqlc.arg('processor_runtime');
+SELECT ad.* FROM algorithm_dependency ad WHERE ad.from_algorithm_id = sqlc.arg('algorithm_id');
 
 -- name: CreateProcessorAndPurgeAlgos :exec
 WITH processor_insert AS (
@@ -72,37 +81,60 @@ WITH processor_insert AS (
   SET 
     name = EXCLUDED.name,
     runtime = EXCLUDED.runtime
+  RETURNING id
 )
-
 -- clean up old algorithm associations
 DELETE FROM processor_algorithm
-WHERE processor_name = sqlc.arg('name') AND processor_runtime = sqlc.arg('runtime');
-
--- name: AddProcessorAlgorithm :exec
-INSERT INTO processor_algorithm (
-  processor_name,
-  processor_runtime,
-  algorithm_name,
-  algorithm_version
-) VALUES (
-  sqlc.arg('processor_name'),
-  sqlc.arg('processor_runtime'),
-  sqlc.arg('algorithm_name'),
-  sqlc.arg('algorithm_version')
+WHERE processor_id = (
+  SELECT id FROM processor p
+  WHERE p.name = sqlc.arg('name') 
+  AND p.runtime = sqlc.arg('runtime')
 );
 
+-- name: AddProcessorAlgorithm :exec
+WITH processor_id AS (
+  SELECT id FROM processor p
+  WHERE p.name = sqlc.arg('processor_name') 
+  AND p.runtime = sqlc.arg('processor_runtime')
+),
+algorithm_id AS (
+  SELECT id FROM algorithm a
+  WHERE a.name = sqlc.arg('algorithm_name') 
+  AND a.version = sqlc.arg('algorithm_version')
+)
+INSERT INTO processor_algorithm (
+  processor_id,
+  algorithm_id
+) VALUES (
+  (SELECT id FROM processor_id),
+  (SELECT id FROM algorithm_id)
+);
 
 -- name: RegisterWindow :one
+WITH window_type_id AS (
+  SELECT id FROM window_type 
+  WHERE name = sqlc.arg('window_type_name') 
+  AND version = sqlc.arg('window_type_version')
+)
 INSERT INTO windows (
-  window_type_name, 
-  window_type_version,
+  window_type_id,
   time_from, 
   time_to,
   origin
 ) VALUES (
-  sqlc.arg('window_type_name'),
-  sqlc.arg('window_type_version'),
+  (SELECT id FROM window_type_id),
   sqlc.arg('time_from'),
   sqlc.arg('time_to'),
   sqlc.arg('origin')
 ) RETURNING *;
+
+
+-- name: GetDag :many
+-- SELECT a.id FROM algorithm a
+--   WHERE a.window_type_name=sqlc.arg('window_type_name')
+--   AND a.window_type_version=sqlc.arg('window_type_version')
+--
+-- SELECT ad.to_algorithm_id FROM algorithm_dependency ad
+-- WHERE ad.from_algorithm_id a.id
+
+

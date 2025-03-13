@@ -14,17 +14,11 @@ service OrcaCore {
   // Register a processor node and its supported algorithms
   rpc RegisterProcessor(ProcessorRegistration) returns (Status);
 
-  // Register a new window type
-  rpc RegisterWindowType(WindowType) returns (WindowTypeRegisterStatus);
-
   // Submit a window for processing
   rpc EmitWindow(Window) returns (WindowEmitStatus);
 
-  // Register a new algorithm type
-  rpc RegisterAlgorithm(Algorithm) returns (Status);
-
-  // Submit results from algorithm execution
-  rpc SubmitResult(Result) returns (Status);
+  // // Submit results from algorithm execution
+  // rpc SubmitResult(Result) returns (Status);
 
   // Get the current state of a DAG execution
   // rpc GetDagState(DagStateRequest) returns (DagState);
@@ -89,26 +83,6 @@ message WindowType {
   // Version of the algorithm. Follows basic semver and allows window
   // types to be changed over time, with traceability
   string version = 2 [(buf.validate.field).required=true];
-}
-
-//  WindowTypeRegisterStatus status of the window type registration process
-message WindowTypeRegisterStatus {
-  
-  // status enum to handle the window registration status
-  enum StatusEnum {
-    // the window was not registered
-    WINDOW_NOT_REGISTERED = 0;
-    // the window was registered successfully
-    WINDOW_REGISTERED = 1;
-    // the window type already exists
-    WINDOW_TYPE_ALREADY_EXISTS = 2;
-  }
-
-  // the status of the window registration
-  StatusEnum status = 1 [(buf.validate.field).required = true];
-
-  // a message if application (e.g. in the case of an error)
-  string message = 2;
 }
 
 message WindowEmitStatus {

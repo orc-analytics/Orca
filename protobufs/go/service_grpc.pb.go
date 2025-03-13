@@ -19,11 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrcaCore_RegisterProcessor_FullMethodName  = "/OrcaCore/RegisterProcessor"
-	OrcaCore_RegisterWindowType_FullMethodName = "/OrcaCore/RegisterWindowType"
-	OrcaCore_EmitWindow_FullMethodName         = "/OrcaCore/EmitWindow"
-	OrcaCore_RegisterAlgorithm_FullMethodName  = "/OrcaCore/RegisterAlgorithm"
-	OrcaCore_SubmitResult_FullMethodName       = "/OrcaCore/SubmitResult"
+	OrcaCore_RegisterProcessor_FullMethodName = "/OrcaCore/RegisterProcessor"
+	OrcaCore_EmitWindow_FullMethodName        = "/OrcaCore/EmitWindow"
 )
 
 // OrcaCoreClient is the client API for OrcaCore service.
@@ -38,14 +35,8 @@ const (
 type OrcaCoreClient interface {
 	// Register a processor node and its supported algorithms
 	RegisterProcessor(ctx context.Context, in *ProcessorRegistration, opts ...grpc.CallOption) (*Status, error)
-	// Register a new window type
-	RegisterWindowType(ctx context.Context, in *WindowType, opts ...grpc.CallOption) (*WindowTypeRegisterStatus, error)
 	// Submit a window for processing
 	EmitWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*WindowEmitStatus, error)
-	// Register a new algorithm type
-	RegisterAlgorithm(ctx context.Context, in *Algorithm, opts ...grpc.CallOption) (*Status, error)
-	// Submit results from algorithm execution
-	SubmitResult(ctx context.Context, in *Result, opts ...grpc.CallOption) (*Status, error)
 }
 
 type orcaCoreClient struct {
@@ -66,40 +57,10 @@ func (c *orcaCoreClient) RegisterProcessor(ctx context.Context, in *ProcessorReg
 	return out, nil
 }
 
-func (c *orcaCoreClient) RegisterWindowType(ctx context.Context, in *WindowType, opts ...grpc.CallOption) (*WindowTypeRegisterStatus, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WindowTypeRegisterStatus)
-	err := c.cc.Invoke(ctx, OrcaCore_RegisterWindowType_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *orcaCoreClient) EmitWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*WindowEmitStatus, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(WindowEmitStatus)
 	err := c.cc.Invoke(ctx, OrcaCore_EmitWindow_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *orcaCoreClient) RegisterAlgorithm(ctx context.Context, in *Algorithm, opts ...grpc.CallOption) (*Status, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Status)
-	err := c.cc.Invoke(ctx, OrcaCore_RegisterAlgorithm_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *orcaCoreClient) SubmitResult(ctx context.Context, in *Result, opts ...grpc.CallOption) (*Status, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Status)
-	err := c.cc.Invoke(ctx, OrcaCore_SubmitResult_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,14 +79,8 @@ func (c *orcaCoreClient) SubmitResult(ctx context.Context, in *Result, opts ...g
 type OrcaCoreServer interface {
 	// Register a processor node and its supported algorithms
 	RegisterProcessor(context.Context, *ProcessorRegistration) (*Status, error)
-	// Register a new window type
-	RegisterWindowType(context.Context, *WindowType) (*WindowTypeRegisterStatus, error)
 	// Submit a window for processing
 	EmitWindow(context.Context, *Window) (*WindowEmitStatus, error)
-	// Register a new algorithm type
-	RegisterAlgorithm(context.Context, *Algorithm) (*Status, error)
-	// Submit results from algorithm execution
-	SubmitResult(context.Context, *Result) (*Status, error)
 	mustEmbedUnimplementedOrcaCoreServer()
 }
 
@@ -139,17 +94,8 @@ type UnimplementedOrcaCoreServer struct{}
 func (UnimplementedOrcaCoreServer) RegisterProcessor(context.Context, *ProcessorRegistration) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterProcessor not implemented")
 }
-func (UnimplementedOrcaCoreServer) RegisterWindowType(context.Context, *WindowType) (*WindowTypeRegisterStatus, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterWindowType not implemented")
-}
 func (UnimplementedOrcaCoreServer) EmitWindow(context.Context, *Window) (*WindowEmitStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EmitWindow not implemented")
-}
-func (UnimplementedOrcaCoreServer) RegisterAlgorithm(context.Context, *Algorithm) (*Status, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterAlgorithm not implemented")
-}
-func (UnimplementedOrcaCoreServer) SubmitResult(context.Context, *Result) (*Status, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SubmitResult not implemented")
 }
 func (UnimplementedOrcaCoreServer) mustEmbedUnimplementedOrcaCoreServer() {}
 func (UnimplementedOrcaCoreServer) testEmbeddedByValue()                  {}
@@ -190,24 +136,6 @@ func _OrcaCore_RegisterProcessor_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OrcaCore_RegisterWindowType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WindowType)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrcaCoreServer).RegisterWindowType(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OrcaCore_RegisterWindowType_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrcaCoreServer).RegisterWindowType(ctx, req.(*WindowType))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _OrcaCore_EmitWindow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Window)
 	if err := dec(in); err != nil {
@@ -226,42 +154,6 @@ func _OrcaCore_EmitWindow_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OrcaCore_RegisterAlgorithm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Algorithm)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrcaCoreServer).RegisterAlgorithm(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OrcaCore_RegisterAlgorithm_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrcaCoreServer).RegisterAlgorithm(ctx, req.(*Algorithm))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OrcaCore_SubmitResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Result)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrcaCoreServer).SubmitResult(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OrcaCore_SubmitResult_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrcaCoreServer).SubmitResult(ctx, req.(*Result))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // OrcaCore_ServiceDesc is the grpc.ServiceDesc for OrcaCore service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -274,20 +166,8 @@ var OrcaCore_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OrcaCore_RegisterProcessor_Handler,
 		},
 		{
-			MethodName: "RegisterWindowType",
-			Handler:    _OrcaCore_RegisterWindowType_Handler,
-		},
-		{
 			MethodName: "EmitWindow",
 			Handler:    _OrcaCore_EmitWindow_Handler,
-		},
-		{
-			MethodName: "RegisterAlgorithm",
-			Handler:    _OrcaCore_RegisterAlgorithm_Handler,
-		},
-		{
-			MethodName: "SubmitResult",
-			Handler:    _OrcaCore_SubmitResult_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
