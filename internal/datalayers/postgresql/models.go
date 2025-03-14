@@ -28,6 +28,14 @@ type AlgorithmDependency struct {
 	Created          pgtype.Timestamp
 }
 
+type AlgorithmExecutionPath struct {
+	FinalAlgoID      int64
+	NumDependencies  int32
+	AlgoIDPath       string
+	WindowTypeIDPath string
+	ProcIDPath       string
+}
+
 type Processor struct {
 	ID               int64
 	Name             string
