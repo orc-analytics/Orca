@@ -2,6 +2,7 @@ package dag
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -60,21 +61,41 @@ func GetPathsForWindow(
 	var results []ExecutionPath
 
 	// Find the indices where windowID appears in window path
+	inRun := false
+	var startIdx int
+	var visitedAlgos []string
 	for i, windowSegmentId := range windowSegments {
-		if windowSegmentId == windowID {
-			// For each match, take all segments up to that point
+		if slices.Contains(visitedAlgos, algoSegments[i]) {
+			return nil, fmt.Errorf("cyclic graph discovered at position %v. aborting", i)
+		}
+		visitedAlgos = append(visitedAlgos, algoSegments[i])
+		if windowSegmentId == windowID && !inRun {
+			inRun = true
+			startIdx = i
+			continue
+		} else if inRun && windowSegmentId != windowID {
+			inRun = false
 			result := ExecutionPath{
-				AlgoPath:   strings.Join(algoSegments[:i+1], "."),
-				WindowPath: strings.Join(windowSegments[:i+1], "."),
-				ProcPath:   strings.Join(procSegments[:i+1], "."),
+				AlgoPath:   strings.Join(algoSegments[startIdx:i], "."),
+				WindowPath: strings.Join(windowSegments[startIdx:i], "."),
+				ProcPath:   strings.Join(procSegments[startIdx:i], "."),
 			}
 			results = append(results, result)
 		}
 	}
+	// catch the edge case where the window runs to the end
+	if inRun {
+		result := ExecutionPath{
+			AlgoPath:   strings.Join(algoSegments[startIdx:], "."),
+			WindowPath: strings.Join(windowSegments[startIdx:], "."),
+			ProcPath:   strings.Join(procSegments[startIdx:], "."),
+		}
+		results = append(results, result)
+	}
 
-	// If no paths were found, return an error
+	// If no paths were found, return nil
 	if len(results) == 0 {
-		return nil, fmt.Errorf("no paths found for window ID: %s", windowID)
+		return nil, nil
 	}
 
 	return results, nil

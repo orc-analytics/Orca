@@ -63,8 +63,7 @@ func TestGetPathsForWindow(t *testing.T) {
 			procExecPath:   "1.1.1",
 			windowID:       "4",
 			want:           nil,
-			wantErr:        true,
-			errorMsg:       "no paths found for window ID: 4",
+			wantErr:        false,
 		},
 		{
 			name:           "single segment paths",
