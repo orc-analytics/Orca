@@ -94,14 +94,14 @@ func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegis
 		dependencies := algo.GetDependencies()
 		for _, algoDependentOn := range dependencies {
 			err := qtx.CreateAlgorithmDependency(ctx, CreateAlgorithmDependencyParams{
-				FromAlgorithmName:    algo.Name,
-				FromAlgorithmVersion: algo.Version,
-				FromProcessorName:    proc.GetName(),
-				FromProcessorRuntime: proc.GetRuntime(),
-				ToAlgorithmName:      algoDependentOn.GetName(),
-				ToAlgorithmVersion:   algoDependentOn.GetVersion(),
-				ToProcessorName:      algoDependentOn.GetProcessorName(),
-				ToProcessorRuntime:   algoDependentOn.GetProcessorRuntime(),
+				FromAlgorithmName:    algoDependentOn.GetName(),
+				FromAlgorithmVersion: algoDependentOn.GetVersion(),
+				FromProcessorName:    algoDependentOn.GetProcessorName(),
+				FromProcessorRuntime: algoDependentOn.GetProcessorRuntime(),
+				ToAlgorithmName:      algo.GetName(),
+				ToAlgorithmVersion:   algo.GetVersion(),
+				ToProcessorName:      proc.GetName(),
+				ToProcessorRuntime:   proc.GetRuntime(),
 			})
 			if err != nil {
 				slog.Error(
