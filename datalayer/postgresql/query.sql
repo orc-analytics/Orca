@@ -79,6 +79,9 @@ INSERT INTO algorithm_dependency (
 -- name: ReadAlgorithmDependencies :many
 SELECT ad.* FROM algorithm_dependency ad WHERE ad.from_algorithm_id = sqlc.arg('algorithm_id');
 
+-- name: ReadAlgorithmExecutionPaths :many
+SELECT aep.* FROM algorithm_execution_paths aep WHERE aep.window_type_id_path ~ '*.' || sqlc.arg('window_type_id')::VARCHAR || '.*';
+
 -- name: CreateProcessorAndPurgeAlgos :exec
 WITH processor_insert AS (
   INSERT INTO processor (
@@ -138,7 +141,7 @@ INSERT INTO windows (
   sqlc.arg('time_from'),
   sqlc.arg('time_to'),
   sqlc.arg('origin')
-) RETURNING *;
+) RETURNING window_type_id;
 
 
 -- name: GetDag :many

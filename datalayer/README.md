@@ -17,3 +17,8 @@ Begin transaction:
 
 If there are any errors in the process (e.g. cyclic dependencies on algorithms)
 then rollback the transaction.
+
+## Rules
+
+1. Only DAGs can be registered
+2. DAG refers to the window type, processor type and algorithm type

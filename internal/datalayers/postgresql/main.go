@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -142,6 +143,7 @@ func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegis
 
 func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 	slog.Info("recieved window")
+
 	slog.Debug("inserting window", "window", window)
 	insertedWindow, err := d.queries.RegisterWindow(ctx, RegisterWindowParams{
 		WindowTypeName:    window.GetWindowTypeName(),
@@ -160,34 +162,24 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 		return err
 	}
 	slog.Debug("window record inserted into the datalayer", "window", insertedWindow)
-
-	// gather all affected algorithms
-	algorithms, err := d.queries.ReadAlgorithmsForWindow(ctx, ReadAlgorithmsForWindowParams{
-		WindowTypeName:    window.GetWindowTypeName(),
-		WindowTypeVersion: window.GetWindowTypeVersion(),
-	})
-
-	// for each algorithm get the dependencies
-	var dependencies []AlgorithmDependency
-	for _, algo := range algorithms {
-		nodes, err := d.queries.ReadAlgorithmDependencies(ctx, algo.ID)
-		if err != nil {
-			slog.Error("could not read algorithm dependency", "error", err)
-			return err
-		}
-		dependencies = append(dependencies, nodes...)
+	exec_paths, err := d.queries.ReadAlgorithmExecutionPaths(ctx, strconv.Itoa(int(insertedWindow)))
+	if err != nil {
+		slog.Error(
+			"could not read execution paths for window id",
+			"window_id",
+			insertedWindow,
+			"error",
+			err,
+		)
+		return err
 	}
 
-	// // for each algorithm as a dependency get the processor
-	// for _, algo := range dependencies {
-	// 	proc, err := d.queries.ReadProcessorForAlgorithm(ctx, algo.ToAlgorithmID)
-	// }
-	//
-	// // now create an execution list
-	// type Execution struct {
-	// 	processor_id       int64
-	// 	algo_execution_ids [][]int64 // gives execution paths that can be executed in parallel or need to be sequential
-	// }
+	// fire off processings
+	for _, path := range exec_paths {
+		// gather consecutive execution paths per processor
+		// TOOD
+		return nil
+	}
 
 	return nil
 }

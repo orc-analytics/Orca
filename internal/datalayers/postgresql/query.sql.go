@@ -246,6 +246,36 @@ func (q *Queries) ReadAlgorithmDependencies(ctx context.Context, algorithmID int
 	return items, nil
 }
 
+const readAlgorithmExecutionPaths = `-- name: ReadAlgorithmExecutionPaths :many
+SELECT aep.final_algo_id, aep.num_dependencies, aep.algo_id_path, aep.window_type_id_path, aep.proc_id_path FROM algorithm_execution_paths aep WHERE aep.window_type_id_path ~ '*.' || $1 || '.*'
+`
+
+func (q *Queries) ReadAlgorithmExecutionPaths(ctx context.Context, windowTypeID string) ([]AlgorithmExecutionPath, error) {
+	rows, err := q.db.Query(ctx, readAlgorithmExecutionPaths, windowTypeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AlgorithmExecutionPath
+	for rows.Next() {
+		var i AlgorithmExecutionPath
+		if err := rows.Scan(
+			&i.FinalAlgoID,
+			&i.NumDependencies,
+			&i.AlgoIDPath,
+			&i.WindowTypeIDPath,
+			&i.ProcIDPath,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const readAlgorithmsForWindow = `-- name: ReadAlgorithmsForWindow :many
 SELECT a.id, a.name, a.version, a.processor_id, a.window_type_id, a.created FROM algorithm a
 JOIN window_type wt ON a.window_type_id = wt.id
@@ -301,7 +331,7 @@ INSERT INTO windows (
   $1,
   $2,
   $3
-) RETURNING id, window_type_id, time_from, time_to, origin, created
+) RETURNING window_type_id
 `
 
 type RegisterWindowParams struct {
@@ -312,7 +342,7 @@ type RegisterWindowParams struct {
 	WindowTypeVersion string
 }
 
-func (q *Queries) RegisterWindow(ctx context.Context, arg RegisterWindowParams) (Window, error) {
+func (q *Queries) RegisterWindow(ctx context.Context, arg RegisterWindowParams) (int64, error) {
 	row := q.db.QueryRow(ctx, registerWindow,
 		arg.TimeFrom,
 		arg.TimeTo,
@@ -320,14 +350,7 @@ func (q *Queries) RegisterWindow(ctx context.Context, arg RegisterWindowParams) 
 		arg.WindowTypeName,
 		arg.WindowTypeVersion,
 	)
-	var i Window
-	err := row.Scan(
-		&i.ID,
-		&i.WindowTypeID,
-		&i.TimeFrom,
-		&i.TimeTo,
-		&i.Origin,
-		&i.Created,
-	)
-	return i, err
+	var window_type_id int64
+	err := row.Scan(&window_type_id)
+	return window_type_id, err
 }
