@@ -11,7 +11,7 @@ func TestGetPathsForWindow(t *testing.T) {
 		algoExecPath   string
 		windowExecPath string
 		procExecPath   string
-		windowID       string
+		windowID       int
 		want           []ExecutionPath
 		wantErr        bool
 		errorMsg       string
@@ -21,7 +21,7 @@ func TestGetPathsForWindow(t *testing.T) {
 			algoExecPath:   "1.2.3.4.5",
 			windowExecPath: "1.1.1.3.3",
 			procExecPath:   "1.1.1.2.2",
-			windowID:       "1",
+			windowID:       1,
 			want: []ExecutionPath{
 				{
 					AlgoPath:   "1.2.3",
@@ -36,7 +36,7 @@ func TestGetPathsForWindow(t *testing.T) {
 			algoExecPath:   "1.2.3.4.5",
 			windowExecPath: "1.1.1.3.3",
 			procExecPath:   "1.1.1.2.2",
-			windowID:       "3",
+			windowID:       3,
 			want: []ExecutionPath{
 				{
 					AlgoPath:   "4.5",
@@ -51,7 +51,7 @@ func TestGetPathsForWindow(t *testing.T) {
 			algoExecPath:   "1.2.3",
 			windowExecPath: "1.1",
 			procExecPath:   "1.1.1",
-			windowID:       "1",
+			windowID:       1,
 			want:           nil,
 			wantErr:        true,
 			errorMsg:       "path lengths do not match: algo=3, window=2, proc=3",
@@ -61,7 +61,7 @@ func TestGetPathsForWindow(t *testing.T) {
 			algoExecPath:   "1.2.3",
 			windowExecPath: "1.1.1",
 			procExecPath:   "1.1.1",
-			windowID:       "4",
+			windowID:       4,
 			want:           nil,
 			wantErr:        false,
 		},
@@ -70,7 +70,7 @@ func TestGetPathsForWindow(t *testing.T) {
 			algoExecPath:   "1",
 			windowExecPath: "1",
 			procExecPath:   "1",
-			windowID:       "1",
+			windowID:       1,
 			want: []ExecutionPath{
 				{
 					AlgoPath:   "1",
@@ -85,7 +85,7 @@ func TestGetPathsForWindow(t *testing.T) {
 			algoExecPath:   "1.2.3.1.2",
 			windowExecPath: "1.1.1.1.1",
 			procExecPath:   "1.1.1.1.1",
-			windowID:       "1",
+			windowID:       1,
 			want:           nil,
 			wantErr:        true,
 			errorMsg:       "cyclic graph discovered at position 3. aborting",
@@ -95,9 +95,66 @@ func TestGetPathsForWindow(t *testing.T) {
 			algoExecPath:   "",
 			windowExecPath: "",
 			procExecPath:   "",
-			windowID:       "1",
+			windowID:       1,
 			want:           nil,
 			wantErr:        false,
+		},
+		{
+			name:           "split processor",
+			algoExecPath:   "1.2.3.4.5.6",
+			windowExecPath: "1.1.1.1.1.2",
+			procExecPath:   "3.4.4.5.5.5",
+			windowID:       1,
+			want: []ExecutionPath{
+				{
+					AlgoPath:   "1",
+					WindowPath: "1",
+					ProcPath:   "3",
+				},
+				{
+					AlgoPath:   "2.3",
+					WindowPath: "1.1",
+					ProcPath:   "4.4",
+				},
+				{
+					AlgoPath:   "4.5",
+					WindowPath: "1.1",
+					ProcPath:   "5.5",
+				},
+			},
+
+			wantErr: false,
+		},
+		{
+			name:           "split processor with revisit",
+			algoExecPath:   "1.2.3.4.5.6",
+			windowExecPath: "1.1.1.1.1.1",
+			procExecPath:   "3.4.4.5.5.4",
+			windowID:       1,
+			want: []ExecutionPath{
+				{
+					AlgoPath:   "1",
+					WindowPath: "1",
+					ProcPath:   "3",
+				},
+				{
+					AlgoPath:   "2.3",
+					WindowPath: "1.1",
+					ProcPath:   "4.4",
+				},
+				{
+					AlgoPath:   "4.5",
+					WindowPath: "1.1",
+					ProcPath:   "5.5",
+				},
+				{
+					AlgoPath:   "6",
+					WindowPath: "1",
+					ProcPath:   "4",
+				},
+			},
+
+			wantErr: false,
 		},
 	}
 

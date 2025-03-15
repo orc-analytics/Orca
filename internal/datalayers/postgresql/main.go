@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/predixus/orca/internal/dag"
 	pb "github.com/predixus/orca/protobufs/go"
 )
 
@@ -176,8 +177,17 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 
 	// fire off processings
 	for _, path := range exec_paths {
-		// gather consecutive execution paths per processor
-		// TOOD
+		executionPaths, err := dag.GetPathsForWindow(
+			path.AlgoIDPath,
+			path.WindowTypeIDPath,
+			path.ProcIDPath,
+			int(insertedWindow),
+		)
+    if err != nil{
+      slog.Error(msg string, args ...any)
+      return err
+    }
+
 		return nil
 	}
 
