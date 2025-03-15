@@ -80,7 +80,7 @@ INSERT INTO algorithm_dependency (
 SELECT ad.* FROM algorithm_dependency ad WHERE ad.from_algorithm_id = sqlc.arg('algorithm_id');
 
 -- name: ReadAlgorithmExecutionPaths :many
-SELECT aep.* FROM algorithm_execution_paths aep WHERE aep.window_type_id_path ~ '*.' || sqlc.arg('window_type_id')::VARCHAR || '.*';
+SELECT aep.* FROM algorithm_execution_paths aep WHERE aep.window_type_id_path ~ ('*.' || sqlc.arg('window_type_id')::TEXT || '.*')::lquery;
 
 -- name: CreateProcessorAndPurgeAlgos :exec
 WITH processor_insert AS (

@@ -183,12 +183,18 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 			path.ProcIDPath,
 			int(insertedWindow),
 		)
-    if err != nil{
-      slog.Error(msg string, args ...any)
-      return err
-    }
+		if err != nil {
+			slog.Error(
+				"failed to construct execution paths for window",
+				"window",
+				insertedWindow,
+				"error",
+				err,
+			)
+			return err
+		}
 
-		return nil
+		slog.Info("execution_paths", executionPaths)
 	}
 
 	return nil

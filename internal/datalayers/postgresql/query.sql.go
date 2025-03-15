@@ -247,7 +247,7 @@ func (q *Queries) ReadAlgorithmDependencies(ctx context.Context, algorithmID int
 }
 
 const readAlgorithmExecutionPaths = `-- name: ReadAlgorithmExecutionPaths :many
-SELECT aep.final_algo_id, aep.num_dependencies, aep.algo_id_path, aep.window_type_id_path, aep.proc_id_path FROM algorithm_execution_paths aep WHERE aep.window_type_id_path ~ '*.' || $1 || '.*'
+SELECT aep.final_algo_id, aep.num_dependencies, aep.algo_id_path, aep.window_type_id_path, aep.proc_id_path FROM algorithm_execution_paths aep WHERE aep.window_type_id_path ~ ('*.' || $1::TEXT || '.*')::lquery
 `
 
 func (q *Queries) ReadAlgorithmExecutionPaths(ctx context.Context, windowTypeID string) ([]AlgorithmExecutionPath, error) {
