@@ -1,0 +1,208 @@
+package dag
+
+import (
+	"fmt"
+	"sort"
+	"strconv"
+	"strings"
+
+	"gonum.org/v1/gonum/graph"
+	"gonum.org/v1/gonum/graph/simple"
+)
+
+// Node represents an algorithm in the DAG
+type Node struct {
+	id       int64
+	algoId   int64
+	procId   int64
+	windowId int64
+	pathIdx  int
+}
+
+// ID satisfies the graph.Node interface.
+func (n Node) ID() int64 {
+	return n.id
+}
+
+// ProcessorTask represents a set of tasks (nodes) assigned to a single processor
+type ProcessorTask struct {
+	ProcId int64
+	Nodes  []Node
+}
+
+// Stage represents a set of processor tasks that can be executed in parallel
+type Stage struct {
+	Tasks []ProcessorTask
+}
+
+// Plan represents the full execution plan: a sequence of stages
+type Plan struct {
+	Stages []Stage
+}
+
+// LayeredTopoSort returns the nodes of the directed graph g grouped into
+// layers, where each layer contains nodes that can be processed in parallel
+func LayeredTopoSort(g graph.Directed) ([][]graph.Node, error) {
+	// calculate in-degrees
+	inDegree := make(map[int64]int)
+	nodes := g.Nodes()
+	for nodes.Next() {
+		node := nodes.Node()
+		neighbors := g.From(node.ID())
+		for neighbors.Next() {
+			neighbor := neighbors.Node()
+			inDegree[neighbor.ID()]++
+		}
+	}
+
+	// find initial nodes (in-degree == 0)
+	var currentLevel []graph.Node
+	nodes = g.Nodes()
+	for nodes.Next() {
+		node := nodes.Node()
+		if inDegree[node.ID()] == 0 {
+			currentLevel = append(currentLevel, node)
+		}
+	}
+
+	var layers [][]graph.Node
+	processedCount := 0
+
+	for len(currentLevel) > 0 {
+		layers = append(layers, currentLevel)
+
+		var nextLevel []graph.Node
+		for _, node := range currentLevel {
+			processedCount++
+			neighbors := g.From(node.ID())
+			for neighbors.Next() {
+				neighbor := neighbors.Node()
+				inDegree[neighbor.ID()]--
+				if inDegree[neighbor.ID()] == 0 {
+					nextLevel = append(nextLevel, neighbor)
+				}
+			}
+		}
+		currentLevel = nextLevel
+	}
+
+	if processedCount != g.Nodes().Len() {
+		return nil, fmt.Errorf("cycle detected in graph: topological layering not possible")
+	}
+
+	return layers, nil
+}
+
+// BuildPlan builds a parallel execution Plan from the DAG represented by algoExecPaths,
+// windowExecPaths, and procExecPaths.
+func BuildPlan(
+	algoExecPaths []string,
+	windowExecPaths []string,
+	procExecPaths []string,
+) (Plan, error) {
+	if len(algoExecPaths) != len(windowExecPaths) || len(windowExecPaths) != len(procExecPaths) {
+		return Plan{}, fmt.Errorf(
+			"number of graph paths do not match: algo=%d, window=%d, proc=%d",
+			len(algoExecPaths),
+			len(windowExecPaths),
+			len(procExecPaths),
+		)
+	}
+
+	g := simple.NewDirectedGraph()
+	nodeMap := make(map[int64]Node) // map of algoIDs to nodes
+	var nextId int64 = 1
+
+	for pathIdx, algoPath := range algoExecPaths {
+		algoSegments := splitPath(algoPath)
+		procSegments := splitPath(procExecPaths[pathIdx])
+		windowSegments := splitPath(windowExecPaths[pathIdx])
+
+		if len(algoSegments) != len(windowSegments) ||
+			len(windowSegments) != len(procSegments) {
+			return Plan{}, fmt.Errorf(
+				"number of processor segments do not match: algo=%d, window=%d, proc=%d",
+				len(algoSegments),
+				len(windowSegments),
+				len(procSegments),
+			)
+		}
+		var prevNode Node
+		for ii, algoIdStr := range algoSegments {
+			algoId := mustAtoi(algoIdStr)
+			procId := mustAtoi(procSegments[ii])
+			windowId := mustAtoi(windowSegments[ii])
+
+			node, exists := nodeMap[int64(algoId)]
+			if !exists {
+				node = Node{
+					id:       nextId,
+					algoId:   int64(algoId),
+					procId:   int64(procId),
+					windowId: int64(windowId),
+					pathIdx:  pathIdx,
+				}
+				nodeMap[int64(algoId)] = node
+				g.AddNode(node)
+				nextId++
+			}
+
+			if prevNode.id != 0 {
+				edge := g.NewEdge(prevNode, node)
+				g.SetEdge(edge)
+			}
+			prevNode = node
+		}
+	}
+
+	layers, err := LayeredTopoSort(g)
+	if err != nil {
+		return Plan{}, fmt.Errorf("error during layered topological sort: %v", err)
+	}
+
+	var plan Plan
+
+	for _, layer := range layers {
+		taskMap := make(map[int64][]Node)
+
+		for _, gn := range layer {
+			node := gn.(Node)
+			taskMap[node.procId] = append(taskMap[node.procId], node)
+		}
+
+		var stage Stage
+		for procId, nodes := range taskMap {
+			// sort nodes inside processor task
+			sort.Slice(nodes, func(i, j int) bool {
+				return nodes[i].pathIdx < nodes[j].pathIdx
+			})
+
+			stage.Tasks = append(stage.Tasks, ProcessorTask{
+				ProcId: procId,
+				Nodes:  nodes,
+			})
+		}
+		// sort the processors inside the tasks
+		sort.Slice(stage.Tasks, func(i, j int) bool {
+			return stage.Tasks[i].ProcId < stage.Tasks[j].ProcId
+		})
+
+		plan.Stages = append(plan.Stages, stage)
+	}
+
+	return plan, nil
+}
+
+// splitPath splits a path string into segments.
+func splitPath(path string) []string {
+	return strings.Split(path, ".")
+}
+
+// mustAtoi converts a string to an int, panicking if invalid.
+func mustAtoi(s string) int {
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		panic(fmt.Sprintf("invalid integer: %s", s))
+	}
+	return n
+}

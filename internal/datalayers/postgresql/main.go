@@ -11,8 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/predixus/orca/internal/dag"
 	pb "github.com/predixus/orca/protobufs/go"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	// "google.golang.org/grpc"
 )
 
 type Datalayer struct {
