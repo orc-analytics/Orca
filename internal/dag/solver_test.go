@@ -192,3 +192,33 @@ func TestGetPathsForWindow(t *testing.T) {
 		})
 	}
 }
+
+func TestPathInSubset(t *testing.T) {
+	tests := []struct {
+		name      string
+		pathStack []string
+		new       string
+		want      bool
+	}{
+		{
+			name:      "not subpath",
+			pathStack: []string{"a.b.c", "d.e.f"},
+			new:       "h.i",
+			want:      false,
+		},
+		{
+			name:      "is subpath",
+			pathStack: []string{"a.b.c", "d.e.f"},
+			new:       "b.c",
+			want:      true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			isSubspath := isSubsetOf(test.pathStack, test.new)
+			if isSubspath != test.want {
+				t.Errorf("isSubpath() = %v, want %v", isSubspath, test.want)
+			}
+		})
+	}
+}

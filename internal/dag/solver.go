@@ -14,7 +14,22 @@ type ExecutionPath struct {
 	ProcPath   string
 }
 
+//isSubsetOf accepts a list of execution paths and if if the new execution path is a
+// subset of existing, returns true
+//
+// Example:
+// 
+// isSubsetOf([]string{"a.b.c.d", "e.f.g.h"}, "f.g")
+// > true
+//
+// isSubsetOf([]string{"a.b.c.d", "e.f.g.h"}, "i.k")
+// > false 
 func isSubsetOf(existing []string, new string) bool {
+  for _, path := range existing {
+    if strings.Contains(path, new) {
+      return true
+    }
+  }
 	return false
 }
 func extends(existing []string], new string) (bool, int ){

@@ -18,10 +18,10 @@ service OrcaCore {
   rpc EmitWindow(Window) returns (WindowEmitStatus);
 
   // // Submit results from algorithm execution
-  // rpc SubmitResult(Result) returns (Status);
+  rpc SubmitResult(Result) returns (Status);
 
   // Get the current state of a DAG execution
-  // rpc GetDagState(DagStateRequest) returns (DagState);
+  rpc GetDagState(DagStateRequest) returns (DagState);
 }
 
 // OrcaProcessor defines the interface that each processing node must implement.
