@@ -17,7 +17,7 @@ service OrcaCore {
   // Submit a window for processing
   rpc EmitWindow(Window) returns (WindowEmitStatus);
 
-  // // Submit results from algorithm execution
+  // Submit results from algorithm execution
   rpc SubmitResult(Result) returns (Status);
 
   // Get the current state of a DAG execution
@@ -34,10 +34,8 @@ service OrcaProcessor {
   // Execute an algorithm with given inputs
   rpc ExecuteDAG(ExecutionRequest) returns (ExecutionResult);
 
-  // Check health/status of processor
+  // Check health/status of processor. i.e. a heartbeat
   rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
-
-
 }
 
 // Window represents a time-bounded processing context that triggers algorithm execution. Windows are the primary input that start DAG processing flows.
@@ -257,6 +255,9 @@ message ExecutionResult {
 message DagStateRequest {
   // Window ID to query
   string window_id = 1 [(buf.validate.field).required = true];
+}
+message DagState {
+  bool status = 1;
 }
 
 // ExecutionRequest provides a complete view of a processing DAG's execution

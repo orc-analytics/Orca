@@ -162,6 +162,12 @@ class DagStateRequest(_message.Message):
     window_id: str
     def __init__(self, window_id: _Optional[str] = ...) -> None: ...
 
+class DagState(_message.Message):
+    __slots__ = ("status",)
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    status: bool
+    def __init__(self, status: bool = ...) -> None: ...
+
 class ExecutionRequest(_message.Message):
     __slots__ = ("window", "algorithm_results")
     WINDOW_FIELD_NUMBER: _ClassVar[int]
