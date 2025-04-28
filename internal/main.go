@@ -71,7 +71,7 @@ func (o *OrcaCoreServer) RegisterProcessor(
 	ctx context.Context,
 	proc *pb.ProcessorRegistration,
 ) (*pb.Status, error) {
-	err := validate[*pb.ProcessorRegistration](proc)
+	err := validate(proc)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (o *OrcaCoreServer) EmitWindow(
 	ctx context.Context,
 	window *pb.Window,
 ) (*pb.WindowEmitStatus, error) {
-	err := validate[*pb.Window](window)
+	err := validate(window)
 	if err != nil {
 		return nil, err
 	}
