@@ -139,8 +139,9 @@ status for a specific window. Used for monitoring and debugging.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| window | [Window](#Window) |  | The window that triggered the DAG |
+| window | [Window](#Window) |  | The window that triggered the algorithm |
 | algorithm_results | [AlgorithmResult](#AlgorithmResult) | repeated | Results from dependant algorithms |
+| algorithms | [Algorithm](#Algorithm) | repeated | The algorithms to execute |
 
 
 

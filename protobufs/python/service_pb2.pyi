@@ -157,12 +157,14 @@ class ExecutionResult(_message.Message):
     def __init__(self, task_id: _Optional[str] = ..., status: _Optional[_Union[ResultStatus, str]] = ..., outputs: _Optional[_Mapping[str, bytes]] = ...) -> None: ...
 
 class ExecutionRequest(_message.Message):
-    __slots__ = ("window", "algorithm_results")
+    __slots__ = ("window", "algorithm_results", "algorithms")
     WINDOW_FIELD_NUMBER: _ClassVar[int]
     ALGORITHM_RESULTS_FIELD_NUMBER: _ClassVar[int]
+    ALGORITHMS_FIELD_NUMBER: _ClassVar[int]
     window: Window
     algorithm_results: _containers.RepeatedCompositeFieldContainer[AlgorithmResult]
-    def __init__(self, window: _Optional[_Union[Window, _Mapping]] = ..., algorithm_results: _Optional[_Iterable[_Union[AlgorithmResult, _Mapping]]] = ...) -> None: ...
+    algorithms: _containers.RepeatedCompositeFieldContainer[Algorithm]
+    def __init__(self, window: _Optional[_Union[Window, _Mapping]] = ..., algorithm_results: _Optional[_Iterable[_Union[AlgorithmResult, _Mapping]]] = ..., algorithms: _Optional[_Iterable[_Union[Algorithm, _Mapping]]] = ...) -> None: ...
 
 class AlgorithmResult(_message.Message):
     __slots__ = ("algorithm", "result")

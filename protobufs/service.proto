@@ -251,15 +251,14 @@ message ExecutionResult {
 // ExecutionRequest provides a complete view of a processing DAG's execution
 // status for a specific window. Used for monitoring and debugging.
 message ExecutionRequest {
-  // The window that triggered the DAG 
+  // The window that triggered the algorithm 
   Window window = 1 [(buf.validate.field).required = true];
   
   // Results from dependant algorithms
   repeated AlgorithmResult algorithm_results = 2;
 
-  // The execution DAG
-
-
+  // The algorithms to execute
+  repeated Algorithm algorithms = 3;
 }
 
 // AlgorithmWindowResult Packaged algorithm and result to a window

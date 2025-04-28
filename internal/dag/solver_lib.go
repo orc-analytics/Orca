@@ -2,6 +2,7 @@ package dag
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -24,6 +25,10 @@ func (n Node) ID() int64 {
 	return n.id
 }
 
+func (n Node) AlgoId() int64 {
+	return n.algoId
+}
+
 // ProcessorTask represents a set of tasks (nodes) assigned to a single processor
 type ProcessorTask struct {
 	ProcId int64
@@ -37,7 +42,8 @@ type Stage struct {
 
 // Plan represents the full execution plan: a sequence of stages
 type Plan struct {
-	Stages []Stage
+	Stages             []Stage
+	AffectedProcessors []int64
 }
 
 // LayeredTopoSort returns the nodes of the directed graph g grouped into
@@ -189,6 +195,9 @@ func BuildPlan(
 		}
 		var stage Stage
 		for procId, nodes := range taskMap {
+			if !slices.Contains(plan.AffectedProcessors, procId) {
+				plan.AffectedProcessors = append(plan.AffectedProcessors, procId)
+			}
 			// sort nodes inside processor task
 			sort.Slice(nodes, func(i, j int) bool {
 				return nodes[i].pathIdx < nodes[j].pathIdx

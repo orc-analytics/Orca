@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"strconv"
 	"strings"
@@ -11,7 +12,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/predixus/orca/internal/dag"
 	pb "github.com/predixus/orca/protobufs/go"
-	// "google.golang.org/grpc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Datalayer struct {
@@ -187,11 +189,11 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 	}
 
 	// fire off processings
-	executionPaths, err := dag.GetPathsForWindow(
+	executionPlan, err := dag.BuildPlan(
 		algoIdPaths,
 		windowTypeIDPaths,
 		procIdPaths,
-		int(insertedWindow),
+		int64(insertedWindow),
 	)
 	if err != nil {
 		slog.Error(
@@ -204,55 +206,122 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 		return err
 	}
 
-	slog.Info("calculated unique execution paths", "execution_paths", executionPaths)
-	// get the processor details
-	// processorIds := make([]int64, len(executionPaths), len(executionPaths))
-	// for ii, execPath := range executionPaths {
-	// 	processorIds[ii] = int64(execPath.ProcessorId)
-	// }
-	//
-	// processors, err := d.queries.ReadProcessorsByIDs(ctx, processorIds)
-	// // map exec paths to processors
-	// execMap := make(map[dag.ExecutionPath]Processor, len(executionPaths))
-	// for _, path := range executionPaths {
-	// 	for _, processor := range processors {
-	// 		if path.ProcessorId == int(processor.ID) {
-	// 			execMap[path] = processor
-	// 			break
-	// 		}
-	// 	}
-	// }
-	// slog.Info("built processor execution map", "exec map", execMap)
-	// for _, execPath := range executionPaths {
-	// 	conn, err := grpc.NewClient(
-	// 		execMap[execPath].ConnectionString,
-	// 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	// 	)
-	// 	if err != nil {
-	// 		slog.Error("could not connect to processor", "error", err)
-	// 		return err
-	// 	}
-	// 	defer conn.Close()
-	//
-	// 	client := pb.NewOrcaProcessorClient(conn)
-	// 	stream, err := client.ExecuteDagPart(ctx, &pb.ExecutionRequest{
-	// 		Window: window,
-	// 		// TODO handle results from other processors
-	// 	})
-	// 	if err != nil {
-	// 		// handle error
-	// 	}
-	//
-	// 	for {
-	// 		result, err := stream.Recv()
-	// 		if err == io.EOF {
-	// 			break
-	// 		}
-	// 		if err != nil {
-	// 			// handle error
-	// 		}
-	// 		// process result
-	// 	}
-	// }
+	slog.Info("calculated execution paths", "execution_paths", executionPlan)
+	// get map of processors from processor ids
+	processorMap := make(
+		map[int64]Processor,
+		len(executionPlan.AffectedProcessors),
+	)
+	processors, err := d.queries.ReadProcessorsByIDs(ctx, executionPlan.AffectedProcessors)
+	for _, proc := range processors {
+		processorMap[proc.ID] = proc
+	}
+
+	// get map of algorithms from algorithm ids
+	algorithmMap := make(
+		map[int64]Algorithm,
+	)
+	algorithms, err := d.queries.ReadAlgorithmsForWindow(ctx, ReadAlgorithmsForWindowParams{
+		WindowTypeName:    window.WindowTypeName,
+		WindowTypeVersion: window.WindowTypeVersion,
+	})
+	for _, algo := range algorithms {
+		algorithmMap[algo.ID] = algo
+	}
+
+	// for each stage, farm off processsings
+	for _, stage := range executionPlan.Stages {
+		for _, task := range stage.Tasks {
+			proc, ok := processorMap[task.ProcId]
+			if !ok {
+				slog.Error("Processor not found for task", "proc_id", task.ProcId)
+				return fmt.Errorf("processor ID %d not found", task.ProcId)
+			}
+
+			conn, err := grpc.NewClient(
+				proc.ConnectionString,
+				grpc.WithTransportCredentials(insecure.NewCredentials()),
+			)
+			if err != nil {
+				slog.Error("could not connect to processor", "proc_id", task.ProcId, "error", err)
+				return err
+			}
+			// IMPORTANT: close conn when done (not deferred inside a loop)
+			defer func(conn *grpc.ClientConn) {
+				if err := conn.Close(); err != nil {
+					slog.Warn("error closing gRPC connection", "error", err)
+				}
+			}(conn)
+
+			client := pb.NewOrcaProcessorClient(conn)
+
+			// Build list of affected Algorithms
+			var affectedAlgorithms []*pb.Algorithm
+			for _, node := range task.Nodes {
+				algo, ok := algorithmMap[node.AlgoId()]
+				if !ok {
+					slog.Error("algorithm not found", "algo_id", node.AlgoId())
+					return fmt.Errorf("algorithm ID %d not found", node.AlgoId())
+				}
+				affectedAlgorithms = append(affectedAlgorithms, &pb.Algorithm{
+					Name:    algo.Name,
+					Version: algo.Version,
+				})
+			}
+
+			execReq := &pb.ExecutionRequest{
+				Window:           window,
+				AlgorithmResults: nil, // TODO: dependency handling
+				Algorithms:       affectedAlgorithms,
+			}
+
+			stream, err := client.ExecuteDagPart(ctx, execReq)
+			if err != nil {
+				slog.Error(
+					"failed to start DAG part execution",
+					"proc_id",
+					task.ProcId,
+					"error",
+					err,
+				)
+				return err
+			}
+
+			// Receive streamed execution results
+			for {
+				result, err := stream.Recv()
+				if err != nil {
+					if errors.Is(err, context.Canceled) ||
+						errors.Is(err, context.DeadlineExceeded) {
+						slog.Warn(
+							"context done while receiving execution result",
+							"proc_id",
+							task.ProcId,
+						)
+						break
+					}
+					if err == io.EOF {
+						slog.Info("finished receiving execution results", "proc_id", task.ProcId)
+						break
+					}
+					slog.Error(
+						"error receiving execution result",
+						"proc_id",
+						task.ProcId,
+						"error",
+						err,
+					)
+					return err
+				}
+
+				slog.Info("received execution result",
+					"task_id", result.GetTaskId(),
+					"status", result.GetStatus().String(),
+				)
+
+				// TODO: handle result persistence if needed
+			}
+		}
+	}
 	return nil
 }
