@@ -14,6 +14,23 @@ type ExecutionPath struct {
 	ProcessorId int
 }
 
+// ExecutionStage represents a set of paths that can be executed in parallel
+type ExecutionStage struct {
+	Paths []ProcessorPath
+	Level int // Depth in the execution graph
+}
+
+// ProcessorPath represents algorithms to be executed on a specific processor
+type ProcessorPath struct {
+	AlgoPath    string
+	ProcessorId int
+}
+
+// ExecutionPlan represents the complete execution strategy
+type ExecutionPlan struct {
+	Stages []ExecutionStage // Ordered stages of execution
+}
+
 // isSubsetOf accepts a list of execution paths and if if the new execution path is a
 // subset of existing, returns true
 //

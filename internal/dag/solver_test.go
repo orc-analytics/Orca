@@ -25,7 +25,7 @@ func TestGetPathsForWindow(t *testing.T) {
 			want: []ExecutionPath{
 				{
 					AlgoPath:    "1.2.3",
-					ProcessorId: "1",
+					ProcessorId: 1,
 				},
 			},
 			wantErr: false,
@@ -39,7 +39,7 @@ func TestGetPathsForWindow(t *testing.T) {
 			want: []ExecutionPath{
 				{
 					AlgoPath:    "4.5",
-					ProcessorId: "2",
+					ProcessorId: 2,
 				},
 			},
 			wantErr: false,
@@ -72,7 +72,7 @@ func TestGetPathsForWindow(t *testing.T) {
 			want: []ExecutionPath{
 				{
 					AlgoPath:    "1",
-					ProcessorId: "1",
+					ProcessorId: 1,
 				},
 			},
 			wantErr: false,
@@ -105,15 +105,15 @@ func TestGetPathsForWindow(t *testing.T) {
 			want: []ExecutionPath{
 				{
 					AlgoPath:    "1",
-					ProcessorId: "3",
+					ProcessorId: 3,
 				},
 				{
 					AlgoPath:    "2.3",
-					ProcessorId: "4",
+					ProcessorId: 4,
 				},
 				{
 					AlgoPath:    "4.5",
-					ProcessorId: "5",
+					ProcessorId: 5,
 				},
 			},
 
@@ -128,23 +128,44 @@ func TestGetPathsForWindow(t *testing.T) {
 			want: []ExecutionPath{
 				{
 					AlgoPath:    "1",
-					ProcessorId: "3",
+					ProcessorId: 3,
 				},
 				{
 					AlgoPath:    "2.3",
-					ProcessorId: "4",
+					ProcessorId: 4,
 				},
 				{
 					AlgoPath:    "4.5",
-					ProcessorId: "5",
+					ProcessorId: 5,
 				},
 				{
 					AlgoPath:    "6",
-					ProcessorId: "4",
+					ProcessorId: 4,
 				},
 			},
 
 			wantErr: false,
+		},
+		{
+			name:           "multiple algorihm paths",
+			algoExecPath:   []string{"1.2.3", "1.4.5"},
+			windowExecPath: []string{"1.1.1", "1.1.1"},
+			procExecPath:   []string{"3.4.4", "3.5.5"},
+			windowID:       1,
+			want: []ExecutionPath{
+				{
+					AlgoPath:    "1",
+					ProcessorId: 3,
+				},
+				{
+					AlgoPath:    "2.3",
+					ProcessorId: 4,
+				},
+				{
+					AlgoPath:    "4.5",
+					ProcessorId: 5,
+				},
+			},
 		},
 	}
 
