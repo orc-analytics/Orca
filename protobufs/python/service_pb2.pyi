@@ -156,18 +156,6 @@ class ExecutionResult(_message.Message):
     outputs: _containers.ScalarMap[str, bytes]
     def __init__(self, task_id: _Optional[str] = ..., status: _Optional[_Union[ResultStatus, str]] = ..., outputs: _Optional[_Mapping[str, bytes]] = ...) -> None: ...
 
-class DagStateRequest(_message.Message):
-    __slots__ = ("window_id",)
-    WINDOW_ID_FIELD_NUMBER: _ClassVar[int]
-    window_id: str
-    def __init__(self, window_id: _Optional[str] = ...) -> None: ...
-
-class DagState(_message.Message):
-    __slots__ = ("status",)
-    STATUS_FIELD_NUMBER: _ClassVar[int]
-    status: bool
-    def __init__(self, status: bool = ...) -> None: ...
-
 class ExecutionRequest(_message.Message):
     __slots__ = ("window", "algorithm_results")
     WINDOW_FIELD_NUMBER: _ClassVar[int]

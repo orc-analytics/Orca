@@ -17,11 +17,6 @@ service OrcaCore {
   // Submit a window for processing
   rpc EmitWindow(Window) returns (WindowEmitStatus);
 
-  // Submit results from algorithm execution
-  rpc SubmitResult(Result) returns (Status);
-
-  // Get the current state of a DAG execution
-  rpc GetDagState(DagStateRequest) returns (DagState);
 }
 
 // OrcaProcessor defines the interface that each processing node must implement.
@@ -31,8 +26,9 @@ service OrcaCore {
 // - Report results back to the orchestrator
 // Orca will schedule processors asynchronously as per the DAG
 service OrcaProcessor {
-  // Execute an algorithm with given inputs
-  rpc ExecuteDAG(ExecutionRequest) returns (ExecutionResult);
+  // Execute part of a DAG with streaming results
+  // Server streams back execution results as they become available
+  rpc ExecuteDagPart(ExecutionRequest) returns (stream ExecutionResult);
 
   // Check health/status of processor. i.e. a heartbeat
   rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
@@ -250,14 +246,6 @@ message ExecutionResult {
   ResultStatus status = 2 [(buf.validate.field).required = true];
   // Output data
   map<string, bytes> outputs = 3 [(buf.validate.field).required = true];
-}
-
-message DagStateRequest {
-  // Window ID to query
-  string window_id = 1 [(buf.validate.field).required = true];
-}
-message DagState {
-  bool status = 1;
 }
 
 // ExecutionRequest provides a complete view of a processing DAG's execution

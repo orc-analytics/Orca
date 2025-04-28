@@ -7,8 +7,6 @@
     - [Algorithm](#-Algorithm)
     - [AlgorithmDependency](#-AlgorithmDependency)
     - [AlgorithmResult](#-AlgorithmResult)
-    - [DagState](#-DagState)
-    - [DagStateRequest](#-DagStateRequest)
     - [ExecuteDAG](#-ExecuteDAG)
     - [ExecuteDAG.InputsEntry](#-ExecuteDAG-InputsEntry)
     - [ExecutionRequest](#-ExecutionRequest)
@@ -92,36 +90,6 @@ AlgorithmWindowResult Packaged algorithm and result to a window
 | ----- | ---- | ----- | ----------- |
 | algorithm | [Algorithm](#Algorithm) |  |  |
 | result | [Result](#Result) |  |  |
-
-
-
-
-
-
-<a name="-DagState"></a>
-
-### DagState
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| status | [bool](#bool) |  |  |
-
-
-
-
-
-
-<a name="-DagStateRequest"></a>
-
-### DagStateRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| window_id | [string](#string) |  | Window ID to query |
 
 
 
@@ -461,8 +429,6 @@ OrcaCore is the central orchestration service that:
 | ----------- | ------------ | ------------- | ------------|
 | RegisterProcessor | [.ProcessorRegistration](#ProcessorRegistration) | [.Status](#Status) | Register a processor node and its supported algorithms |
 | EmitWindow | [.Window](#Window) | [.WindowEmitStatus](#WindowEmitStatus) | Submit a window for processing |
-| SubmitResult | [.Result](#Result) | [.Status](#Status) | Submit results from algorithm execution |
-| GetDagState | [.DagStateRequest](#DagStateRequest) | [.DagState](#DagState) | Get the current state of a DAG execution |
 
 
 <a name="-OrcaProcessor"></a>
@@ -477,7 +443,7 @@ Orca will schedule processors asynchronously as per the DAG
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| ExecuteDAG | [.ExecutionRequest](#ExecutionRequest) | [.ExecutionResult](#ExecutionResult) | Execute an algorithm with given inputs |
+| ExecuteDagPart | [.ExecutionRequest](#ExecutionRequest) | [.ExecutionResult](#ExecutionResult) stream | Execute part of a DAG with streaming results Server streams back execution results as they become available |
 | HealthCheck | [.HealthCheckRequest](#HealthCheckRequest) | [.HealthCheckResponse](#HealthCheckResponse) | Check health/status of processor. i.e. a heartbeat |
 
  

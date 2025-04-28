@@ -14,26 +14,23 @@ type ExecutionPath struct {
 	ProcPath   string
 }
 
-//isSubsetOf accepts a list of execution paths and if if the new execution path is a
+// isSubsetOf accepts a list of execution paths and if if the new execution path is a
 // subset of existing, returns true
 //
 // Example:
-// 
+//
 // isSubsetOf([]string{"a.b.c.d", "e.f.g.h"}, "f.g")
 // > true
 //
 // isSubsetOf([]string{"a.b.c.d", "e.f.g.h"}, "i.k")
-// > false 
+// > false
 func isSubsetOf(existing []string, new string) bool {
-  for _, path := range existing {
-    if strings.Contains(path, new) {
-      return true
-    }
-  }
+	for _, path := range existing {
+		if strings.Contains(path, new) {
+			return true
+		}
+	}
 	return false
-}
-func extends(existing []string], new string) (bool, int ){
-    return false, nil
 }
 
 // GetPathsForWindow
@@ -45,14 +42,15 @@ func extends(existing []string], new string) (bool, int ){
 // When processing needs to be split over processors, the order
 // of execution paths in the return argument should be preserved.
 //
-// Example arguments
+// Examples:
+//
 // algo_exec_path   window_exec_path  proc_exec_path
 // 1	              1	                1
 // 1.2.3.4.5        1.1.1.3.3	        1.1.1.2.2
 // 1.2.5.6.7.8      1.1.1.24.3.3	    1.1.1.1.2.2
 // 1.2.4.5.6        1.1.1.1.24        1.1.1.1.1
 //
-// when filtering for '1'
+// when filtering for window id of '1'
 //
 // algo_exec_path   window_exec_path  proc_exec_path
 // 1	              1	                1
@@ -60,7 +58,7 @@ func extends(existing []string], new string) (bool, int ){
 // 1.2.5	          1.1.1             1.1.1
 // 1.2.4.5          1.1.1.1           1.1.1.1
 //
-// when filtering for '3'
+// when filtering for window id of '3'
 //
 // algo_exec_path   window_exec_path  proc_exec_path
 // 4.5	            3.3               2.2
@@ -80,8 +78,8 @@ func GetPathsForWindow(
 			len(procExecPaths),
 		)
 	}
-	var vistedAlgoExecPaths string
-	for ii := 0; ii < len(algoExecPaths); ii++ {
+
+	for ii := range algoExecPaths {
 		algoExecPath := algoExecPaths[ii]
 		windowExecPath := windowExecPaths[ii]
 		procExecPath := procExecPaths[ii]
@@ -114,10 +112,21 @@ func GetPathsForWindow(
 				currentProcessor = procSegments[i]
 			}
 
+			// handle case where the window ends
+			if inRun && (windowSegmentId != windowIDInt) {
+				inRun = false
+				result := ExecutionPath{
+					AlgoPath:   strings.Join(algoSegments[startIdx:i], "."),
+					WindowPath: strings.Join(windowSegments[startIdx:i], "."),
+					ProcPath:   strings.Join(procSegments[startIdx:i], "."),
+				}
+				startIdx = i
+				results = append(results, result)
+				continue
+			}
 			// handle case where the processor changes in a run
-			if inRun && (procSegments[i] != currentProcessor || windowSegmentId != windowIDInt) {
+			if inRun && (procSegments[i] != currentProcessor) {
 				currentProcessor = procSegments[i]
-				algoSegment := strings.Join(algoSegments[startIdx:i], ".")
 
 				// if the algo segment is a subset of what is already present, then do nothing
 				// if it extends what is already present then replace it
@@ -129,6 +138,7 @@ func GetPathsForWindow(
 				startIdx = i
 				results = append(results, result)
 			}
+
 		}
 
 		// catch the edge case where the window runs to the end
@@ -148,4 +158,5 @@ func GetPathsForWindow(
 
 		return results, nil
 	}
+	return nil, nil
 }

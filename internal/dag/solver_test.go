@@ -8,9 +8,9 @@ import (
 func TestGetPathsForWindow(t *testing.T) {
 	tests := []struct {
 		name           string
-		algoExecPath   string
-		windowExecPath string
-		procExecPath   string
+		algoExecPath   []string
+		windowExecPath []string
+		procExecPath   []string
 		windowID       int
 		want           []ExecutionPath
 		wantErr        bool
@@ -18,9 +18,9 @@ func TestGetPathsForWindow(t *testing.T) {
 	}{
 		{
 			name:           "filter for window ID 1",
-			algoExecPath:   "1.2.3.4.5",
-			windowExecPath: "1.1.1.3.3",
-			procExecPath:   "1.1.1.2.2",
+			algoExecPath:   []string{"1.2.3.4.5"},
+			windowExecPath: []string{"1.1.1.3.3"},
+			procExecPath:   []string{"1.1.1.2.2"},
 			windowID:       1,
 			want: []ExecutionPath{
 				{
@@ -33,9 +33,9 @@ func TestGetPathsForWindow(t *testing.T) {
 		},
 		{
 			name:           "filter for window ID 3",
-			algoExecPath:   "1.2.3.4.5",
-			windowExecPath: "1.1.1.3.3",
-			procExecPath:   "1.1.1.2.2",
+			algoExecPath:   []string{"1.2.3.4.5"},
+			windowExecPath: []string{"1.1.1.3.3"},
+			procExecPath:   []string{"1.1.1.2.2"},
 			windowID:       3,
 			want: []ExecutionPath{
 				{
@@ -48,9 +48,9 @@ func TestGetPathsForWindow(t *testing.T) {
 		},
 		{
 			name:           "mismatched path lengths",
-			algoExecPath:   "1.2.3",
-			windowExecPath: "1.1",
-			procExecPath:   "1.1.1",
+			algoExecPath:   []string{"1.2.3"},
+			windowExecPath: []string{"1.1"},
+			procExecPath:   []string{"1.1.1"},
 			windowID:       1,
 			want:           nil,
 			wantErr:        true,
@@ -58,18 +58,18 @@ func TestGetPathsForWindow(t *testing.T) {
 		},
 		{
 			name:           "window ID not found",
-			algoExecPath:   "1.2.3",
-			windowExecPath: "1.1.1",
-			procExecPath:   "1.1.1",
+			algoExecPath:   []string{"1.2.3"},
+			windowExecPath: []string{"1.1.1"},
+			procExecPath:   []string{"1.1.1"},
 			windowID:       4,
 			want:           nil,
 			wantErr:        false,
 		},
 		{
 			name:           "single segment paths",
-			algoExecPath:   "1",
-			windowExecPath: "1",
-			procExecPath:   "1",
+			algoExecPath:   []string{"1"},
+			windowExecPath: []string{"1"},
+			procExecPath:   []string{"1"},
 			windowID:       1,
 			want: []ExecutionPath{
 				{
@@ -82,9 +82,9 @@ func TestGetPathsForWindow(t *testing.T) {
 		},
 		{
 			name:           "multiple matches in path",
-			algoExecPath:   "1.2.3.1.2",
-			windowExecPath: "1.1.1.1.1",
-			procExecPath:   "1.1.1.1.1",
+			algoExecPath:   []string{"1.2.3.1.2"},
+			windowExecPath: []string{"1.1.1.1.1"},
+			procExecPath:   []string{"1.1.1.1.1"},
 			windowID:       1,
 			want:           nil,
 			wantErr:        true,
@@ -92,18 +92,18 @@ func TestGetPathsForWindow(t *testing.T) {
 		},
 		{
 			name:           "empty paths",
-			algoExecPath:   "",
-			windowExecPath: "",
-			procExecPath:   "",
+			algoExecPath:   []string{""},
+			windowExecPath: []string{""},
+			procExecPath:   []string{""},
 			windowID:       1,
 			want:           nil,
 			wantErr:        false,
 		},
 		{
 			name:           "split processor",
-			algoExecPath:   "1.2.3.4.5.6",
-			windowExecPath: "1.1.1.1.1.2",
-			procExecPath:   "3.4.4.5.5.5",
+			algoExecPath:   []string{"1.2.3.4.5.6"},
+			windowExecPath: []string{"1.1.1.1.1.2"},
+			procExecPath:   []string{"3.4.4.5.5.5"},
 			windowID:       1,
 			want: []ExecutionPath{
 				{
@@ -127,9 +127,9 @@ func TestGetPathsForWindow(t *testing.T) {
 		},
 		{
 			name:           "split processor with revisit",
-			algoExecPath:   "1.2.3.4.5.6",
-			windowExecPath: "1.1.1.1.1.1",
-			procExecPath:   "3.4.4.5.5.4",
+			algoExecPath:   []string{"1.2.3.4.5.6"},
+			windowExecPath: []string{"1.1.1.1.1.1"},
+			procExecPath:   []string{"3.4.4.5.5.4"},
 			windowID:       1,
 			want: []ExecutionPath{
 				{
