@@ -25,7 +25,8 @@ test: .test_all
 		--python_out=./protobufs/python \
 		--pyi_out=./protobufs/python \
 		--grpc_python_out=./protobufs/python \
-		./protobufs/*.proto
+		./protobufs/*.proto \
+		./protobufs/vendor/*.proto
 
 .datalayer:
 	sqlc vet -f datalayer/postgresql/sqlc.yaml
