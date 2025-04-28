@@ -33,37 +33,6 @@ func isSubsetOf(existing []string, new string) bool {
 	return false
 }
 
-// appendResults will extend the results stack, taking in to account:
-// - if the algo segment is a subset of what is already present, then do nothing
-// - if it extends what is already present then replace it
-// TODO: capture potential bug where the algoritm IDs are large. e.g.:
-//
-//	45.6.74
-//	6.7 <- would be matched in the above, but this is not correct.
-//	need to actually match like so:
-//
-// .45.6.74.
-// .6.7.
-// this would be robust
-func appendResults(results []ExecutionPath, result ExecutionPath) []ExecutionPath {
-	for ii, subResult := range results {
-		subAlgoPath := fmt.Sprintf(".%v.", subResult.AlgoPath)
-		newAlgoPath := fmt.Sprintf(".%v.", result.AlgoPath)
-
-		// is new result subset of what already exists?
-		if strings.Contains(subAlgoPath, newAlgoPath) {
-			return results // then do nothing
-		} else if strings.Contains(newAlgoPath, subAlgoPath) { // does result extend what already exists?
-			// then replace the results
-			results[ii] = result
-			return results
-		}
-	}
-	// else, new results
-	results = append(results, result)
-	return results
-}
-
 // GetPathsForWindow
 // Given a set of algorithm execution paths, the processors the
 // algorithms belong to, and the windows that trigger them, filter
@@ -152,7 +121,7 @@ func GetPathsForWindow(
 					ProcPath:   strings.Join(procSegments[startIdx:i], "."),
 				}
 				startIdx = i
-				results = appendResults(results, result)
+				results = append(results, result)
 				continue
 			}
 			// handle case where the processor changes in a run
@@ -165,7 +134,7 @@ func GetPathsForWindow(
 					ProcPath:   strings.Join(procSegments[startIdx:i], "."),
 				}
 				startIdx = i
-				results = appendResults(results, result)
+				results = append(results, result)
 			}
 
 		}
