@@ -186,19 +186,19 @@ func TestGetPathsForWindow(t *testing.T) {
 func TestPathInSubset(t *testing.T) {
 	tests := []struct {
 		name      string
-		pathStack []string
+		pathStack string
 		new       string
 		want      bool
 	}{
 		{
 			name:      "not subpath",
-			pathStack: []string{"a.b.c", "d.e.f"},
+			pathStack: "d.e.f",
 			new:       "h.i",
 			want:      false,
 		},
 		{
 			name:      "is subpath",
-			pathStack: []string{"a.b.c", "d.e.f"},
+			pathStack: "a.b.c",
 			new:       "b.c",
 			want:      true,
 		},

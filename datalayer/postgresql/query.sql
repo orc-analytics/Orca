@@ -144,6 +144,27 @@ INSERT INTO windows (
 ) RETURNING window_type_id;
 
 
+-- name: ReadAllProcessors :many
+SELECT 
+  id,
+  name,
+  runtime,
+  connection_string,
+  created
+FROM processor
+ORDER BY name, runtime;
+
+-- name: ReadProcessorsByIDs :many
+SELECT 
+  id,
+  name,
+  runtime,
+  connection_string,
+  created
+FROM processor
+WHERE id = ANY(sqlc.arg(processor_ids)::bigint[])
+ORDER BY name, runtime;
+
 -- name: GetDag :many
 -- SELECT a.id FROM algorithm a
 --   WHERE a.window_type_name=sqlc.arg('window_type_name')

@@ -2,6 +2,7 @@ package dag
 
 import (
 	"fmt"
+	"log/slog"
 	"slices"
 	"strconv"
 	"strings"
@@ -10,7 +11,7 @@ import (
 // ExecutionPath represents a set of filtered paths for algorithms, windows and processors
 type ExecutionPath struct {
 	AlgoPath    string
-	ProcessorId string
+	ProcessorId int
 }
 
 // isSubsetOf accepts a list of execution paths and if if the new execution path is a
@@ -18,16 +19,14 @@ type ExecutionPath struct {
 //
 // Example:
 //
-// isSubsetOf([]string{"a.b.c.d", "e.f.g.h"}, "f.g")
+// isSubsetOf("e.f.g.h", "f.g")
 // > true
 //
-// isSubsetOf([]string{"a.b.c.d", "e.f.g.h"}, "i.k")
+// isSubsetOf("e.f.g.h", "i.k")
 // > false
-func isSubsetOf(existing []string, new string) bool {
-	for _, path := range existing {
-		if strings.Contains(path, new) {
-			return true
-		}
+func isSubsetOf(existing string, new string) bool {
+	if strings.Contains(existing, new) {
+		return true
 	}
 	return false
 }
@@ -50,9 +49,9 @@ func appendResults(results []ExecutionPath, result ExecutionPath) []ExecutionPat
 		newAlgoPath := fmt.Sprintf(".%v.", result.AlgoPath)
 
 		// is new result subset of what already exists?
-		if strings.Contains(subAlgoPath, newAlgoPath) {
+		if isSubsetOf(subAlgoPath, newAlgoPath) {
 			return results // then do nothing
-		} else if strings.Contains(newAlgoPath, subAlgoPath) { // does result extend what already exists?
+		} else if isSubsetOf(newAlgoPath, subAlgoPath) { // does result extend what already exists?
 			// then replace the results
 			results[ii] = result
 			return results
@@ -145,9 +144,14 @@ func GetPathsForWindow(
 			// handle case where the window ends
 			if inRun && (windowSegmentId != windowIdStr) {
 				inRun = false
+				procId, err := strconv.Atoi(procSegments[i-1])
+				if err != nil {
+					slog.Error("could not convert processor id to int", procSegments[i-1])
+					return nil, err
+				}
 				result := ExecutionPath{
 					AlgoPath:    strings.Join(algoSegments[startIdx:i], "."),
-					ProcessorId: procSegments[i-1],
+					ProcessorId: procId,
 				}
 				startIdx = i
 				results = appendResults(results, result)
@@ -157,9 +161,14 @@ func GetPathsForWindow(
 			if inRun && (procSegments[i] != currentProcessor) {
 				currentProcessor = procSegments[i]
 
+				procId, err := strconv.Atoi(procSegments[i-1])
+				if err != nil {
+					slog.Error("could not convert processor id to int", procSegments[i-1])
+					return nil, err
+				}
 				result := ExecutionPath{
 					AlgoPath:    strings.Join(algoSegments[startIdx:i], "."),
-					ProcessorId: procSegments[i-1],
+					ProcessorId: procId,
 				}
 				startIdx = i
 				results = appendResults(results, result)
@@ -169,9 +178,14 @@ func GetPathsForWindow(
 
 		// catch the edge case where the window runs to the end
 		if inRun && windowSegments[len(windowSegments)-1] == windowIdStr {
+			procId, err := strconv.Atoi(currentProcessor)
+			if err != nil {
+				slog.Error("could not convert processor id to int", currentProcessor)
+				return nil, err
+			}
 			result := ExecutionPath{
 				AlgoPath:    strings.Join(algoSegments[startIdx:], "."),
-				ProcessorId: currentProcessor,
+				ProcessorId: procId,
 			}
 			results = append(results, result)
 		}

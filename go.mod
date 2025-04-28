@@ -5,6 +5,8 @@ go 1.22.0
 toolchain go1.24.0
 
 require (
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.5-20250130201111-63bb56e20495.1
+	github.com/bufbuild/protovalidate-go v0.9.2
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/jackc/pgx/v5 v5.7.2
@@ -13,11 +15,9 @@ require (
 )
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.5-20250130201111-63bb56e20495.1 // indirect
 	cel.dev/expr v0.19.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/bufbuild/protovalidate-go v0.9.2 // indirect
 	github.com/charmbracelet/x/ansi v0.8.0 // indirect
 	github.com/google/cel-go v0.23.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect

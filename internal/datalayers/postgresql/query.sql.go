@@ -315,6 +315,81 @@ func (q *Queries) ReadAlgorithmsForWindow(ctx context.Context, arg ReadAlgorithm
 	return items, nil
 }
 
+const readAllProcessors = `-- name: ReadAllProcessors :many
+SELECT 
+  id,
+  name,
+  runtime,
+  connection_string,
+  created
+FROM processor
+ORDER BY name, runtime
+`
+
+func (q *Queries) ReadAllProcessors(ctx context.Context) ([]Processor, error) {
+	rows, err := q.db.Query(ctx, readAllProcessors)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Processor
+	for rows.Next() {
+		var i Processor
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Runtime,
+			&i.ConnectionString,
+			&i.Created,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const readProcessorsByIDs = `-- name: ReadProcessorsByIDs :many
+SELECT 
+  id,
+  name,
+  runtime,
+  connection_string,
+  created
+FROM processor
+WHERE id = ANY($1::bigint[])
+ORDER BY name, runtime
+`
+
+func (q *Queries) ReadProcessorsByIDs(ctx context.Context, processorIds []int64) ([]Processor, error) {
+	rows, err := q.db.Query(ctx, readProcessorsByIDs, processorIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Processor
+	for rows.Next() {
+		var i Processor
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Runtime,
+			&i.ConnectionString,
+			&i.Created,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const registerWindow = `-- name: RegisterWindow :one
 WITH window_type_id AS (
   SELECT id FROM window_type 

@@ -11,6 +11,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/predixus/orca/internal/dag"
 	pb "github.com/predixus/orca/protobufs/go"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Datalayer struct {
@@ -203,7 +205,55 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 		return err
 	}
 
-	slog.Info("calculated execution paths", "execution_paths", executionPaths)
-	// TODO: fire them off to the processors.
+	slog.Info("calculated unique execution paths", "execution_paths", executionPaths)
+	// get the processor details
+	// processorIds := make([]int64, len(executionPaths), len(executionPaths))
+	// for ii, execPath := range executionPaths {
+	// 	processorIds[ii] = int64(execPath.ProcessorId)
+	// }
+	//
+	// processors, err := d.queries.ReadProcessorsByIDs(ctx, processorIds)
+	// // map exec paths to processors
+	// execMap := make(map[dag.ExecutionPath]Processor, len(executionPaths))
+	// for _, path := range executionPaths {
+	// 	for _, processor := range processors {
+	// 		if path.ProcessorId == int(processor.ID) {
+	// 			execMap[path] = processor
+	// 			break
+	// 		}
+	// 	}
+	// }
+	// slog.Info("built processor execution map", "exec map", execMap)
+	// for _, execPath := range executionPaths {
+	// 	conn, err := grpc.NewClient(
+	// 		execMap[execPath].ConnectionString,
+	// 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	// 	)
+	// 	if err != nil {
+	// 		slog.Error("could not connect to processor", "error", err)
+	// 		return err
+	// 	}
+	// 	defer conn.Close()
+	//
+	// 	client := pb.NewOrcaProcessorClient(conn)
+	// 	stream, err := client.ExecuteDagPart(ctx, &pb.ExecutionRequest{
+	// 		Window: window,
+	// 		// TODO handle results from other processors
+	// 	})
+	// 	if err != nil {
+	// 		// handle error
+	// 	}
+	//
+	// 	for {
+	// 		result, err := stream.Recv()
+	// 		if err == io.EOF {
+	// 			break
+	// 		}
+	// 		if err != nil {
+	// 			// handle error
+	// 		}
+	// 		// process result
+	// 	}
+	// }
 	return nil
 }
