@@ -24,9 +24,8 @@ func TestGetPathsForWindow(t *testing.T) {
 			windowID:       1,
 			want: []ExecutionPath{
 				{
-					AlgoPath:   "1.2.3",
-					WindowPath: "1.1.1",
-					ProcPath:   "1.1.1",
+					AlgoPath:    "1.2.3",
+					ProcessorId: "1",
 				},
 			},
 			wantErr: false,
@@ -39,9 +38,8 @@ func TestGetPathsForWindow(t *testing.T) {
 			windowID:       3,
 			want: []ExecutionPath{
 				{
-					AlgoPath:   "4.5",
-					WindowPath: "3.3",
-					ProcPath:   "2.2",
+					AlgoPath:    "4.5",
+					ProcessorId: "2",
 				},
 			},
 			wantErr: false,
@@ -73,9 +71,8 @@ func TestGetPathsForWindow(t *testing.T) {
 			windowID:       1,
 			want: []ExecutionPath{
 				{
-					AlgoPath:   "1",
-					WindowPath: "1",
-					ProcPath:   "1",
+					AlgoPath:    "1",
+					ProcessorId: "1",
 				},
 			},
 			wantErr: false,
@@ -107,19 +104,16 @@ func TestGetPathsForWindow(t *testing.T) {
 			windowID:       1,
 			want: []ExecutionPath{
 				{
-					AlgoPath:   "1",
-					WindowPath: "1",
-					ProcPath:   "3",
+					AlgoPath:    "1",
+					ProcessorId: "3",
 				},
 				{
-					AlgoPath:   "2.3",
-					WindowPath: "1.1",
-					ProcPath:   "4.4",
+					AlgoPath:    "2.3",
+					ProcessorId: "4",
 				},
 				{
-					AlgoPath:   "4.5",
-					WindowPath: "1.1",
-					ProcPath:   "5.5",
+					AlgoPath:    "4.5",
+					ProcessorId: "5",
 				},
 			},
 
@@ -133,24 +127,20 @@ func TestGetPathsForWindow(t *testing.T) {
 			windowID:       1,
 			want: []ExecutionPath{
 				{
-					AlgoPath:   "1",
-					WindowPath: "1",
-					ProcPath:   "3",
+					AlgoPath:    "1",
+					ProcessorId: "3",
 				},
 				{
-					AlgoPath:   "2.3",
-					WindowPath: "1.1",
-					ProcPath:   "4.4",
+					AlgoPath:    "2.3",
+					ProcessorId: "4",
 				},
 				{
-					AlgoPath:   "4.5",
-					WindowPath: "1.1",
-					ProcPath:   "5.5",
+					AlgoPath:    "4.5",
+					ProcessorId: "5",
 				},
 				{
-					AlgoPath:   "6",
-					WindowPath: "1",
-					ProcPath:   "4",
+					AlgoPath:    "6",
+					ProcessorId: "4",
 				},
 			},
 

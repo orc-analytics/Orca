@@ -9,9 +9,8 @@ import (
 
 // ExecutionPath represents a set of filtered paths for algorithms, windows and processors
 type ExecutionPath struct {
-	AlgoPath   string
-	WindowPath string
-	ProcPath   string
+	AlgoPath    string
+	ProcessorId string
 }
 
 // isSubsetOf accepts a list of execution paths and if if the new execution path is a
@@ -31,6 +30,37 @@ func isSubsetOf(existing []string, new string) bool {
 		}
 	}
 	return false
+}
+
+// appendResults will extend the results stack, taking in to account:
+// - if the algo segment is a subset of what is already present, then do nothing
+// - if it extends what is already present then replace it
+// TODO: capture potential bug where the algoritm IDs are large. e.g.:
+//
+//	45.6.74
+//	6.7 <- would be matched in the above, but this is not correct.
+//	need to actually match like so:
+//
+// .45.6.74.
+// .6.7.
+// this would be robust
+func appendResults(results []ExecutionPath, result ExecutionPath) []ExecutionPath {
+	for ii, subResult := range results {
+		subAlgoPath := fmt.Sprintf(".%v.", subResult.AlgoPath)
+		newAlgoPath := fmt.Sprintf(".%v.", result.AlgoPath)
+
+		// is new result subset of what already exists?
+		if strings.Contains(subAlgoPath, newAlgoPath) {
+			return results // then do nothing
+		} else if strings.Contains(newAlgoPath, subAlgoPath) { // does result extend what already exists?
+			// then replace the results
+			results[ii] = result
+			return results
+		}
+	}
+	// else, new results
+	results = append(results, result)
+	return results
 }
 
 // GetPathsForWindow
@@ -69,7 +99,7 @@ func GetPathsForWindow(
 	procExecPaths []string,
 	windowID int,
 ) ([]ExecutionPath, error) {
-	windowIDInt := strconv.Itoa(windowID)
+	windowIdStr := strconv.Itoa(windowID)
 	if len(algoExecPaths) != len(windowExecPaths) || len(windowExecPaths) != len(procExecPaths) {
 		return nil, fmt.Errorf(
 			"number of graph paths do not match: algo=%d, window=%d, proc=%d",
@@ -78,6 +108,8 @@ func GetPathsForWindow(
 			len(procExecPaths),
 		)
 	}
+
+	var results []ExecutionPath
 
 	for ii := range algoExecPaths {
 		algoExecPath := algoExecPaths[ii]
@@ -93,8 +125,6 @@ func GetPathsForWindow(
 				len(algoSegments), len(windowSegments), len(procSegments))
 		}
 
-		var results []ExecutionPath
-
 		// Find the indices where windowID appears in window path
 		inRun := false
 		var startIdx int
@@ -106,22 +136,21 @@ func GetPathsForWindow(
 			}
 
 			visitedAlgos = append(visitedAlgos, algoSegments[i])
-			if windowSegmentId == windowIDInt && !inRun {
+			if windowSegmentId == windowIdStr && !inRun {
 				inRun = true
 				startIdx = i
 				currentProcessor = procSegments[i]
 			}
 
 			// handle case where the window ends
-			if inRun && (windowSegmentId != windowIDInt) {
+			if inRun && (windowSegmentId != windowIdStr) {
 				inRun = false
 				result := ExecutionPath{
-					AlgoPath:   strings.Join(algoSegments[startIdx:i], "."),
-					WindowPath: strings.Join(windowSegments[startIdx:i], "."),
-					ProcPath:   strings.Join(procSegments[startIdx:i], "."),
+					AlgoPath:    strings.Join(algoSegments[startIdx:i], "."),
+					ProcessorId: procSegments[i-1],
 				}
 				startIdx = i
-				results = append(results, result)
+				results = appendResults(results, result)
 				continue
 			}
 			// handle case where the processor changes in a run
@@ -129,32 +158,24 @@ func GetPathsForWindow(
 				currentProcessor = procSegments[i]
 
 				result := ExecutionPath{
-					AlgoPath:   strings.Join(algoSegments[startIdx:i], "."),
-					WindowPath: strings.Join(windowSegments[startIdx:i], "."),
-					ProcPath:   strings.Join(procSegments[startIdx:i], "."),
+					AlgoPath:    strings.Join(algoSegments[startIdx:i], "."),
+					ProcessorId: procSegments[i-1],
 				}
 				startIdx = i
-				results = append(results, result)
+				results = appendResults(results, result)
 			}
 
 		}
 
 		// catch the edge case where the window runs to the end
-		if inRun && windowSegments[len(windowSegments)-1] == windowIDInt {
+		if inRun && windowSegments[len(windowSegments)-1] == windowIdStr {
 			result := ExecutionPath{
-				AlgoPath:   strings.Join(algoSegments[startIdx:], "."),
-				WindowPath: strings.Join(windowSegments[startIdx:], "."),
-				ProcPath:   strings.Join(procSegments[startIdx:], "."),
+				AlgoPath:    strings.Join(algoSegments[startIdx:], "."),
+				ProcessorId: currentProcessor,
 			}
 			results = append(results, result)
 		}
 
-		// If no paths were found, return nil
-		if len(results) == 0 {
-			return nil, nil
-		}
-
-		return results, nil
 	}
-	return nil, nil
+	return results, nil
 }

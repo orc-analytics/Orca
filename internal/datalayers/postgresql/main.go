@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"path"
 	"strconv"
 	"strings"
 
@@ -204,7 +203,7 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 		return err
 	}
 
-	slog.Info("execution_paths", executionPaths)
+	slog.Info("calculated execution paths", "execution_paths", executionPaths)
 	// TODO: fire them off to the processors.
 	return nil
 }
