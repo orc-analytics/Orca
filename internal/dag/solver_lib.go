@@ -99,6 +99,7 @@ func BuildPlan(
 	algoExecPaths []string,
 	windowExecPaths []string,
 	procExecPaths []string,
+	targetWindowId int64,
 ) (Plan, error) {
 	if len(algoExecPaths) != len(windowExecPaths) || len(windowExecPaths) != len(procExecPaths) {
 		return Plan{}, fmt.Errorf(
@@ -127,11 +128,28 @@ func BuildPlan(
 				len(procSegments),
 			)
 		}
+
+		var pathWindowMap map[int64]int64 // <<<<< added here
 		var prevNode Node
+
 		for ii, algoIdStr := range algoSegments {
 			algoId := mustAtoi(algoIdStr)
 			procId := mustAtoi(procSegments[ii])
 			windowId := mustAtoi(windowSegments[ii])
+			if pathWindowMap == nil {
+				pathWindowMap = make(map[int64]int64)
+			}
+
+			if prevWin, seen := pathWindowMap[int64(procId)]; seen {
+				if prevWin != int64(windowId) {
+					return Plan{}, fmt.Errorf(
+						"window ID mismatch on processor %d in path %d: saw %d, then %d",
+						procId, pathIdx, prevWin, windowId,
+					)
+				}
+			} else {
+				pathWindowMap[int64(procId)] = int64(windowId)
+			}
 
 			node, exists := nodeMap[int64(algoId)]
 			if !exists {
@@ -169,7 +187,6 @@ func BuildPlan(
 			node := gn.(Node)
 			taskMap[node.procId] = append(taskMap[node.procId], node)
 		}
-
 		var stage Stage
 		for procId, nodes := range taskMap {
 			// sort nodes inside processor task

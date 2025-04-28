@@ -74,3 +74,8 @@ Auto documentation of Protocol Buffer definitions is performed using the [protoc
 ```bash
 docker pull pseudomuto/protoc-gen-doc
 ```
+
+# Rules
+
+1. Algorithm DAGs can only be triggered by a single WindowType
+1. Individual algorithms cannot depend on algorithms that depend on different WindowTypes

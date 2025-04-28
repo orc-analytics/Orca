@@ -11,6 +11,7 @@ func TestBuildPlan(t *testing.T) {
 		algoExecPath   []string
 		windowExecPath []string
 		procExecPath   []string
+		targetWindowId int64
 		want           Plan
 		wantErr        bool
 	}{
@@ -19,6 +20,7 @@ func TestBuildPlan(t *testing.T) {
 			algoExecPath:   []string{"1.2.3"},
 			windowExecPath: []string{"1.1.1"},
 			procExecPath:   []string{"1.1.1"},
+			targetWindowId: 1,
 			want: Plan{
 				Stages: []Stage{
 					{Tasks: []ProcessorTask{
@@ -39,6 +41,7 @@ func TestBuildPlan(t *testing.T) {
 			algoExecPath:   []string{"1", "2"},
 			windowExecPath: []string{"1", "1"},
 			procExecPath:   []string{"1", "2"},
+			targetWindowId: 1,
 			want: Plan{
 				Stages: []Stage{
 					{Tasks: []ProcessorTask{
@@ -54,6 +57,7 @@ func TestBuildPlan(t *testing.T) {
 			algoExecPath:   []string{"1.2.4", "1.3.4"},
 			windowExecPath: []string{"1.1.1", "1.1.1"},
 			procExecPath:   []string{"1.2.3", "1.2.3"},
+			targetWindowId: 1,
 			want: Plan{
 				Stages: []Stage{
 					{Tasks: []ProcessorTask{
@@ -79,6 +83,7 @@ func TestBuildPlan(t *testing.T) {
 			algoExecPath:   []string{"1.2", "2.1"},
 			windowExecPath: []string{"1.1", "1.1"},
 			procExecPath:   []string{"1.1", "1.1"},
+			targetWindowId: 1,
 			want:           Plan{},
 			wantErr:        true,
 		},
@@ -87,6 +92,7 @@ func TestBuildPlan(t *testing.T) {
 			algoExecPath:   []string{},
 			windowExecPath: []string{},
 			procExecPath:   []string{},
+			targetWindowId: 1,
 			want:           Plan{Stages: nil},
 			wantErr:        false,
 		},
@@ -107,6 +113,7 @@ func TestBuildPlan(t *testing.T) {
 				"1.2.3",   // Node 3 (proc 1) -> Node 4 (proc 2) -> Node 5 (proc 3)
 				"4.5.5.6", // Node 6 (proc 4) -> Node 7 (proc 5) -> Node 8 (proc 5) -> Node 9 (proc 6)
 			},
+			targetWindowId: 1,
 			want: Plan{
 				Stages: []Stage{
 					{Tasks: []ProcessorTask{
@@ -148,7 +155,12 @@ func TestBuildPlan(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := BuildPlan(tt.algoExecPath, tt.windowExecPath, tt.procExecPath)
+			got, err := BuildPlan(
+				tt.algoExecPath,
+				tt.windowExecPath,
+				tt.procExecPath,
+				tt.targetWindowId,
+			)
 
 			// Handling errors
 			if (err != nil) != tt.wantErr {
