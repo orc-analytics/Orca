@@ -36,6 +36,7 @@ service OrcaProcessor {
 
   // Check health/status of processor
   rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+
 }
 
 // Window represents a time-bounded processing context that triggers algorithm execution. Windows are the primary input that start DAG processing flows.
