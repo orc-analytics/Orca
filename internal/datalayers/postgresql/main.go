@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"path"
 	"strconv"
 	"strings"
 
@@ -175,27 +176,35 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 		return err
 	}
 
-	// fire off processings
+	// create the algo path args
+	var algoIdPaths []string
+	var windowTypeIDPaths []string
+	var procIdPaths []string
 	for _, path := range exec_paths {
-		executionPaths, err := dag.GetPathsForWindow(
-			path.AlgoIDPath,
-			path.WindowTypeIDPath,
-			path.ProcIDPath,
-			int(insertedWindow),
-		)
-		if err != nil {
-			slog.Error(
-				"failed to construct execution paths for window",
-				"window",
-				insertedWindow,
-				"error",
-				err,
-			)
-			return err
-		}
-
-		slog.Info("execution_paths", executionPaths)
+		algoIdPaths = append(algoIdPaths, path.AlgoIDPath)
+		windowTypeIDPaths = append(windowTypeIDPaths, path.WindowTypeIDPath)
+		procIdPaths = append(procIdPaths, path.ProcIDPath)
 	}
 
+	// fire off processings
+	executionPaths, err := dag.GetPathsForWindow(
+		algoIdPaths,
+		windowTypeIDPaths,
+		procIdPaths,
+		int(insertedWindow),
+	)
+	if err != nil {
+		slog.Error(
+			"failed to construct execution paths for window",
+			"window",
+			insertedWindow,
+			"error",
+			err,
+		)
+		return err
+	}
+
+	slog.Info("execution_paths", executionPaths)
+	// TODO: fire them off to the processors.
 	return nil
 }
