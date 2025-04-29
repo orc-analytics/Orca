@@ -19,14 +19,14 @@ test: .test_all
 	--go_opt=paths=source_relative \
 	--go-grpc_out=go \
 	--go-grpc_opt=paths=source_relative \
-	*.proto
-	python -m grpc_tools.protoc \
-		-I./protobufs \
-		--python_out=./protobufs/src/orca_python/protos \
-		--pyi_out=./protobufs/src/orca_python/protos \
-		--grpc_python_out=./protobufs/src/orca_python/protos \
-		./protobufs/*.proto \
-		./protobufs/vendor/*.proto
+	./**/*.proto
+	cd protobufs && python -m grpc_tools.protoc \
+    --proto_path=./ \
+    --python_out=./python \
+    --pyi_out=./python \
+    --grpc_python_out=./python \
+    ./**/*.proto
+
 
 .datalayer:
 	sqlc vet -f datalayer/postgresql/sqlc.yaml
