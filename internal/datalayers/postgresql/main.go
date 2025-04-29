@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/predixus/orca/internal/dag"
@@ -254,6 +255,29 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 			}(conn)
 
 			client := pb.NewOrcaProcessorClient(conn)
+			healthCheckResponse, err := client.HealthCheck(ctx, &pb.HealthCheckRequest{
+				Timestamp: time.Now().Unix(),
+			})
+			if err != nil {
+				slog.Error(
+					"issue contacting processor",
+					"response",
+					healthCheckResponse,
+					"processor",
+					proc,
+				)
+				return err
+			}
+			if healthCheckResponse.Status != pb.HealthCheckResponse_STATUS_SERVING {
+				slog.Error(
+					"cannot execute stage, processor not serving",
+					"status",
+					healthCheckResponse.Status,
+					"message",
+					healthCheckResponse.Message,
+				)
+				return err
+			}
 
 			// Build list of affected Algorithms
 			var affectedAlgorithms []*pb.Algorithm
