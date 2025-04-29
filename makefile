@@ -22,9 +22,9 @@ test: .test_all
 	*.proto
 	python -m grpc_tools.protoc \
 		-I./protobufs \
-		--python_out=./protobufs/python \
-		--pyi_out=./protobufs/python \
-		--grpc_python_out=./protobufs/python \
+		--python_out=./protobufs/src/orca_python/protos \
+		--pyi_out=./protobufs/src/orca_python/protos \
+		--grpc_python_out=./protobufs/src/orca_python/protos \
 		./protobufs/*.proto \
 		./protobufs/vendor/*.proto
 
