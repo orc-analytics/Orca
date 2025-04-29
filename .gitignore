@@ -21,7 +21,7 @@
 go.work
 
 *.env*
-_*
+
 
 # custom
 *.vscode
@@ -29,3 +29,4 @@ orca
 .null-ls*
 .Binding
 *.log
+local_storage
