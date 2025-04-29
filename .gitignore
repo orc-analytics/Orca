@@ -30,3 +30,4 @@ orca
 .Binding
 *.log
 local_storage
+__pycache__
