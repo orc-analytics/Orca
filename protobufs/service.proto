@@ -245,7 +245,7 @@ message ExecutionResult {
   // Execution status
   ResultStatus status = 2 [(buf.validate.field).required = true];
   // Output data
-  map<string, google.protobuf.Value> outputs = 3 [(buf.validate.field).required = true];
+  google.protobuf.Struct outputs = 3 [(buf.validate.field).required = true];
 }
 
 // ExecutionRequest provides a complete view of a processing DAG's execution

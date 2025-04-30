@@ -141,20 +141,13 @@ class ExecuteDAG(_message.Message):
 
 class ExecutionResult(_message.Message):
     __slots__ = ("task_id", "status", "outputs")
-    class OutputsEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: _struct_pb2.Value
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[_struct_pb2.Value, _Mapping]] = ...) -> None: ...
     TASK_ID_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     OUTPUTS_FIELD_NUMBER: _ClassVar[int]
     task_id: str
     status: ResultStatus
-    outputs: _containers.MessageMap[str, _struct_pb2.Value]
-    def __init__(self, task_id: _Optional[str] = ..., status: _Optional[_Union[ResultStatus, str]] = ..., outputs: _Optional[_Mapping[str, _struct_pb2.Value]] = ...) -> None: ...
+    outputs: _struct_pb2.Struct
+    def __init__(self, task_id: _Optional[str] = ..., status: _Optional[_Union[ResultStatus, str]] = ..., outputs: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
 class ExecutionRequest(_message.Message):
     __slots__ = ("window", "algorithm_results", "algorithms")

@@ -11,7 +11,6 @@
     - [ExecuteDAG.InputsEntry](#-ExecuteDAG-InputsEntry)
     - [ExecutionRequest](#-ExecutionRequest)
     - [ExecutionResult](#-ExecutionResult)
-    - [ExecutionResult.OutputsEntry](#-ExecutionResult-OutputsEntry)
     - [FloatArray](#-FloatArray)
     - [HealthCheckRequest](#-HealthCheckRequest)
     - [HealthCheckResponse](#-HealthCheckResponse)
@@ -158,23 +157,7 @@ status for a specific window. Used for monitoring and debugging.
 | ----- | ---- | ----- | ----------- |
 | task_id | [string](#string) |  | Task ID |
 | status | [ResultStatus](#ResultStatus) |  | Execution status |
-| outputs | [ExecutionResult.OutputsEntry](#ExecutionResult-OutputsEntry) | repeated | Output data |
-
-
-
-
-
-
-<a name="-ExecutionResult-OutputsEntry"></a>
-
-### ExecutionResult.OutputsEntry
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [google.protobuf.Value](#google-protobuf-Value) |  |  |
+| outputs | [google.protobuf.Struct](#google-protobuf-Struct) |  | Output data |
 
 
 
