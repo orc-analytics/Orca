@@ -19,13 +19,13 @@ test: .test_all
 	--go_opt=paths=source_relative \
 	--go-grpc_out=go \
 	--go-grpc_opt=paths=source_relative \
-	./**/*.proto
+	*.proto vendor/*.proto
 	cd protobufs && python -m grpc_tools.protoc \
     --proto_path=./ \
     --python_out=./python \
     --pyi_out=./python \
     --grpc_python_out=./python \
-    ./**/*.proto
+	*.proto vendor/*.proto
 
 
 .datalayer:

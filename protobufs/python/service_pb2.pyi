@@ -146,15 +146,15 @@ class ExecutionResult(_message.Message):
         KEY_FIELD_NUMBER: _ClassVar[int]
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
-        value: bytes
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[bytes] = ...) -> None: ...
+        value: _struct_pb2.Value
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[_struct_pb2.Value, _Mapping]] = ...) -> None: ...
     TASK_ID_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     OUTPUTS_FIELD_NUMBER: _ClassVar[int]
     task_id: str
     status: ResultStatus
-    outputs: _containers.ScalarMap[str, bytes]
-    def __init__(self, task_id: _Optional[str] = ..., status: _Optional[_Union[ResultStatus, str]] = ..., outputs: _Optional[_Mapping[str, bytes]] = ...) -> None: ...
+    outputs: _containers.MessageMap[str, _struct_pb2.Value]
+    def __init__(self, task_id: _Optional[str] = ..., status: _Optional[_Union[ResultStatus, str]] = ..., outputs: _Optional[_Mapping[str, _struct_pb2.Value]] = ...) -> None: ...
 
 class ExecutionRequest(_message.Message):
     __slots__ = ("window", "algorithm_results", "algorithms")
