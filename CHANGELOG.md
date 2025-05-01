@@ -15,4 +15,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/Predixus/Orca/compare/main...HEAD
+[unreleased]: https://github.com/Predixus/Orca/compare/v0.0.0...HEAD
