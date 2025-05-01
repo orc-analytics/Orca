@@ -24,4 +24,4 @@ jobs:
         run: go test -v ./...
 
       - name: Build
-        run: go build -v -ldflags "-s -w" -.
+        run: go build -v -ldflags "-s -w" .
