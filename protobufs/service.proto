@@ -3,6 +3,7 @@ syntax="proto3";
 option go_package = "github.com/predixus/orca/protobufs/go";
 
 import "google/protobuf/struct.proto";
+import "vendor/validate.proto";
 
 // OrcaCore is the central orchestration service that:
 // - Manages the lifecycle of processing windows
@@ -11,35 +12,25 @@ import "google/protobuf/struct.proto";
 // - Routes results between dependent algorithms
 service OrcaCore {
   // Register a processor node and its supported algorithms
-  rpc RegisterProcessor(ProcessorRegistration) returns (stream ProcessingTask);
+  rpc RegisterProcessor(ProcessorRegistration) returns (Status);
 
   // Submit a window for processing
   rpc EmitWindow(Window) returns (WindowEmitStatus);
 
-  // Register a new window type
-  rpc RegisterWindowType(WindowType) returns (Status);
-
-  // Register a new algorithm type
-  rpc RegisterAlgorithm(Algorithm) returns (Status);
-
-  // Submit results from algorithm execution
-  rpc SubmitResult(Result) returns (Status);
-
-  // Get the current state of a DAG execution
-  rpc GetDagState(DagStateRequest) returns (DagState);
 }
 
 // OrcaProcessor defines the interface that each processing node must implement.
-// Processors are language-specific services that:
+// Processors are language-agnostic services that:
 // - Execute individual algorithms
 // - Handle their own internal state
 // - Report results back to the orchestrator
-// Multiple processors can run simultaneously, supporting different languages/runtimes
+// Orca will schedule processors asynchronously as per the DAG
 service OrcaProcessor {
-  // Execute an algorithm with given inputs
-  rpc ExecuteAlgorithm(ExecutionRequest) returns (ExecutionResult);
+  // Execute part of a DAG with streaming results
+  // Server streams back execution results as they become available
+  rpc ExecuteDagPart(ExecutionRequest) returns (stream ExecutionResult);
 
-  // Check health/status of processor
+  // Check health/status of processor. i.e. a heartbeat
   rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
 }
 
@@ -47,16 +38,35 @@ service OrcaProcessor {
 message Window {
   // Time that the window starts - nanoseconds since epoch
   // Required: Must be > 0 and < to
-  uint64 from = 1;
+  uint64 from = 1 [(buf.validate.field) = {
+    required: true,
+    uint64: {
+      gt: 0
+    }
+  }];
 
   // Time that the window ends - nanoseconds since epoch
   // Required: Must be > from
-  uint64 to = 2;
+  uint64 to = 2 [(buf.validate.field).required = true];
   
   // The canonical name of the window that uniquely identifies it
   // This allows tracking of window state and results across the system
-  // Required: Must be unique within the system
-  string name = 3;
+  // Required: Must be unique within the system, and refer directly to
+  // window type
+  string window_type_name = 3 [(buf.validate.field).required = true];
+
+  // The version of the window type, as defined by WindoType
+  string window_type_version = 4 [(buf.validate.field).required = true];
+
+  // A unique identifier that defines where the window came from
+  string origin = 5 [(buf.validate.field).required = true];
+
+  option (buf.validate.message).cel = {
+      id: "window.to",
+      message: "`to` must be greater than or equal to `from`",
+      expression: "this.to >= this.from",
+    };
+
 }
 
 // WindowType defines a category of window that can trigger algorithms.
@@ -64,9 +74,12 @@ message Window {
 message WindowType {
   // Name of the window type - must be globally unique
   // Examples: "daily", "hourly", "market_close", "event_triggered"
-  string name = 1;
-}
+  string name = 1 [(buf.validate.field).required = true];
 
+  // Version of the algorithm. Follows basic semver and allows window
+  // types to be changed over time, with traceability
+  string version = 2 [(buf.validate.field).required=true];
+}
 
 message WindowEmitStatus {
 
@@ -78,7 +91,7 @@ message WindowEmitStatus {
     // When processing has successfully been triggered
     PROCESSING_TRIGGERED = 1;
   }
-  StatusEnum status = 1;
+  StatusEnum status = 1 [(buf.validate.field).required = true];
 }
 
 // AlgorithmDependency defines a requirement that one algorithm has on another's results.
@@ -86,11 +99,17 @@ message WindowEmitStatus {
 message AlgorithmDependency {
   // Name of the required algorithm
   // Must reference an existing algorithm name in the system
-  string name = 1;
+  string name = 1 [(buf.validate.field).required = true];
 
   // Version of the required algorithm
   // Must follow semantic versioning (e.g., "1.0.0")
-  string version = 2;
+  string version = 2 [(buf.validate.field).required = true];
+
+  // Name of the processor that the algorithm is associated with
+  string processor_name = 3 [(buf.validate.field).required = true];
+
+  // Runtime of the processor that the algorithm is associated with
+  string processor_runtime = 4 [(buf.validate.field).required = true];
 }
 
 // Algorithm defines a processing unit that can be executed by processors.
@@ -98,15 +117,15 @@ message AlgorithmDependency {
 message Algorithm {
   // Name of the algorithm - must be globally unique
   // This identifies the algorithm across the system
-  string name = 1;
+  string name = 1 [(buf.validate.field).required = true];
 
   // Version of the algorithm - must follow semantic versioning
   // Allows for algorithm evolution while maintaining compatibility
-  string version = 2;
+  string version = 2 [(buf.validate.field).required = true];
 
   // Type of window that triggers this algorithm
-  // References a WindowType.name that will cause this algorithm to execute
-  string window_type_name = 3;
+  // References a WindowType that will cause this algorithm to execute
+  WindowType window_type = 3 [(buf.validate.field).required = true];
 
   // Other algorithms that this algorithm depends on
   // The algorithm won't execute until all dependencies have completed
@@ -129,50 +148,57 @@ enum ResultStatus {
   RESULT_STATUS_SUCEEDED = 2;
 }
 
-
-// Result of an algorithm execution
-message Result {
-  // Name of the algorithm that produced the result
-  string algorithm_name = 1;
-
-  // Version of the algorithm that produced the result
-  string version = 2;
-
-  // Status of the result execution
-  ResultStatus status = 3;
-
-  // The actual result data - can be either an array of floats or a structured object
-  oneof result_data {
-    // For numeric array results
-    FloatArray float_values = 4;
-    
-    // For structured data results (JSON-like)
-    // Must follow a map<string, value> schema where value corresponds to https://protobuf.dev/reference/protobuf/google.protobuf/#value
-    google.protobuf.Struct struct_value = 5;
-  }
-
-  // Timestamp when the result was produced
-  int64 timestamp = 6;
-}
-
 // Container for array of float values
 message FloatArray {
   repeated float values = 1;
 }
 
+// Result of an algorithm execution
+message Result {
+  // Name of the algorithm that produced the result
+  string algorithm_name = 1 [(buf.validate.field).required = true];
+
+  // Version of the algorithm that produced the result
+  string version = 2 [(buf.validate.field).required = true];
+
+  // Status of the result execution
+  ResultStatus status = 3 [(buf.validate.field).required = true];
+
+  // The actual result data - can be either an array of floats or a structured object
+  oneof result_data {
+    // for single number results
+    float single_value = 4;
+
+    // For numeric array results
+    FloatArray float_values = 5;
+    
+    // For structured data results (JSON-like)
+    // Must follow a map<string, value> schema where value corresponds to https://protobuf.dev/reference/protobuf/google.protobuf/#value
+    google.protobuf.Struct struct_value = 6;
+  }
+
+  // Timestamp when the result was produced
+  int64 timestamp = 7 [(buf.validate.field).required = true];
+}
+
+
 // ProcessorRegistration is sent by processors when they start up to announce their capabilities
 // to the orchestrator. This establishes a long-lived connection for receiving tasks.
 message ProcessorRegistration {
   // Unique name of the runtime
-  string name = 1;
+  string name = 1 [(buf.validate.field).required = true];
 
   // Language/runtime of the processor
   // Examples: "python3.9", "go1.19", "R4.1"
-  string runtime = 2;
+  string runtime = 2 [(buf.validate.field).required = true];
+
+  // The connection string of the orca slave server
+  // e.g. grpc://localhost:5433
+  string connection_str = 3 [(buf.validate.field).required = true];
 
   // Algorithms this processor can execute
   // The processor must implement all listed algorithms
-  repeated Algorithm supported_algorithms = 3;
+  repeated Algorithm supported_algorithms = 4 [(buf.validate.field).required = true];
 }
 
 // ProcessingTask represents a single algorithm execution request sent to a processor.
@@ -180,15 +206,15 @@ message ProcessorRegistration {
 message ProcessingTask {
   // Unique ID for this specific task execution
   // Used to correlate results and track execution state
-  string task_id = 1;
+  string task_id = 1 [(buf.validate.field).required = true];
 
   // Algorithm to execute
   // Must be one of the algorithms the processor registered support for
-  Algorithm algorithm = 2;
+  Algorithm algorithm = 2 [(buf.validate.field).required = true];
 
   // Window that triggered this task
   // Provides the time context for the algorithm execution
-  Window window = 3;
+  Window window = 3 [(buf.validate.field).required = true];
 
   // Results from dependent algorithms
   // Contains all results that this algorithm declared dependencies on
@@ -196,55 +222,49 @@ message ProcessingTask {
   repeated Result dependency_results = 4;
 }
 
-// ExecutionRequest contains all information needed for a processor to execute
+// ExecuteDAG contains all information needed for a processor to execute
 // a specific algorithm instance. Sent by the orchestrator to processors.
-message ExecutionRequest {
+message ExecuteDAG {
   // Task ID from the original ProcessingTask
   // Used to correlate results back to the task
-  string task_id = 1;
+  string task_id = 1 [(buf.validate.field).required = true];
 
   // Algorithm to execute with its full specification
-  Algorithm algorithm = 2;
+  Algorithm algorithm = 2 [(buf.validate.field).required = true];
+  
 
   // Input data/parameters for the algorithm
-  // Keys are parameter names, values are serialized data
+  // Keys are parameter names, values are serialised data
   // Format of data is specific to the algorithm implementation
   map<string, bytes> inputs = 3;
 }
 
 message ExecutionResult {
   // Task ID
-  string task_id = 1;
+  string task_id = 1 [(buf.validate.field).required = true];
   // Execution status
-  ResultStatus status = 2;
+  ResultStatus status = 2 [(buf.validate.field).required = true];
   // Output data
-  map<string, bytes> outputs = 3;
+  google.protobuf.Struct outputs = 3 [(buf.validate.field).required = true];
 }
 
-message DagStateRequest {
-  // Window ID to query
-  string window_id = 1;
+// ExecutionRequest provides a complete view of a processing DAG's execution
+// status for a specific window. Used for monitoring and debugging.
+message ExecutionRequest {
+  // The window that triggered the algorithm 
+  Window window = 1 [(buf.validate.field).required = true];
+  
+  // Results from dependant algorithms
+  repeated AlgorithmResult algorithm_results = 2;
+
+  // The algorithms to execute
+  repeated Algorithm algorithms = 3;
 }
 
-// DagState provides a complete view of a processing DAG's execution status
-// for a specific window. Used for monitoring and debugging.
-message DagState {
-  // Window being processed
-  // Identifies which processing context this state belongs to
-  Window window = 1;
-
-  // Status of each algorithm in the DAG
-  // Includes both completed and pending algorithms
-  repeated AlgorithmState algorithm_states = 2;
-}
-
-message AlgorithmState {
-  // Algorithm info
-  Algorithm algorithm = 1;
-  // Current status
-  string status = 2;
-  // Result if completed
-  Result result = 3;
+// AlgorithmWindowResult Packaged algorithm and result to a window
+message AlgorithmResult {
+  Algorithm algorithm = 1 [(buf.validate.field).required=true];
+  Result result = 2 [(buf.validate.field).required=true];
 }
 
 message Status {
@@ -256,7 +276,7 @@ message Status {
 message HealthCheckRequest {
   // Timestamp of the request in unix epoch milliseconds
   // Used to measure response latency
-  int64 timestamp = 1;
+  int64 timestamp = 1 [(buf.validate.field).required = true];
 }
 
 // HealthCheckResponse indicates the health status of a processor
@@ -274,7 +294,7 @@ message HealthCheckResponse {
   }
   
   // Current health status
-  Status status = 1;
+  Status status = 1 [(buf.validate.field).required = true];
 
   // Optional message providing more detail about the health status
   string message = 2;

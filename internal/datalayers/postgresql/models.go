@@ -4,9 +4,65 @@
 
 package postgresql
 
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type Algorithm struct {
+	ID           int64
+	Name         string
+	Version      string
+	ProcessorID  int64
+	WindowTypeID int64
+	Created      pgtype.Timestamp
+}
+
+type AlgorithmDependency struct {
+	ID               int64
+	FromAlgorithmID  int64
+	ToAlgorithmID    int64
+	FromWindowTypeID int64
+	ToWindowTypeID   int64
+	FromProcessorID  int64
+	ToProcessorID    int64
+	Created          pgtype.Timestamp
+}
+
+type AlgorithmExecutionPath struct {
+	FinalAlgoID      int64
+	NumDependencies  int32
+	AlgoIDPath       string
+	WindowTypeIDPath string
+	ProcIDPath       string
+}
+
 type Processor struct {
+	ID               int64
+	Name             string
+	Runtime          string
+	ConnectionString string
+	Created          pgtype.Timestamp
+}
+
+type ProcessorAlgorithm struct {
+	ID          int64
+	ProcessorID int64
+	AlgorithmID int64
+	Created     pgtype.Timestamp
+}
+
+type Window struct {
+	ID           int64
+	WindowTypeID int64
+	TimeFrom     int64
+	TimeTo       int64
+	Origin       string
+	Created      pgtype.Timestamp
+}
+
+type WindowType struct {
+	ID      int64
 	Name    string
-	Runtime string
-	Active  bool
-	Created interface{}
+	Version string
+	Created pgtype.Timestamp
 }

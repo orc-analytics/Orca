@@ -39,35 +39,15 @@ class OrcaCoreStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.RegisterProcessor = channel.unary_stream(
+        self.RegisterProcessor = channel.unary_unary(
                 '/OrcaCore/RegisterProcessor',
                 request_serializer=service__pb2.ProcessorRegistration.SerializeToString,
-                response_deserializer=service__pb2.ProcessingTask.FromString,
+                response_deserializer=service__pb2.Status.FromString,
                 _registered_method=True)
         self.EmitWindow = channel.unary_unary(
                 '/OrcaCore/EmitWindow',
                 request_serializer=service__pb2.Window.SerializeToString,
                 response_deserializer=service__pb2.WindowEmitStatus.FromString,
-                _registered_method=True)
-        self.RegisterWindowType = channel.unary_unary(
-                '/OrcaCore/RegisterWindowType',
-                request_serializer=service__pb2.WindowType.SerializeToString,
-                response_deserializer=service__pb2.Status.FromString,
-                _registered_method=True)
-        self.RegisterAlgorithm = channel.unary_unary(
-                '/OrcaCore/RegisterAlgorithm',
-                request_serializer=service__pb2.Algorithm.SerializeToString,
-                response_deserializer=service__pb2.Status.FromString,
-                _registered_method=True)
-        self.SubmitResult = channel.unary_unary(
-                '/OrcaCore/SubmitResult',
-                request_serializer=service__pb2.Result.SerializeToString,
-                response_deserializer=service__pb2.Status.FromString,
-                _registered_method=True)
-        self.GetDagState = channel.unary_unary(
-                '/OrcaCore/GetDagState',
-                request_serializer=service__pb2.DagStateRequest.SerializeToString,
-                response_deserializer=service__pb2.DagState.FromString,
                 _registered_method=True)
 
 
@@ -93,66 +73,18 @@ class OrcaCoreServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def RegisterWindowType(self, request, context):
-        """Register a new window type
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def RegisterAlgorithm(self, request, context):
-        """Register a new algorithm type
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def SubmitResult(self, request, context):
-        """Submit results from algorithm execution
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetDagState(self, request, context):
-        """Get the current state of a DAG execution
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_OrcaCoreServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'RegisterProcessor': grpc.unary_stream_rpc_method_handler(
+            'RegisterProcessor': grpc.unary_unary_rpc_method_handler(
                     servicer.RegisterProcessor,
                     request_deserializer=service__pb2.ProcessorRegistration.FromString,
-                    response_serializer=service__pb2.ProcessingTask.SerializeToString,
+                    response_serializer=service__pb2.Status.SerializeToString,
             ),
             'EmitWindow': grpc.unary_unary_rpc_method_handler(
                     servicer.EmitWindow,
                     request_deserializer=service__pb2.Window.FromString,
                     response_serializer=service__pb2.WindowEmitStatus.SerializeToString,
-            ),
-            'RegisterWindowType': grpc.unary_unary_rpc_method_handler(
-                    servicer.RegisterWindowType,
-                    request_deserializer=service__pb2.WindowType.FromString,
-                    response_serializer=service__pb2.Status.SerializeToString,
-            ),
-            'RegisterAlgorithm': grpc.unary_unary_rpc_method_handler(
-                    servicer.RegisterAlgorithm,
-                    request_deserializer=service__pb2.Algorithm.FromString,
-                    response_serializer=service__pb2.Status.SerializeToString,
-            ),
-            'SubmitResult': grpc.unary_unary_rpc_method_handler(
-                    servicer.SubmitResult,
-                    request_deserializer=service__pb2.Result.FromString,
-                    response_serializer=service__pb2.Status.SerializeToString,
-            ),
-            'GetDagState': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetDagState,
-                    request_deserializer=service__pb2.DagStateRequest.FromString,
-                    response_serializer=service__pb2.DagState.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -181,12 +113,12 @@ class OrcaCore(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(
+        return grpc.experimental.unary_unary(
             request,
             target,
             '/OrcaCore/RegisterProcessor',
             service__pb2.ProcessorRegistration.SerializeToString,
-            service__pb2.ProcessingTask.FromString,
+            service__pb2.Status.FromString,
             options,
             channel_credentials,
             insecure,
@@ -224,122 +156,14 @@ class OrcaCore(object):
             metadata,
             _registered_method=True)
 
-    @staticmethod
-    def RegisterWindowType(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/OrcaCore/RegisterWindowType',
-            service__pb2.WindowType.SerializeToString,
-            service__pb2.Status.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def RegisterAlgorithm(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/OrcaCore/RegisterAlgorithm',
-            service__pb2.Algorithm.SerializeToString,
-            service__pb2.Status.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def SubmitResult(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/OrcaCore/SubmitResult',
-            service__pb2.Result.SerializeToString,
-            service__pb2.Status.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetDagState(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/OrcaCore/GetDagState',
-            service__pb2.DagStateRequest.SerializeToString,
-            service__pb2.DagState.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
 
 class OrcaProcessorStub(object):
     """OrcaProcessor defines the interface that each processing node must implement.
-    Processors are language-specific services that:
+    Processors are language-agnostic services that:
     - Execute individual algorithms
     - Handle their own internal state
     - Report results back to the orchestrator
-    Multiple processors can run simultaneously, supporting different languages/runtimes
+    Orca will schedule processors asynchronously as per the DAG
     """
 
     def __init__(self, channel):
@@ -348,8 +172,8 @@ class OrcaProcessorStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.ExecuteAlgorithm = channel.unary_unary(
-                '/OrcaProcessor/ExecuteAlgorithm',
+        self.ExecuteDagPart = channel.unary_stream(
+                '/OrcaProcessor/ExecuteDagPart',
                 request_serializer=service__pb2.ExecutionRequest.SerializeToString,
                 response_deserializer=service__pb2.ExecutionResult.FromString,
                 _registered_method=True)
@@ -362,22 +186,23 @@ class OrcaProcessorStub(object):
 
 class OrcaProcessorServicer(object):
     """OrcaProcessor defines the interface that each processing node must implement.
-    Processors are language-specific services that:
+    Processors are language-agnostic services that:
     - Execute individual algorithms
     - Handle their own internal state
     - Report results back to the orchestrator
-    Multiple processors can run simultaneously, supporting different languages/runtimes
+    Orca will schedule processors asynchronously as per the DAG
     """
 
-    def ExecuteAlgorithm(self, request, context):
-        """Execute an algorithm with given inputs
+    def ExecuteDagPart(self, request, context):
+        """Execute part of a DAG with streaming results
+        Server streams back execution results as they become available
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def HealthCheck(self, request, context):
-        """Check health/status of processor
+        """Check health/status of processor. i.e. a heartbeat
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -386,8 +211,8 @@ class OrcaProcessorServicer(object):
 
 def add_OrcaProcessorServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'ExecuteAlgorithm': grpc.unary_unary_rpc_method_handler(
-                    servicer.ExecuteAlgorithm,
+            'ExecuteDagPart': grpc.unary_stream_rpc_method_handler(
+                    servicer.ExecuteDagPart,
                     request_deserializer=service__pb2.ExecutionRequest.FromString,
                     response_serializer=service__pb2.ExecutionResult.SerializeToString,
             ),
@@ -406,15 +231,15 @@ def add_OrcaProcessorServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class OrcaProcessor(object):
     """OrcaProcessor defines the interface that each processing node must implement.
-    Processors are language-specific services that:
+    Processors are language-agnostic services that:
     - Execute individual algorithms
     - Handle their own internal state
     - Report results back to the orchestrator
-    Multiple processors can run simultaneously, supporting different languages/runtimes
+    Orca will schedule processors asynchronously as per the DAG
     """
 
     @staticmethod
-    def ExecuteAlgorithm(request,
+    def ExecuteDagPart(request,
             target,
             options=(),
             channel_credentials=None,
@@ -424,10 +249,10 @@ class OrcaProcessor(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(
+        return grpc.experimental.unary_stream(
             request,
             target,
-            '/OrcaProcessor/ExecuteAlgorithm',
+            '/OrcaProcessor/ExecuteDagPart',
             service__pb2.ExecutionRequest.SerializeToString,
             service__pb2.ExecutionResult.FromString,
             options,

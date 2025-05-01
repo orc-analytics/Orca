@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	inte "github.com/predixus/orca/internal"
 	psql "github.com/predixus/orca/internal/datalayers/postgresql"
 )
 
@@ -26,18 +25,18 @@ func (p Platform) isValid() bool {
 	}
 }
 
-func NewClient(
+func NewDatalayerClient(
 	ctx context.Context,
 	platform Platform,
 	connStr string,
-) (inte.Datalayer, error) {
+) (Datalayer, error) {
 	if !platform.isValid() {
 		return nil, fmt.Errorf("unsupported platform: %s", platform)
 	}
 
 	switch platform {
 	case PostgreSQL:
-		return psql.NewClient(ctx, &connStr)
+		return psql.NewClient(ctx, connStr)
 	default:
 		slog.Error("attempted to access unsuported platform", "platform", platform)
 		return nil, fmt.Errorf("platform not implemented: %s", platform)
