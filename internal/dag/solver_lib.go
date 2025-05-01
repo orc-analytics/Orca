@@ -212,6 +212,7 @@ func BuildPlan(
 		sort.Slice(stage.Tasks, func(i, j int) bool {
 			return stage.Tasks[i].ProcId < stage.Tasks[j].ProcId
 		})
+		slices.Sort(plan.AffectedProcessors)
 
 		plan.Stages = append(plan.Stages, stage)
 	}
