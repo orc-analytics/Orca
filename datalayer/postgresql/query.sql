@@ -141,8 +141,25 @@ INSERT INTO windows (
   sqlc.arg('time_from'),
   sqlc.arg('time_to'),
   sqlc.arg('origin')
-) RETURNING window_type_id;
+) RETURNING window_type_id, id;
 
+
+-- name: CreateResult :one
+INSERT INTO results (
+  windows_id,
+  window_type_id, 
+  algorithm_id, 
+  result_value,
+  result_array,
+  result_json
+) VALUES (
+  sqlc.arg('windows_id'),
+  sqlc.arg('window_type_id'),
+  sqlc.arg('algorithm_id'),
+  sqlc.arg('result_value'),
+  sqlc.arg('result_array'),
+  sqlc.arg('result_json')
+) RETURNING id;
 
 -- name: ReadAllProcessors :many
 SELECT 
@@ -162,15 +179,5 @@ SELECT
   connection_string,
   created
 FROM processor
-WHERE id = ANY(sqlc.arg(processor_ids)::bigint[])
+WHERE id = ANY(sqlc.arg('processor_ids')::bigint[])
 ORDER BY name, runtime;
-
--- name: GetDag :many
--- SELECT a.id FROM algorithm a
---   WHERE a.window_type_name=sqlc.arg('window_type_name')
---   AND a.window_type_version=sqlc.arg('window_type_version')
---
--- SELECT ad.to_algorithm_id FROM algorithm_dependency ad
--- WHERE ad.from_algorithm_id a.id
-
-

@@ -10,11 +10,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/predixus/orca/internal/dag"
 	pb "github.com/predixus/orca/protobufs/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type Datalayer struct {
@@ -167,7 +171,10 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 		return err
 	}
 	slog.Debug("window record inserted into the datalayer", "window", insertedWindow)
-	exec_paths, err := d.queries.ReadAlgorithmExecutionPaths(ctx, strconv.Itoa(int(insertedWindow)))
+	exec_paths, err := d.queries.ReadAlgorithmExecutionPaths(
+		ctx,
+		strconv.Itoa(int(insertedWindow.WindowTypeID)),
+	)
 	if err != nil {
 		slog.Error(
 			"could not read execution paths for window id",
@@ -194,7 +201,7 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 		algoIdPaths,
 		windowTypeIDPaths,
 		procIdPaths,
-		int64(insertedWindow),
+		int64(insertedWindow.WindowTypeID),
 	)
 	if err != nil {
 		slog.Error(
@@ -222,10 +229,16 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 	algorithmMap := make(
 		map[int64]Algorithm,
 	)
+
+	// map of execution IDs and the algorithms requested
+	// execIdMap := make( // map of execution id and algo id
+	// 	map[string][]int64,
+	// )
 	algorithms, err := d.queries.ReadAlgorithmsForWindow(ctx, ReadAlgorithmsForWindowParams{
 		WindowTypeName:    window.WindowTypeName,
 		WindowTypeVersion: window.WindowTypeVersion,
 	})
+
 	for _, algo := range algorithms {
 		algorithmMap[algo.ID] = algo
 	}
@@ -279,14 +292,20 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 				return err
 			}
 
-			// Build list of affected Algorithms
+			// build list of affected Algorithms
 			var affectedAlgorithms []*pb.Algorithm
+			// generate an execution id
+			execUuid := uuid.New()
+			execId := strings.ReplaceAll(execUuid.String(), "-", "")
+
 			for _, node := range task.Nodes {
 				algo, ok := algorithmMap[node.AlgoId()]
+
 				if !ok {
 					slog.Error("algorithm not found", "algo_id", node.AlgoId())
 					return fmt.Errorf("algorithm ID %d not found", node.AlgoId())
 				}
+
 				affectedAlgorithms = append(affectedAlgorithms, &pb.Algorithm{
 					Name:    algo.Name,
 					Version: algo.Version,
@@ -294,6 +313,7 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 			}
 
 			execReq := &pb.ExecutionRequest{
+				ExecId:           execId,
 				Window:           window,
 				AlgorithmResults: nil, // TODO: dependency handling
 				Algorithms:       affectedAlgorithms,
@@ -311,9 +331,10 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 				return err
 			}
 
-			// Receive streamed execution results
+			// recieve streamed execution results
 			for {
 				result, err := stream.Recv()
+				// error handling
 				if err != nil {
 					if errors.Is(err, context.Canceled) ||
 						errors.Is(err, context.DeadlineExceeded) {
@@ -339,13 +360,58 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 				}
 
 				slog.Info("received execution result",
-					"task_id", result.GetTaskId(),
-					"status", result.GetStatus().String(),
+					"exec_id", result.GetExecId(),
 				)
 
-				// TODO: handle result persistence if needed
+				var algoResultId int
+				for _, algo := range algorithms {
+					if (algo.Name == result.AlgorithmResult.GetAlgorithm().Name) &&
+						(algo.Version == result.AlgorithmResult.GetAlgorithm().Version) {
+						algoResultId = int(algo.ID)
+						break
+					}
+				}
+				structResult, err := convertStructToJsonBytes(
+					result.AlgorithmResult.Result.GetStructValue(),
+				)
+				if err != nil {
+					slog.Error(
+						"Issue converted algorithm struct result to bytes",
+						"error",
+						err,
+						"struct",
+						result.AlgorithmResult.Result.GetStructValue(),
+					)
+					return err
+				}
+
+				d.queries.CreateResult(ctx, CreateResultParams{
+					WindowsID:    pgtype.Int8{Valid: true, Int64: insertedWindow.ID},
+					WindowTypeID: pgtype.Int8{Valid: true, Int64: insertedWindow.WindowTypeID},
+					AlgorithmID:  pgtype.Int8{Valid: true, Int64: int64(algoResultId)},
+					ResultValue: pgtype.Float8{
+						Valid:   true,
+						Float64: float64(result.AlgorithmResult.Result.GetSingleValue()),
+					},
+					ResultArray: convertFloat32ToFloat64(
+						result.AlgorithmResult.Result.GetFloatValues().GetValues(),
+					),
+					ResultJson: structResult,
+				})
 			}
 		}
 	}
 	return nil
+}
+
+func convertFloat32ToFloat64(float32Slice []float32) []float64 {
+	float64Slice := make([]float64, len(float32Slice), len(float32Slice))
+	for i, value := range float32Slice {
+		float64Slice[i] = float64(value)
+	}
+	return float64Slice
+}
+
+func convertStructToJsonBytes(s *structpb.Struct) ([]byte, error) {
+	return protojson.Marshal(s)
 }

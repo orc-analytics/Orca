@@ -9,6 +9,7 @@ DROP TRIGGER IF EXISTS refresh_algorithm_execution_paths_after_dependency_change
 DROP FUNCTION IF EXISTS refresh_algorithm_exec_paths;
 
 -- Drop tables in reverse order of dependencies
+DROP TABLE IF EXISTS results;
 DROP TABLE IF EXISTS windows;
 DROP TABLE IF EXISTS algorithm_dependency;
 DROP TABLE IF EXISTS processor_algorithm;

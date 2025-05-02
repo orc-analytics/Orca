@@ -1,5 +1,6 @@
 syntax="proto3";
 
+
 option go_package = "github.com/predixus/orca/protobufs/go";
 
 import "google/protobuf/struct.proto";
@@ -155,30 +156,24 @@ message FloatArray {
 
 // Result of an algorithm execution
 message Result {
-  // Name of the algorithm that produced the result
-  string algorithm_name = 1 [(buf.validate.field).required = true];
-
-  // Version of the algorithm that produced the result
-  string version = 2 [(buf.validate.field).required = true];
-
   // Status of the result execution
-  ResultStatus status = 3 [(buf.validate.field).required = true];
+  ResultStatus status = 1 [(buf.validate.field).required = true];
 
   // The actual result data - can be either an array of floats or a structured object
   oneof result_data {
     // for single number results
-    float single_value = 4;
+    float single_value = 2;
 
     // For numeric array results
-    FloatArray float_values = 5;
+    FloatArray float_values = 3;
     
     // For structured data results (JSON-like)
     // Must follow a map<string, value> schema where value corresponds to https://protobuf.dev/reference/protobuf/google.protobuf/#value
-    google.protobuf.Struct struct_value = 6;
+    google.protobuf.Struct struct_value = 4;
   }
 
   // Timestamp when the result was produced
-  int64 timestamp = 7 [(buf.validate.field).required = true];
+  int64 timestamp = 5 [(buf.validate.field).required = true];
 }
 
 
@@ -222,44 +217,30 @@ message ProcessingTask {
   repeated Result dependency_results = 4;
 }
 
-// ExecuteDAG contains all information needed for a processor to execute
-// a specific algorithm instance. Sent by the orchestrator to processors.
-message ExecuteDAG {
-  // Task ID from the original ProcessingTask
-  // Used to correlate results back to the task
-  string task_id = 1 [(buf.validate.field).required = true];
-
-  // Algorithm to execute with its full specification
-  Algorithm algorithm = 2 [(buf.validate.field).required = true];
-  
-
-  // Input data/parameters for the algorithm
-  // Keys are parameter names, values are serialised data
-  // Format of data is specific to the algorithm implementation
-  map<string, bytes> inputs = 3;
-}
-
-message ExecutionResult {
-  // Task ID
-  string task_id = 1 [(buf.validate.field).required = true];
-  // Execution status
-  ResultStatus status = 2 [(buf.validate.field).required = true];
-  // Output data
-  google.protobuf.Struct outputs = 3 [(buf.validate.field).required = true];
-}
-
 // ExecutionRequest provides a complete view of a processing DAG's execution
 // status for a specific window. Used for monitoring and debugging.
 message ExecutionRequest {
+  // The exec_id
+  string exec_id = 1 [(buf.validate.field).required = true];
+
   // The window that triggered the algorithm 
-  Window window = 1 [(buf.validate.field).required = true];
+  Window window = 2 [(buf.validate.field).required = true];
   
   // Results from dependant algorithms
-  repeated AlgorithmResult algorithm_results = 2;
+  repeated AlgorithmResult algorithm_results = 3;
 
   // The algorithms to execute
-  repeated Algorithm algorithms = 3;
+  repeated Algorithm algorithms = 4;
 }
+
+message ExecutionResult {
+  // Exec ID
+  string exec_id = 1 [(buf.validate.field).required = true];
+  
+  // The algorithn result
+  AlgorithmResult algorithm_result = 3 [(buf.validate.field).required = true];
+}
+
 
 // AlgorithmWindowResult Packaged algorithm and result to a window
 message AlgorithmResult {
