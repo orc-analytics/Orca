@@ -231,9 +231,6 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 	)
 
 	// map of execution IDs and the algorithms requested
-	// execIdMap := make( // map of execution id and algo id
-	// 	map[string][]int64,
-	// )
 	algorithms, err := d.queries.ReadAlgorithmsForWindow(ctx, ReadAlgorithmsForWindowParams{
 		WindowTypeName:    window.WindowTypeName,
 		WindowTypeVersion: window.WindowTypeVersion,
