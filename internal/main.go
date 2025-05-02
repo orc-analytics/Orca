@@ -96,16 +96,7 @@ func (o *OrcaCoreServer) EmitWindow(
 	if err != nil {
 		return nil, err
 	}
-	slog.Info("emitting window")
-	err = o.client.EmitWindow(ctx, window)
-	if err != nil {
-		return &pb.WindowEmitStatus{
-			Status: pb.WindowEmitStatus_NO_TRIGGERED_ALGORITHMS,
-		}, err
-	}
-
-	// TODO: actually trigger some algos
-	return &pb.WindowEmitStatus{
-		Status: pb.WindowEmitStatus_NO_TRIGGERED_ALGORITHMS,
-	}, nil
+	slog.Info("emitting window", "window", window)
+	windowEmitStatus, err := o.client.EmitWindow(ctx, window)
+	return &windowEmitStatus, err
 }

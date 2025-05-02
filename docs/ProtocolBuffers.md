@@ -355,6 +355,7 @@ A status enum that captures scenarios regarding a window being emmited
 | ---- | ------ | ----------- |
 | NO_TRIGGERED_ALGORITHMS | 0 | When no algorithms could be found that are triggered by this window |
 | PROCESSING_TRIGGERED | 1 | When processing has successfully been triggered |
+| TRIGGERING_FAILED | 2 | When triggering has failed |
 
 
  

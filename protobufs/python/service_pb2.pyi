@@ -44,8 +44,10 @@ class WindowEmitStatus(_message.Message):
         __slots__ = ()
         NO_TRIGGERED_ALGORITHMS: _ClassVar[WindowEmitStatus.StatusEnum]
         PROCESSING_TRIGGERED: _ClassVar[WindowEmitStatus.StatusEnum]
+        TRIGGERING_FAILED: _ClassVar[WindowEmitStatus.StatusEnum]
     NO_TRIGGERED_ALGORITHMS: WindowEmitStatus.StatusEnum
     PROCESSING_TRIGGERED: WindowEmitStatus.StatusEnum
+    TRIGGERING_FAILED: WindowEmitStatus.StatusEnum
     STATUS_FIELD_NUMBER: _ClassVar[int]
     status: WindowEmitStatus.StatusEnum
     def __init__(self, status: _Optional[_Union[WindowEmitStatus.StatusEnum, str]] = ...) -> None: ...

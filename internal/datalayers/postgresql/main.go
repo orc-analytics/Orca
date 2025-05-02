@@ -150,7 +150,10 @@ func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegis
 	return tx.Commit(ctx)
 }
 
-func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
+func (d *Datalayer) EmitWindow(
+	ctx context.Context,
+	window *pb.Window,
+) (pb.WindowEmitStatus, error) {
 	slog.Info("recieved window")
 
 	slog.Debug("inserting window", "window", window)
@@ -164,11 +167,13 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 	if err != nil {
 		slog.Error("could not insert window", "error", err)
 		if strings.Contains(err.Error(), "(SQLSTATE 23503)") {
-			return fmt.Errorf(
-				"window type does not exist - insert via window type registration: %v", err.Error(),
-			)
+			return pb.WindowEmitStatus{
+					Status: pb.WindowEmitStatus_TRIGGERING_FAILED,
+				}, fmt.Errorf(
+					"window type does not exist - insert via window type registration: %v",
+					err.Error(),
+				)
 		}
-		return err
 	}
 	slog.Debug("window record inserted into the datalayer", "window", insertedWindow)
 	exec_paths, err := d.queries.ReadAlgorithmExecutionPaths(
@@ -183,7 +188,7 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 			"error",
 			err,
 		)
-		return err
+		return pb.WindowEmitStatus{Status: pb.WindowEmitStatus_TRIGGERING_FAILED}, err
 	}
 
 	// create the algo path args
@@ -211,9 +216,29 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 			"error",
 			err,
 		)
-		return err
+		return pb.WindowEmitStatus{Status: pb.WindowEmitStatus_TRIGGERING_FAILED}, err
 	}
 
+	if len(executionPlan.Stages) > 0 {
+		go processTasks(d, executionPlan, window, insertedWindow)
+
+		return pb.WindowEmitStatus{
+			Status: pb.WindowEmitStatus_PROCESSING_TRIGGERED,
+		}, nil
+	} else {
+		return pb.WindowEmitStatus{
+			Status: pb.WindowEmitStatus_NO_TRIGGERED_ALGORITHMS,
+		}, nil
+	}
+}
+
+func processTasks(
+	d *Datalayer,
+	executionPlan dag.Plan,
+	window *pb.Window,
+	insertedWindow RegisterWindowRow,
+) error {
+	ctx := context.Background()
 	slog.Info("calculated execution paths", "execution_paths", executionPlan)
 	// get map of processors from processor ids
 	processorMap := make(
@@ -221,6 +246,11 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 		len(executionPlan.AffectedProcessors),
 	)
 	processors, err := d.queries.ReadProcessorsByIDs(ctx, executionPlan.AffectedProcessors)
+	if err != nil {
+		slog.Error("Processors could not be read", "error", err)
+		return err
+	}
+
 	for _, proc := range processors {
 		processorMap[proc.ID] = proc
 	}
