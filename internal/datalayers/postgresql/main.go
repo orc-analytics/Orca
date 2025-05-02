@@ -385,7 +385,7 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 					return err
 				}
 
-				d.queries.CreateResult(ctx, CreateResultParams{
+				resultId, err := d.queries.CreateResult(ctx, CreateResultParams{
 					WindowsID:    pgtype.Int8{Valid: true, Int64: insertedWindow.ID},
 					WindowTypeID: pgtype.Int8{Valid: true, Int64: insertedWindow.WindowTypeID},
 					AlgorithmID:  pgtype.Int8{Valid: true, Int64: int64(algoResultId)},
@@ -398,6 +398,11 @@ func (d *Datalayer) EmitWindow(ctx context.Context, window *pb.Window) error {
 					),
 					ResultJson: structResult,
 				})
+				if err != nil {
+					slog.Error("Error inserting result", "error", err)
+					return err
+				}
+				slog.Info("Inserted result", "resultId", resultId)
 			}
 		}
 	}
