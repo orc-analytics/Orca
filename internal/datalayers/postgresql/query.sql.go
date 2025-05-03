@@ -7,6 +7,8 @@ package postgresql
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addProcessorAlgorithm = `-- name: AddProcessorAlgorithm :exec
@@ -191,6 +193,47 @@ type CreateProcessorAndPurgeAlgosParams struct {
 func (q *Queries) CreateProcessorAndPurgeAlgos(ctx context.Context, arg CreateProcessorAndPurgeAlgosParams) error {
 	_, err := q.db.Exec(ctx, createProcessorAndPurgeAlgos, arg.Name, arg.Runtime, arg.ConnectionString)
 	return err
+}
+
+const createResult = `-- name: CreateResult :one
+INSERT INTO results (
+  windows_id,
+  window_type_id, 
+  algorithm_id, 
+  result_value,
+  result_array,
+  result_json
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6
+) RETURNING id
+`
+
+type CreateResultParams struct {
+	WindowsID    pgtype.Int8
+	WindowTypeID pgtype.Int8
+	AlgorithmID  pgtype.Int8
+	ResultValue  pgtype.Float8
+	ResultArray  []float64
+	ResultJson   []byte
+}
+
+func (q *Queries) CreateResult(ctx context.Context, arg CreateResultParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createResult,
+		arg.WindowsID,
+		arg.WindowTypeID,
+		arg.AlgorithmID,
+		arg.ResultValue,
+		arg.ResultArray,
+		arg.ResultJson,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const createWindowType = `-- name: CreateWindowType :exec
@@ -406,7 +449,7 @@ INSERT INTO windows (
   $1,
   $2,
   $3
-) RETURNING window_type_id
+) RETURNING window_type_id, id
 `
 
 type RegisterWindowParams struct {
@@ -417,7 +460,12 @@ type RegisterWindowParams struct {
 	WindowTypeVersion string
 }
 
-func (q *Queries) RegisterWindow(ctx context.Context, arg RegisterWindowParams) (int64, error) {
+type RegisterWindowRow struct {
+	WindowTypeID int64
+	ID           int64
+}
+
+func (q *Queries) RegisterWindow(ctx context.Context, arg RegisterWindowParams) (RegisterWindowRow, error) {
 	row := q.db.QueryRow(ctx, registerWindow,
 		arg.TimeFrom,
 		arg.TimeTo,
@@ -425,7 +473,7 @@ func (q *Queries) RegisterWindow(ctx context.Context, arg RegisterWindowParams) 
 		arg.WindowTypeName,
 		arg.WindowTypeVersion,
 	)
-	var window_type_id int64
-	err := row.Scan(&window_type_id)
-	return window_type_id, err
+	var i RegisterWindowRow
+	err := row.Scan(&i.WindowTypeID, &i.ID)
+	return i, err
 }

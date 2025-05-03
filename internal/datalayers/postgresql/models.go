@@ -51,6 +51,16 @@ type ProcessorAlgorithm struct {
 	Created     pgtype.Timestamp
 }
 
+type Result struct {
+	ID           int64
+	WindowsID    pgtype.Int8
+	WindowTypeID pgtype.Int8
+	AlgorithmID  pgtype.Int8
+	ResultValue  pgtype.Float8
+	ResultArray  []float64
+	ResultJson   []byte
+}
+
 type Window struct {
 	ID           int64
 	WindowTypeID int64

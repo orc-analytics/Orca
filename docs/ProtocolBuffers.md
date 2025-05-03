@@ -7,8 +7,6 @@
     - [Algorithm](#-Algorithm)
     - [AlgorithmDependency](#-AlgorithmDependency)
     - [AlgorithmResult](#-AlgorithmResult)
-    - [ExecuteDAG](#-ExecuteDAG)
-    - [ExecuteDAG.InputsEntry](#-ExecuteDAG-InputsEntry)
     - [ExecutionRequest](#-ExecutionRequest)
     - [ExecutionResult](#-ExecutionResult)
     - [FloatArray](#-FloatArray)
@@ -95,40 +93,6 @@ AlgorithmWindowResult Packaged algorithm and result to a window
 
 
 
-<a name="-ExecuteDAG"></a>
-
-### ExecuteDAG
-ExecuteDAG contains all information needed for a processor to execute
-a specific algorithm instance. Sent by the orchestrator to processors.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| task_id | [string](#string) |  | Task ID from the original ProcessingTask Used to correlate results back to the task |
-| algorithm | [Algorithm](#Algorithm) |  | Algorithm to execute with its full specification |
-| inputs | [ExecuteDAG.InputsEntry](#ExecuteDAG-InputsEntry) | repeated | Input data/parameters for the algorithm Keys are parameter names, values are serialised data Format of data is specific to the algorithm implementation |
-
-
-
-
-
-
-<a name="-ExecuteDAG-InputsEntry"></a>
-
-### ExecuteDAG.InputsEntry
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [bytes](#bytes) |  |  |
-
-
-
-
-
-
 <a name="-ExecutionRequest"></a>
 
 ### ExecutionRequest
@@ -138,6 +102,7 @@ status for a specific window. Used for monitoring and debugging.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| exec_id | [string](#string) |  | The exec_id |
 | window | [Window](#Window) |  | The window that triggered the algorithm |
 | algorithm_results | [AlgorithmResult](#AlgorithmResult) | repeated | Results from dependant algorithms |
 | algorithms | [Algorithm](#Algorithm) | repeated | The algorithms to execute |
@@ -155,9 +120,8 @@ status for a specific window. Used for monitoring and debugging.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| task_id | [string](#string) |  | Task ID |
-| status | [ResultStatus](#ResultStatus) |  | Execution status |
-| outputs | [google.protobuf.Struct](#google-protobuf-Struct) |  | Output data |
+| exec_id | [string](#string) |  | Exec ID |
+| algorithm_result | [AlgorithmResult](#AlgorithmResult) |  | The algorithn result |
 
 
 
@@ -275,8 +239,6 @@ Result of an algorithm execution
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| algorithm_name | [string](#string) |  | Name of the algorithm that produced the result |
-| version | [string](#string) |  | Version of the algorithm that produced the result |
 | status | [ResultStatus](#ResultStatus) |  | Status of the result execution |
 | single_value | [float](#float) |  | for single number results |
 | float_values | [FloatArray](#FloatArray) |  | For numeric array results |
@@ -393,6 +355,7 @@ A status enum that captures scenarios regarding a window being emmited
 | ---- | ------ | ----------- |
 | NO_TRIGGERED_ALGORITHMS | 0 | When no algorithms could be found that are triggered by this window |
 | PROCESSING_TRIGGERED | 1 | When processing has successfully been triggered |
+| TRIGGERING_FAILED | 2 | When triggering has failed |
 
 
  

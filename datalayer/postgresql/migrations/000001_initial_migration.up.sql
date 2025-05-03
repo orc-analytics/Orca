@@ -76,6 +76,20 @@ CREATE TABLE windows (
   FOREIGN KEY (window_type_id) REFERENCES window_type(id)
 );
 
+-- Where the results are stored
+CREATE TABLE results (
+  id BIGSERIAL PRIMARY KEY,
+  windows_id BIGINT,
+  window_type_id BIGINT, 
+  algorithm_id BIGINT, 
+  result_value DOUBLE PRECISION,
+  result_array DOUBLE PRECISION[],
+  result_json JSONB,
+  FOREIGN KEY (windows_id) REFERENCES windows(id),
+  FOREIGN KEY (window_type_id) REFERENCES window_type(id),
+  FOREIGN KEY (algorithm_id) REFERENCES algorithm(id)
+);
+
 -- View constructing the algorithm execution paths for the DAG
 CREATE MATERIALIZED VIEW IF NOT EXISTS algorithm_execution_paths AS
 WITH RECURSIVE leaf_nodes AS (

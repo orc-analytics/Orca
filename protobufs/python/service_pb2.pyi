@@ -44,8 +44,10 @@ class WindowEmitStatus(_message.Message):
         __slots__ = ()
         NO_TRIGGERED_ALGORITHMS: _ClassVar[WindowEmitStatus.StatusEnum]
         PROCESSING_TRIGGERED: _ClassVar[WindowEmitStatus.StatusEnum]
+        TRIGGERING_FAILED: _ClassVar[WindowEmitStatus.StatusEnum]
     NO_TRIGGERED_ALGORITHMS: WindowEmitStatus.StatusEnum
     PROCESSING_TRIGGERED: WindowEmitStatus.StatusEnum
+    TRIGGERING_FAILED: WindowEmitStatus.StatusEnum
     STATUS_FIELD_NUMBER: _ClassVar[int]
     status: WindowEmitStatus.StatusEnum
     def __init__(self, status: _Optional[_Union[WindowEmitStatus.StatusEnum, str]] = ...) -> None: ...
@@ -81,22 +83,18 @@ class FloatArray(_message.Message):
     def __init__(self, values: _Optional[_Iterable[float]] = ...) -> None: ...
 
 class Result(_message.Message):
-    __slots__ = ("algorithm_name", "version", "status", "single_value", "float_values", "struct_value", "timestamp")
-    ALGORITHM_NAME_FIELD_NUMBER: _ClassVar[int]
-    VERSION_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("status", "single_value", "float_values", "struct_value", "timestamp")
     STATUS_FIELD_NUMBER: _ClassVar[int]
     SINGLE_VALUE_FIELD_NUMBER: _ClassVar[int]
     FLOAT_VALUES_FIELD_NUMBER: _ClassVar[int]
     STRUCT_VALUE_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
-    algorithm_name: str
-    version: str
     status: ResultStatus
     single_value: float
     float_values: FloatArray
     struct_value: _struct_pb2.Struct
     timestamp: int
-    def __init__(self, algorithm_name: _Optional[str] = ..., version: _Optional[str] = ..., status: _Optional[_Union[ResultStatus, str]] = ..., single_value: _Optional[float] = ..., float_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., timestamp: _Optional[int] = ...) -> None: ...
+    def __init__(self, status: _Optional[_Union[ResultStatus, str]] = ..., single_value: _Optional[float] = ..., float_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
 class ProcessorRegistration(_message.Message):
     __slots__ = ("name", "runtime", "connection_str", "supported_algorithms")
@@ -122,42 +120,25 @@ class ProcessingTask(_message.Message):
     dependency_results: _containers.RepeatedCompositeFieldContainer[Result]
     def __init__(self, task_id: _Optional[str] = ..., algorithm: _Optional[_Union[Algorithm, _Mapping]] = ..., window: _Optional[_Union[Window, _Mapping]] = ..., dependency_results: _Optional[_Iterable[_Union[Result, _Mapping]]] = ...) -> None: ...
 
-class ExecuteDAG(_message.Message):
-    __slots__ = ("task_id", "algorithm", "inputs")
-    class InputsEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: bytes
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[bytes] = ...) -> None: ...
-    TASK_ID_FIELD_NUMBER: _ClassVar[int]
-    ALGORITHM_FIELD_NUMBER: _ClassVar[int]
-    INPUTS_FIELD_NUMBER: _ClassVar[int]
-    task_id: str
-    algorithm: Algorithm
-    inputs: _containers.ScalarMap[str, bytes]
-    def __init__(self, task_id: _Optional[str] = ..., algorithm: _Optional[_Union[Algorithm, _Mapping]] = ..., inputs: _Optional[_Mapping[str, bytes]] = ...) -> None: ...
-
-class ExecutionResult(_message.Message):
-    __slots__ = ("task_id", "status", "outputs")
-    TASK_ID_FIELD_NUMBER: _ClassVar[int]
-    STATUS_FIELD_NUMBER: _ClassVar[int]
-    OUTPUTS_FIELD_NUMBER: _ClassVar[int]
-    task_id: str
-    status: ResultStatus
-    outputs: _struct_pb2.Struct
-    def __init__(self, task_id: _Optional[str] = ..., status: _Optional[_Union[ResultStatus, str]] = ..., outputs: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
-
 class ExecutionRequest(_message.Message):
-    __slots__ = ("window", "algorithm_results", "algorithms")
+    __slots__ = ("exec_id", "window", "algorithm_results", "algorithms")
+    EXEC_ID_FIELD_NUMBER: _ClassVar[int]
     WINDOW_FIELD_NUMBER: _ClassVar[int]
     ALGORITHM_RESULTS_FIELD_NUMBER: _ClassVar[int]
     ALGORITHMS_FIELD_NUMBER: _ClassVar[int]
+    exec_id: str
     window: Window
     algorithm_results: _containers.RepeatedCompositeFieldContainer[AlgorithmResult]
     algorithms: _containers.RepeatedCompositeFieldContainer[Algorithm]
-    def __init__(self, window: _Optional[_Union[Window, _Mapping]] = ..., algorithm_results: _Optional[_Iterable[_Union[AlgorithmResult, _Mapping]]] = ..., algorithms: _Optional[_Iterable[_Union[Algorithm, _Mapping]]] = ...) -> None: ...
+    def __init__(self, exec_id: _Optional[str] = ..., window: _Optional[_Union[Window, _Mapping]] = ..., algorithm_results: _Optional[_Iterable[_Union[AlgorithmResult, _Mapping]]] = ..., algorithms: _Optional[_Iterable[_Union[Algorithm, _Mapping]]] = ...) -> None: ...
+
+class ExecutionResult(_message.Message):
+    __slots__ = ("exec_id", "algorithm_result")
+    EXEC_ID_FIELD_NUMBER: _ClassVar[int]
+    ALGORITHM_RESULT_FIELD_NUMBER: _ClassVar[int]
+    exec_id: str
+    algorithm_result: AlgorithmResult
+    def __init__(self, exec_id: _Optional[str] = ..., algorithm_result: _Optional[_Union[AlgorithmResult, _Mapping]] = ...) -> None: ...
 
 class AlgorithmResult(_message.Message):
     __slots__ = ("algorithm", "result")
