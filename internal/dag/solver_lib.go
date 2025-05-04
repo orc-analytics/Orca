@@ -13,11 +13,12 @@ import (
 
 // Node represents an algorithm in the DAG
 type Node struct {
-	id       int64
-	algoId   int64
-	procId   int64
-	windowId int64
-	pathIdx  int
+	id         int64
+	algoId     int64
+	procId     int64
+	windowId   int64
+	algoDepIds []int64
+	pathIdx    int
 }
 
 // ID satisfies the graph.Node interface.
