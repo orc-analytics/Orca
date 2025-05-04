@@ -13,11 +13,12 @@ import (
 
 // Node represents an algorithm in the DAG
 type Node struct {
-	id       int64
-	algoId   int64
-	procId   int64
-	windowId int64
-	pathIdx  int
+	id         int64
+	algoId     int64
+	procId     int64
+	windowId   int64
+	algoDepIds []int64
+	pathIdx    int
 }
 
 // ID satisfies the graph.Node interface.
@@ -27,6 +28,10 @@ func (n Node) ID() int64 {
 
 func (n Node) AlgoId() int64 {
 	return n.algoId
+}
+
+func (n Node) AlgoDepIds() []int64 {
+	return n.algoDepIds
 }
 
 // ProcessorTask represents a set of tasks (nodes) assigned to a single processor
@@ -191,6 +196,25 @@ func BuildPlan(
 
 		for _, gn := range layer {
 			node := gn.(Node)
+
+			// modify the node with the nodes dependencies
+			nodes := g.To(node.ID())
+			for range nodes.Len() {
+				nodes.Next()
+				_currNode := nodes.Node()
+				_currNode_v2, ok := _currNode.(Node)
+				if !ok {
+					panic(ok)
+				}
+				if node.algoDepIds == nil {
+					node.algoDepIds = []int64{_currNode_v2.algoId}
+				} else {
+					node.algoDepIds = append(node.algoDepIds, _currNode_v2.algoId)
+				}
+			}
+			// sort the algo deps within the node
+			slices.Sort(node.algoDepIds)
+
 			taskMap[node.procId] = append(taskMap[node.procId], node)
 		}
 		var stage Stage
