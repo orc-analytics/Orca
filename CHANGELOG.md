@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial implementation that accepts processor registrations, and can emit windows to processors.
 - Can now handle results.
+- Only the dependencies that the stage needs are passed in.
 
 ### Changed
 
