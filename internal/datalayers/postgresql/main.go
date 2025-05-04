@@ -326,6 +326,10 @@ func processTasks(
 
 			// build list of affected Algorithms
 			var affectedAlgorithms []*pb.Algorithm
+
+			// and their dependency's result
+			algoDepsResults := []*pb.AlgorithmResult{}
+
 			// generate an execution id
 			execUuid := uuid.New()
 			execId := strings.ReplaceAll(execUuid.String(), "-", "")
@@ -342,13 +346,17 @@ func processTasks(
 					Name:    algo.Name,
 					Version: algo.Version,
 				})
+
 				// determine which results need to be included
+				for _, algoId := range node.AlgoDepIds() {
+					algoDepsResults = append(algoDepsResults, resultMap[algoId].AlgorithmResult)
+				}
 			}
 
 			execReq := &pb.ExecutionRequest{
 				ExecId:           execId,
 				Window:           window,
-				AlgorithmResults: nil, // TODO: dependency handling
+				AlgorithmResults: algoDepsResults,
 				Algorithms:       affectedAlgorithms,
 			}
 

@@ -30,6 +30,10 @@ func (n Node) AlgoId() int64 {
 	return n.algoId
 }
 
+func (n Node) AlgoDepIds() []int64 {
+	return n.algoDepIds
+}
+
 // ProcessorTask represents a set of tasks (nodes) assigned to a single processor
 type ProcessorTask struct {
 	ProcId int64
