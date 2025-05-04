@@ -192,6 +192,25 @@ func BuildPlan(
 
 		for _, gn := range layer {
 			node := gn.(Node)
+
+			// modify the node with the nodes dependencies
+			nodes := g.To(node.ID())
+			for range nodes.Len() {
+				nodes.Next()
+				_currNode := nodes.Node()
+				_currNode_v2, ok := _currNode.(Node)
+				if !ok {
+					panic(ok)
+				}
+				if node.algoDepIds == nil {
+					node.algoDepIds = []int64{_currNode_v2.algoId}
+				} else {
+					node.algoDepIds = append(node.algoDepIds, _currNode_v2.algoId)
+				}
+			}
+			// sort the algo deps within the node
+			slices.Sort(node.algoDepIds)
+
 			taskMap[node.procId] = append(taskMap[node.procId], node)
 		}
 		var stage Stage

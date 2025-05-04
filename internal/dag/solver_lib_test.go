@@ -142,12 +142,12 @@ func TestBuildPlan(t *testing.T) {
 							{algoId: 5, procId: 3, algoDepIds: []int64{2, 4}},
 						}},
 						{ProcId: 5, Nodes: []Node{
-							{algoId: 8, procId: 5, algoDepIds: []int64{8}},
+							{algoId: 8, procId: 5, algoDepIds: []int64{7}},
 						}},
 					}},
 					{Tasks: []ProcessorTask{
 						{ProcId: 6, Nodes: []Node{
-							{algoId: 9, procId: 6, algoDepIds: []int64{9}},
+							{algoId: 9, procId: 6, algoDepIds: []int64{8}},
 						}},
 					}},
 				},
