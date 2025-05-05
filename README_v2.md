@@ -1,16 +1,25 @@
 # Orca
 
-Orca is a free and open-source (FOSS) analytics orchestration framework that makes it easy for development and product teams to extract insights from timeseries data. It provides a structured and scalable way to schedule, process, and analyze data using a flexible DAG-based architecture.
+Orca is a analytics orchestration framework that makes it easy for development and product teams to
+extract insights from timeseries data. It provides a structured and scalable way to schedule, process,
+and analyse the data using a time window based triggering mechanism and a flexible DAG-based
+architecture. All of this combined makes it seamless to tweak the Cost <-> Availability <-> Accuracy
+tradeoff that is always present in timeseries processing.
 
 ## ✨ Features
 
-- **Pluggable processors:** Register processors dynamically and scale horizontally.
-- **Window-based execution:** Define regions of interest (windows) to trigger algorithms.
-- **DAG execution engine:** Automatically handles dependencies and triggers algorithms.
-- **PostgreSQL support:** Built-in datalayer for Postgres, with extensibility for others.
-- **gRPC API:** Fast and language-agnostic communication.
+- **Pluggable processors:** Register cross-language processors dynamically and scale horizontally
+- **Window-based execution:** Define regions of interest (windows) to trigger algorithms
+- **Execution engine:** Automatically handles algorithm dependencies and execution order,
+  without you having to worry about the [DAG](https://en.wikipedia.org/wiki/Directed_acyclic_graph).
+- **Abstracted storage layer:** Growing list of data storage solutions available for your analytics. Currently supported databases:
+  - PostgresSQL
+  - BigQuery (in progress)
+  - RDS (in progress)
 
 ## 🚀 Getting Started
+
+Download the latest Orca binary:
 
 ### 1. Install Orca
 
