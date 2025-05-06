@@ -10,8 +10,8 @@ use of the Licensed Work.
 
 The Licensor additionally permits:
 
-- **Free use, including in production,** by companies with a total value (including revenue and equity combined) under £10 million.
-- **Free use for evaluation and trial purposes (non-production only)** by companies with a total value of £10 million or more.
+- **Free use, including in production,** by companies with a total value (including revenue and equity combined) under £5 million.
+- **Free use for evaluation and trial purposes (non-production only)** by companies with a total value of £5 million or more.
   Production use by such companies requires a commercial license.
 - **Free use by registered charities and accredited educational institutions,** including in production.
 

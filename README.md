@@ -6,8 +6,8 @@ and analyse data using a time window based triggering mechanism and a flexible D
 architecture. All of this combined makes it seamless to tweak the Cost <-> Availability <-> Accuracy
 tradeoff that is always present in timeseries processing.
 
-Orca is built by (Predixus)[https://www.predixus.com] for developers, ready to deploy their timeseries
-projects 🚀.
+Orca is built by [Predixus](https://www.predixus.com) for developers that are ready to get their timeseries
+projects to production 🚀.
 
 ## ✨ Features
 
@@ -28,6 +28,11 @@ projects 🚀.
 ## 🚀 Getting Started
 
 ### 1. Install Orca
+
+Ensure you have the following installed:
+
+- [Golang compiler](https://go.dev/dl/)
+- [GNU Make](https://www.gnu.org/software/make/)
 
 Clone the repo:
 
@@ -73,7 +78,7 @@ Use gRPC or a client library to register processors and algorithms. Processors s
 
 Current processor SDKs:
 
-- (Python)[https://www.github.com/Predixus/orca-python.git]
+- [Python](https://www.github.com/Predixus/orca-python.git)
 
 ---
 

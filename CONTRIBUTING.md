@@ -69,15 +69,8 @@ Go to the main Orca repo and open a PR. Describe your change clearly.
 
 ## 📃 License
 
-By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing, you agree that your contributions will be licensed under the [BSL](LICENSE).
 
 ---
 
 Thank you for helping improve Orca! 💙
-
-```
-
----
-
-If you want, I can also draft a `CODE_OF_CONDUCT.md` or `SECURITY.md` — would you like that?
-```
