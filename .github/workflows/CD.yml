@@ -1,0 +1,121 @@
+name: CD
+
+on:
+  push:
+    branches: ["main"]
+    # Only trigger on branches that were merged from release/* branches
+    # This requires PR commit history to be preserved (don't squash merge)
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+
+jobs:
+  check-release:
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.check-release-branch.outputs.is_release }}
+      version: ${{ steps.check-release-branch.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if merged from release branch
+        id: check-release-branch
+        run: |
+          # Get the most recent merge commit in the history
+          MERGE_COMMIT=$(git log --merges -n 1 --pretty=format:"%H")
+          if [ -z "$MERGE_COMMIT" ]; then
+            echo "No recent merge commit found"
+            echo "is_release=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get the source branch of the merge
+          MERGED_BRANCH=$(git log -1 --merges --pretty=format:"%s" | grep -oP 'Merge pull request #\d+ from \K[^ ]+')
+          echo "Detected merged branch: $MERGED_BRANCH"
+
+          if [[ "$MERGED_BRANCH" =~ release/v([0-9]+\.[0-9]+\.[0-9]+[+a-zA-Z0-9.-]*) ]]; then
+            echo "This is a release merge"
+            VERSION="${BASH_REMATCH[1]}"
+            echo "Version: $VERSION"
+            echo "is_release=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "Not a release merge"
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-release:
+    needs: check-release
+    if: needs.check-release.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for tag operations
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.24"
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+      - name: Get app name
+        id: get-app-name
+        run: |
+          # Extract module name from go.mod
+          if [ -f "go.mod" ]; then
+            MODULE_NAME=$(grep -m 1 "module" go.mod | awk '{print $2}')
+            APP_NAME=$(basename "$MODULE_NAME")
+          else
+            # Fallback to directory name if go.mod doesn't exist
+            APP_NAME=$(basename "$GITHUB_REPOSITORY")
+          fi
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+          echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+          echo "App name determined to be: $APP_NAME"
+
+      - name: Test
+        run: go test -v ./...
+
+      - name: Build for multiple platforms
+        run: |
+          # Build for Linux
+          GOOS=linux GOARCH=amd64 go build -v -ldflags "-s -w" -o ${{ env.APP_NAME }}-linux-amd64 .
+
+          # Build for macOS
+          GOOS=darwin GOARCH=amd64 go build -v -ldflags "-s -w" -o ${{ env.APP_NAME }}-darwin-amd64 .
+          GOOS=darwin GOARCH=arm64 go build -v -ldflags "-s -w" -o ${{ env.APP_NAME }}-darwin-arm64 .
+
+          # Build for Windows
+          GOOS=windows GOARCH=amd64 go build -v -ldflags "-s -w" -o ${{ env.APP_NAME }}-windows-amd64.exe .
+
+      - name: Create and push tag
+        run: |
+          TAG="v${{ needs.check-release.outputs.version }}"
+          echo "Creating tag $TAG"
+          git tag -a $TAG -m "Release $TAG"
+          git push origin $TAG
+
+      - name: Create release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.check-release.outputs.version }}
+          name: Release v${{ needs.check-release.outputs.version }}
+          draft: false
+          prerelease: false
+          files: |
+            ${{ env.APP_NAME }}-linux-amd64
+            ${{ env.APP_NAME }}-darwin-amd64
+            ${{ env.APP_NAME }}-darwin-arm64
+            ${{ env.APP_NAME }}-windows-amd64.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
