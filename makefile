@@ -14,13 +14,13 @@ create_ssl: .create_ssl_cert
 test: .test_all
 
 .proto:
-	cd protobufs && protoc \
+	cd core/protobufs && protoc \
 	--go_out=go \
 	--go_opt=paths=source_relative \
 	--go-grpc_out=go \
 	--go-grpc_opt=paths=source_relative \
 	*.proto vendor/*.proto
-	cd protobufs && python -m grpc_tools.protoc \
+	cd core/protobufs && python -m grpc_tools.protoc \
     --proto_path=./ \
     --python_out=./python \
     --pyi_out=./python \
@@ -29,11 +29,11 @@ test: .test_all
 
 
 .datalayer:
-	sqlc vet -f datalayer/postgresql/sqlc.yaml
-	sqlc generate -f datalayer/postgresql/sqlc.yaml
+	sqlc vet -f core/datalayer/postgresql/sqlc.yaml
+	sqlc generate -f core/datalayer/postgresql/sqlc.yaml
 
 .proto_docs:
-	cd protobufs && docker run --rm \
+	cd core/protobufs && docker run --rm \
 	-v ./../docs/:/out \
 	-v ./:/protos \
 	pseudomuto/protoc-gen-doc \
@@ -74,4 +74,4 @@ test: .test_all
 	sudo chmod 640 local_storage/_ca/server.key
 
 .test_all:
-	go test ./internal/... -v
+	cd core && go test ./internal/... -v
