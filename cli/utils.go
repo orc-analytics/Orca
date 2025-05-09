@@ -75,7 +75,7 @@ func checkStartContainer(containerName string) bool {
 		}
 
 		// start the container
-		startCmd := exec.Command("docker", "start", containerName, "-d")
+		startCmd := exec.Command("docker", "start", containerName)
 
 		// stream start logs
 		streamCommandOutput(startCmd, "Starting container")
