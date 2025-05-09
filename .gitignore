@@ -26,6 +26,8 @@ go.work
 # custom
 *.vscode
 orca
+cli
+!/cli/
 .null-ls*
 .Binding
 *.log
