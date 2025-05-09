@@ -3,7 +3,7 @@ package datalayers
 import (
 	"context"
 
-	pb "github.com/predixus/orca/protobufs/go"
+	pb "github.com/predixus/orca/core/protobufs/go"
 )
 
 // the interface that all datalayers must implement to be compatible with Orca

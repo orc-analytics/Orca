@@ -1,4 +1,4 @@
-module github.com/predixus/orca
+module github.com/predixus/orca/core
 
 go 1.23.0
 
