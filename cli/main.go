@@ -27,8 +27,9 @@ func main() {
 	case "start":
 		startCmd.Parse(os.Args[2:])
 		// start the stack
-		startPostgres()
-		startRedis()
+		networkName := createNetworkIfNotExists()
+		startPostgres(networkName)
+		startRedis(networkName)
 	case "stop":
 		stopCmd.Parse(os.Args[2:])
 		// stopContainer()
