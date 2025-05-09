@@ -48,12 +48,11 @@ func startRedis() {
 		// run container with volume mounted
 		args := []string{
 			"run",
-			"--name",
-			containerName,
+			"--name", containerName,
 			"-d",
+			"-v", volumeName + ":/data",
 			"redis",
-			"-v",
-			volumeName + ":/var/lib/postgresql/data",
+			"redis-server", "--appendonly", "yes",
 		}
 
 		runCmd := exec.Command("docker", args...)
