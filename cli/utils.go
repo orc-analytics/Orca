@@ -137,3 +137,37 @@ func streamCommandOutput(cmd *exec.Cmd, prefix string) {
 		os.Exit(1)
 	}
 }
+
+// createNetworkIfNotExists creates a bridge network if it doesn't already exist
+func createNetworkIfNotExists() string {
+	networkName := "orca-network"
+
+	// check if network exists
+	checkCmd := exec.Command(
+		"docker",
+		"network",
+		"ls",
+		"--filter", "name="+networkName,
+		"--format", "{{.Name}}",
+	)
+	output, err := checkCmd.CombinedOutput()
+
+	if err != nil || !strings.Contains(string(output), networkName) {
+		fmt.Printf("Creating network '%s'...\n", networkName)
+
+		// Create bridge network
+		createCmd := exec.Command(
+			"docker",
+			"network",
+			"create",
+			"--driver", "bridge",
+			networkName,
+		)
+
+		streamCommandOutput(createCmd, "Network creation:")
+		fmt.Printf("Network '%s' created successfully\n", networkName)
+	} else {
+		fmt.Printf("Using existing network: %s\n", networkName)
+	}
+	return networkName
+}
