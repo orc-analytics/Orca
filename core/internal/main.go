@@ -5,8 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/bufbuild/protovalidate-go"
-	dlyr "github.com/predixus/orca/internal/datalayers"
-	pb "github.com/predixus/orca/protobufs/go"
+	dlyr "github.com/predixus/orca/core/internal/datalayers"
+	pb "github.com/predixus/orca/core/protobufs/go"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )

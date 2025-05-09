@@ -7,9 +7,9 @@ import (
 	"net"
 	"os"
 
-	orca "github.com/predixus/orca/internal"
-	dlyr "github.com/predixus/orca/internal/datalayers"
-	pb "github.com/predixus/orca/protobufs/go"
+	orca "github.com/predixus/orca/core/internal"
+	dlyr "github.com/predixus/orca/core/internal/datalayers"
+	pb "github.com/predixus/orca/core/protobufs/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

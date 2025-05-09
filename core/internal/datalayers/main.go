@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	psql "github.com/predixus/orca/internal/datalayers/postgresql"
+	psql "github.com/predixus/orca/core/internal/datalayers/postgresql"
 )
 
 // represents the supported database platforms as the datalayer
