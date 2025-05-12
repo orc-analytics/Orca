@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
+	"time"
 )
 
 func main() {
@@ -40,6 +42,18 @@ func main() {
 		startRedis(networkName)
 		fmt.Println()
 
+		// check for postgres instance running first
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+		defer cancel()
+		err := waitForPgReady(ctx, pgContainerName, time.Millisecond*500)
+		if err != nil {
+			fmt.Println(
+				errorStyle.Render(
+					fmt.Sprintf("Issue waiting for Postgres store to start: %v", err.Error()),
+				),
+			)
+			os.Exit(1)
+		}
 		startOrca(networkName)
 		fmt.Println()
 
