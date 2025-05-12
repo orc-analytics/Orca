@@ -11,10 +11,10 @@ import (
 
 // checkCreateVolume checks if a volume exists for a container and if not creates it
 func checkCreateVolume(containerName string) string {
-	// create a volume with a name specific to the orca storage container
+	// Create a volume with a name specific to the orca storage container
 	volumeName := containerName + "-data"
 
-	// check if the volume already exists
+	// Check if the volume already exists
 	volumeCheckCmd := exec.Command(
 		"docker",
 		"volume",
@@ -27,21 +27,23 @@ func checkCreateVolume(containerName string) string {
 	volumeOutput, volumeErr := volumeCheckCmd.CombinedOutput()
 
 	if volumeErr != nil || !strings.Contains(string(volumeOutput), volumeName) {
-		// volume doesn't exist, create it
-		fmt.Printf("Creating volume %s...\n", volumeName)
+		fmt.Println(infoStyle.Render(fmt.Sprintf("Creating volume %s...", volumeName)))
+
 		createVolumeCmd := exec.Command("docker", "volume", "create", volumeName)
 		if err := createVolumeCmd.Run(); err != nil {
-			fmt.Printf("Failed to create volume: %s\n", err)
+			fmt.Println(errorStyle.Render(fmt.Sprintf("Failed to create volume: %s", err)))
 			os.Exit(1)
 		}
+		fmt.Println(successStyle.Render(fmt.Sprintf("Volume %s created successfully", volumeName)))
 	} else {
-		fmt.Printf("Using existing volume: %s\n", volumeName)
+		fmt.Println(infoStyle.Render(fmt.Sprintf("Using existing volume: %s", volumeName)))
 	}
+
 	return volumeName
 }
 
 func checkStartContainer(containerName string) bool {
-	// check if container already exists
+	// Check if container already exists
 	checkCmd := exec.Command(
 		"docker",
 		"ps",
@@ -54,10 +56,13 @@ func checkStartContainer(containerName string) bool {
 	output, err := checkCmd.CombinedOutput()
 
 	if err == nil && strings.Contains(string(output), containerName) {
-		// container exists, restart it
-		fmt.Printf("Container %s already exists, checking run status...\n", containerName)
+		fmt.Println(
+			infoStyle.Render(
+				fmt.Sprintf("Container %s already exists, checking run status...", containerName),
+			),
+		)
 
-		// first check if it's already running
+		// Check if it's already running
 		statusCmd := exec.Command(
 			"docker",
 			"ps",
@@ -69,20 +74,18 @@ func checkStartContainer(containerName string) bool {
 		statusOutput, statusErr := statusCmd.CombinedOutput()
 
 		if statusErr == nil && strings.Contains(string(statusOutput), containerName) {
-			// container is running
-			fmt.Println(containerName + " already running")
+			fmt.Println(successStyle.Render(fmt.Sprintf("%s already running", containerName)))
 			return true
 		}
 
-		// start the container
+		// Start the container
 		startCmd := exec.Command("docker", "start", containerName)
-
-		// stream start logs
 		streamCommandOutput(startCmd, "Starting container")
 
-		fmt.Printf("Container started successfully\n")
+		fmt.Println(successStyle.Render("Container started successfully"))
 		return true
 	}
+
 	return false
 }
 
@@ -90,19 +93,19 @@ func checkStartContainer(containerName string) bool {
 func streamCommandOutput(cmd *exec.Cmd, prefix string) {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Printf("Error creating stdout pipe: %s\n", err)
+		fmt.Println(errorStyle.Render(fmt.Sprintf("Error creating stdout pipe: %s", err)))
 		os.Exit(1)
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		fmt.Printf("Error creating stderr pipe: %s\n", err)
+		fmt.Println(errorStyle.Render(fmt.Sprintf("Error creating stderr pipe: %s", err)))
 		os.Exit(1)
 	}
 
 	// start the command
 	if err := cmd.Start(); err != nil {
-		fmt.Printf("%s failed: %s\n", prefix, err)
+		fmt.Println(errorStyle.Render(fmt.Sprintf("%s failed: %s", prefix, err)))
 		os.Exit(1)
 	}
 
@@ -115,7 +118,7 @@ func streamCommandOutput(cmd *exec.Cmd, prefix string) {
 		defer wg.Done()
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
-			fmt.Printf("%s (stdout): %s\n", prefix, scanner.Text())
+			fmt.Println(prefixStyle.Render(prefix) + " " + infoStyle.Render(scanner.Text()))
 		}
 	}()
 
@@ -124,7 +127,7 @@ func streamCommandOutput(cmd *exec.Cmd, prefix string) {
 		defer wg.Done()
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
-			fmt.Printf("%s (stderr): %s\n", prefix, scanner.Text())
+			fmt.Println(prefixStyle.Render(prefix) + " " + warningStyle.Render(scanner.Text()))
 		}
 	}()
 
@@ -133,14 +136,14 @@ func streamCommandOutput(cmd *exec.Cmd, prefix string) {
 
 	// wait for the command to finish
 	if err := cmd.Wait(); err != nil {
-		fmt.Printf("%s command failed: %s\n", prefix, err)
+		fmt.Println(errorStyle.Render(fmt.Sprintf("%s command failed: %s", prefix, err)))
 		os.Exit(1)
 	}
 }
 
 // createNetworkIfNotExists creates a bridge network if it doesn't already exist
 func createNetworkIfNotExists() string {
-	// check if network exists
+	// Check if network exists
 	checkCmd := exec.Command(
 		"docker",
 		"network",
@@ -151,7 +154,7 @@ func createNetworkIfNotExists() string {
 	output, err := checkCmd.CombinedOutput()
 
 	if err != nil || !strings.Contains(string(output), networkName) {
-		fmt.Printf("Creating network '%s'...\n", networkName)
+		fmt.Println(infoStyle.Render(fmt.Sprintf("Creating network '%s'...", networkName)))
 
 		// Create bridge network
 		createCmd := exec.Command(
@@ -163,40 +166,45 @@ func createNetworkIfNotExists() string {
 		)
 
 		streamCommandOutput(createCmd, "Network creation:")
-		fmt.Printf("Network '%s' created successfully\n", networkName)
+		fmt.Println(
+			successStyle.Render(fmt.Sprintf("Network '%s' created successfully", networkName)),
+		)
 	} else {
-		fmt.Printf("Using existing network: %s\n", networkName)
+		fmt.Println(infoStyle.Render(fmt.Sprintf("Using existing network: %s", networkName)))
 	}
+
 	return networkName
 }
 
 // showStatus prints the status of each container along with connection strings
 func showStatus() {
-	fmt.Println("\n=== Container Status ===")
+	fmt.Println(headerStyle.Render("Container Status:\n"))
 
-	// Check PostgreSQL status
+	// PostgreSQL status
 	pgStatus := getContainerStatus(pgContainerName)
-	fmt.Printf("PostgreSQL: %s\n", pgStatus)
+	fmt.Println(subHeaderStyle.Render("PostgreSQL:"), statusColor(pgStatus).Render(pgStatus))
+
 	if pgStatus == "running" {
-		// Get PostgreSQL connection info
 		pgIP := getContainerIP("orca-pg-instance")
 		if pgIP != "" {
-			fmt.Printf("Connection string: postgresql://orca:orca@%s:5432/orca\n", pgIP)
+			conn := fmt.Sprintf("postgresql://orca:orca@%s:5432/orca", pgIP)
+			fmt.Println(infoStyle.Render("Connection string: " + conn))
 		}
 	}
 
-	// Check Redis status
+	fmt.Println()
+
+	// Redis status
 	redisStatus := getContainerStatus(redisContainerName)
-	fmt.Printf("\nRedis: %s\n", redisStatus)
+	fmt.Println(subHeaderStyle.Render("Redis:"), statusColor(redisStatus).Render(redisStatus))
+
 	if redisStatus == "running" {
-		// Get Redis connection info
 		redisIP := getContainerIP("orca-redis-instance")
 		if redisIP != "" {
-			fmt.Printf("Connection string: redis://%s:6379\n", redisIP)
+			conn := fmt.Sprintf("redis://%s:6379", redisIP)
+			fmt.Println(infoStyle.Render("Connection string: " + conn))
 		}
 	}
-
-	fmt.Println("=======================")
 }
 
 // getContainerStatus returns the status of a container (running, stopped, or not found)
@@ -245,26 +253,31 @@ func getContainerIP(containerName string) string {
 
 // stopContainers stops all running containers related to Orca
 func stopContainers() {
-	fmt.Println("\n=== Stopping Orca Containers ===")
+	fmt.Println(headerStyle.Render("Stopping Orca Containers"))
 
 	for _, containerName := range orcaContainers {
 		status := getContainerStatus(containerName)
 
-		if status == "running" {
-			fmt.Printf("Stopping %s... ", containerName)
+		switch status {
+		case "running":
+			fmt.Printf("%s Stopping %s... ", prefixStyle, containerName)
 
 			cmd := exec.Command("docker", "stop", containerName)
 			err := cmd.Run()
 
 			if err != nil {
-				fmt.Printf("ERROR: Failed to stop container: %v\n", err)
+				fmt.Println(
+					errorStyle.Render(fmt.Sprintf("ERROR: Failed to stop container: %v", err)),
+				)
 			} else {
-				fmt.Println("STOPPED")
+				fmt.Println(successStyle.Render("STOPPED"))
 			}
-		} else if status == "stopped" {
-			fmt.Printf("%s is already stopped\n", containerName)
-		} else {
-			fmt.Printf("%s not found\n", containerName)
+
+		case "stopped":
+			fmt.Println(infoStyle.Render(fmt.Sprintf("%s is already stopped", containerName)))
+
+		default:
+			fmt.Println(warningStyle.Render(fmt.Sprintf("%s not found", containerName)))
 		}
 	}
 }
@@ -272,16 +285,18 @@ func stopContainers() {
 // destroy tears down all Orca-related resources (containers, images, networks, and volumes)
 // It requires user confirmation before executing destructive operations
 func destroy() {
-	fmt.Println("\n!!! WARNING: DESTRUCTIVE OPERATION !!!")
-	fmt.Println("This will remove all Orca containers, images, networks, and volumes.")
-	fmt.Println("All data will be permanently lost.")
-	fmt.Print("\nAre you sure you want to continue? (y/N): ")
+	fmt.Println(warningStyle.Render("\n!!! WARNING: DESTRUCTIVE OPERATION !!!"))
+	fmt.Println(
+		warningStyle.Render("This will remove all Orca containers, images, networks, and volumes."),
+	)
+	fmt.Println(errorStyle.Render("All data will be permanently lost."))
+	fmt.Print(warningStyle.Render("\nAre you sure you want to continue? (y/N): "))
 
 	var response string
 	fmt.Scanln(&response)
 
 	if strings.ToLower(response) != "y" {
-		fmt.Println("Operation cancelled.")
+		fmt.Println(infoStyle.Render("Operation cancelled."))
 		return
 	}
 
@@ -289,87 +304,93 @@ func destroy() {
 	stopContainers()
 
 	// Remove containers
-	fmt.Println("\n=== Removing Orca Containers ===")
+	fmt.Println(headerStyle.Render("\nRemoving Orca Containers"))
 	for _, containerName := range orcaContainers {
-		fmt.Printf("Removing container %s... ", containerName)
+		fmt.Printf("%s Removing container %s... ", prefixStyle, containerName)
 
 		cmd := exec.Command("docker", "rm", "-f", containerName)
 		err := cmd.Run()
 
 		if err != nil {
-			fmt.Printf("ERROR: %v\n", err)
+			fmt.Println(errorStyle.Render(fmt.Sprintf("ERROR: %v", err)))
 		} else {
-			fmt.Println("REMOVED")
+			fmt.Println(successStyle.Render("REMOVED"))
 		}
 	}
 
 	// Remove volumes
-	fmt.Println("\n=== Removing Orca Volumes ===")
+	fmt.Println(headerStyle.Render("\nRemoving Orca Volumes"))
 	for _, volumeName := range orcaVolumes {
-		fmt.Printf("Removing volume %s... ", volumeName)
+		fmt.Printf("%s Removing volume %s... ", prefixStyle, volumeName)
 
 		cmd := exec.Command("docker", "volume", "rm", volumeName)
 		err := cmd.Run()
 
 		if err != nil {
-			fmt.Printf("ERROR: %v\n", err)
+			fmt.Println(errorStyle.Render(fmt.Sprintf("ERROR: %v", err)))
 		} else {
-			fmt.Println("REMOVED")
+			fmt.Println(successStyle.Render("REMOVED"))
 		}
 	}
 
 	// Remove the Orca network
-	fmt.Println("\n=== Removing Orca Network ===")
+	fmt.Println(headerStyle.Render("\nRemoving Orca Network"))
 	cmd := exec.Command("docker", "network", "rm", "orca-network")
 	err := cmd.Run()
 
 	if err != nil {
-		fmt.Printf("ERROR: Failed to remove network: %v\n", err)
+		fmt.Println(errorStyle.Render(fmt.Sprintf("ERROR: Failed to remove network: %v", err)))
 	} else {
-		fmt.Println("Network orca-network REMOVED")
+		fmt.Println(successStyle.Render("Network orca-network REMOVED"))
 	}
 
 	// Instead of automatically removing images, provide instructions to the user
-	fmt.Println("\n=== Orca Image Cleanup Instructions ===")
-	fmt.Println("To clean up Docker images related to Orca, you can run these commands:")
-	fmt.Println("  docker rmi postgres    # Remove PostgreSQL image")
-	fmt.Println("  docker rmi redis       # Remove Redis image")
-	fmt.Println("")
-	fmt.Println("Or to remove all unused images:")
-	fmt.Println("  docker image prune -a  # Remove all unused images")
-	fmt.Println("")
+	fmt.Println(headerStyle.Render("\nOrca Image Cleanup Instructions"))
 	fmt.Println(
-		"Note: These commands will only work if the images are not used by other containers.",
+		infoStyle.Render("To clean up Docker images related to Orca, you can run these commands:"),
 	)
-	fmt.Println("\n=== Orca Environment Destroyed ===")
+	fmt.Println(infoStyle.Render("  docker rmi postgres    # Remove PostgreSQL image"))
+	fmt.Println(infoStyle.Render("  docker rmi redis       # Remove Redis image"))
+	fmt.Println()
+	fmt.Println(infoStyle.Render("Or to remove all unused images:"))
+	fmt.Println(infoStyle.Render("  docker image prune -a  # Remove all unused images"))
+	fmt.Println()
+	fmt.Println(
+		infoStyle.Render(
+			"Note: These commands will only work if the images are not used by other containers.",
+		),
+	)
+	fmt.Println(successStyle.Render("\nOrca Environment Destroyed"))
 }
 
 // checkDockerInstalled verifies that Docker is installed and accessible
 // If Docker is not installed, it exits with an error message
 func checkDockerInstalled() {
-	fmt.Println("Checking for Docker installation...")
+	fmt.Println(headerStyle.Render("Checking for Docker installation..."))
 
 	cmd := exec.Command("docker", "--version")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println("ERROR: Docker is not installed or not in PATH")
-		fmt.Println("Please install Docker before continuing:")
-		fmt.Println("  - For Windows/Mac: https://www.docker.com/products/docker-desktop")
-		fmt.Println("  - For Linux: https://docs.docker.com/engine/install/")
+		fmt.Println(errorStyle.Render("ERROR: Docker is not installed or not in PATH"))
+		fmt.Println(infoStyle.Render("Please install Docker before continuing:"))
+		fmt.Println(
+			infoStyle.Render("  - For Windows/Mac: https://www.docker.com/products/docker-desktop"),
+		)
+		fmt.Println(infoStyle.Render("  - For Linux: https://docs.docker.com/engine/install/"))
 		os.Exit(1)
 	}
 
 	version := strings.TrimSpace(string(output))
-	fmt.Printf("Docker found: %s\n", version)
+	fmt.Println(successStyle.Render("Docker found: " + version))
 
 	// Check if Docker daemon is running
 	cmd = exec.Command("docker", "info")
 	_, err = cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println("ERROR: Docker daemon is not running")
-		fmt.Println("Please start the Docker service before continuing.")
+		fmt.Println(errorStyle.Render("ERROR: Docker daemon is not running"))
+		fmt.Println(infoStyle.Render("Please start the Docker service before continuing."))
 		os.Exit(1)
 	}
 
-	fmt.Println("Docker is installed and running correctly.")
+	fmt.Println(successStyle.Render("Docker is installed and running correctly."))
 }
