@@ -248,12 +248,9 @@ func showStatus() {
 	fmt.Println(subHeaderStyle.Render("PostgreSQL:"), statusColor(pgStatus).Render(pgStatus))
 
 	if pgStatus == "running" {
-		pgIP := getContainerIP(pgContainerName)
 		pgPort := getContainerPort(pgContainerName, 5432)
-		if pgIP != "" {
-			conn := fmt.Sprintf("postgresql://orca:orca@%s:%s/orca?sslmode=disable", pgIP, pgPort)
-			fmt.Println(infoStyle.Render("Connection string: " + conn))
-		}
+		conn := fmt.Sprintf("postgresql://orca:orca@localhost:%s/orca?sslmode=disable", pgPort)
+		fmt.Println(infoStyle.Render("Connection string: " + conn))
 	}
 
 	fmt.Println()
@@ -263,12 +260,9 @@ func showStatus() {
 	fmt.Println(subHeaderStyle.Render("Redis:"), statusColor(redisStatus).Render(redisStatus))
 
 	if redisStatus == "running" {
-		redisIP := getContainerIP(redisContainerName)
 		redisPort := getContainerPort(redisContainerName, 6379)
-		if redisIP != "" {
-			conn := fmt.Sprintf("redis://%s:%s", redisIP, redisPort)
-			fmt.Println(infoStyle.Render("Connection string: " + conn))
-		}
+		conn := fmt.Sprintf("redis://localhost:%s", redisPort)
+		fmt.Println(infoStyle.Render("Connection string: " + conn))
 	}
 
 	fmt.Println()
@@ -278,19 +272,16 @@ func showStatus() {
 	fmt.Println(subHeaderStyle.Render("Orca:"), statusColor(orcaStatus).Render(orcaStatus))
 
 	if orcaStatus == "running" {
-		orcaIP := getContainerIP(orcaContainerName)
 		orcaPort := getContainerPort(orcaContainerName, 3335)
-		if orcaIP != "" {
-			conn := fmt.Sprintf("dns:///%s:%s", orcaIP, orcaPort)
-			fmt.Println(infoStyle.Render("Connection string: " + conn))
-			fmt.Println()
-			fmt.Println(
-				prefixStyle.Render(
-					"Set this environment variable in your Orca SDKs to connect them to Orca:",
-				),
-			)
-			fmt.Println(prefixStyle.Render("\tORCASERVER=" + conn))
-		}
+		conn := fmt.Sprintf("grpc://localhost:%s", orcaPort)
+		fmt.Println(infoStyle.Render("Connection string: " + conn))
+		fmt.Println()
+		fmt.Println(
+			prefixStyle.Render(
+				"Set this environment variable in your Orca SDKs to connect them to Orca:",
+			),
+		)
+		fmt.Println(prefixStyle.Render("\tORCASERVER=" + conn))
 	}
 }
 
