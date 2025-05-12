@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [v0.1.0] - 06-05-2025
+### Added
+
+- CLI & converted repo to a monorepo.
+- Updated build stages.
+
+## [v0.0.0] - 06-05-2025
 
 ### Added
 
