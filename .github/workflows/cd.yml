@@ -1,13 +1,8 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
-name: CI
+name: CD
 
 on:
-  push:
-    branches: ["main"]
   pull_request:
-    branches: ["main"]
+    branches: ["release/*"]
 
 jobs:
   build:
@@ -25,3 +20,9 @@ jobs:
 
       - name: Test
         run: make test
+
+      - name: Build CLI
+        run: make build_cli_all
+
+      - name: Build Core
+        run: make build_core_all
