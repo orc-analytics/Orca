@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -179,15 +180,15 @@ func createNetworkIfNotExists() string {
 // showStatus prints the status of each container along with connection strings
 func showStatus() {
 	fmt.Println(headerStyle.Render("Container Status:\n"))
-
 	// PostgreSQL status
 	pgStatus := getContainerStatus(pgContainerName)
 	fmt.Println(subHeaderStyle.Render("PostgreSQL:"), statusColor(pgStatus).Render(pgStatus))
 
 	if pgStatus == "running" {
-		pgIP := getContainerIP("orca-pg-instance")
+		pgIP := getContainerIP(pgContainerName)
+		pgPort := getContainerPort(pgContainerName, 5432)
 		if pgIP != "" {
-			conn := fmt.Sprintf("postgresql://orca:orca@%s:5432/orca", pgIP)
+			conn := fmt.Sprintf("postgresql://orca:orca@%s:%s/orca", pgIP, pgPort)
 			fmt.Println(infoStyle.Render("Connection string: " + conn))
 		}
 	}
@@ -199,10 +200,33 @@ func showStatus() {
 	fmt.Println(subHeaderStyle.Render("Redis:"), statusColor(redisStatus).Render(redisStatus))
 
 	if redisStatus == "running" {
-		redisIP := getContainerIP("orca-redis-instance")
+		redisIP := getContainerIP(redisContainerName)
+		redisPort := getContainerPort(redisContainerName, 6379)
 		if redisIP != "" {
-			conn := fmt.Sprintf("redis://%s:6379", redisIP)
+			conn := fmt.Sprintf("redis://%s:%s", redisIP, redisPort)
 			fmt.Println(infoStyle.Render("Connection string: " + conn))
+		}
+	}
+
+	fmt.Println()
+
+	// Orca status
+	orcaStatus := getContainerStatus(orcaContainerName)
+	fmt.Println(subHeaderStyle.Render("Orca:"), statusColor(orcaStatus).Render(orcaStatus))
+
+	if orcaStatus == "running" {
+		orcaIP := getContainerIP(orcaContainerName)
+		orcaPort := getContainerPort(orcaContainerName, 3335)
+		if orcaIP != "" {
+			conn := fmt.Sprintf("dns:///%s:%s", orcaIP, orcaPort)
+			fmt.Println(infoStyle.Render("Connection string: " + conn))
+			fmt.Println()
+			fmt.Println(
+				prefixStyle.Render(
+					"Set this environment variable in your Orca SDKs to connect them to Orca:",
+				),
+			)
+			fmt.Println(prefixStyle.Render("\tORCASERVER=" + conn))
 		}
 	}
 }
@@ -232,6 +256,41 @@ func getContainerStatus(containerName string) string {
 	}
 
 	return "not found"
+}
+
+// getContainerPort retrieves the mapped port for a specific container and internal port
+func getContainerPort(containerName string, internalPort int) string {
+	cmd := exec.Command("docker", "port", containerName)
+	output, err := cmd.Output()
+	if err != nil {
+		return strconv.Itoa(internalPort) // fallback to default if command fails
+	}
+
+	// convert output to string and split lines
+	portInfo := string(output)
+	lines := strings.Split(portInfo, "\n")
+
+	// find the line with the internal port
+	portStr := fmt.Sprintf("%d/tcp", internalPort)
+	for _, line := range lines {
+		if strings.Contains(line, portStr) {
+			// extract the mapped port (after ->)
+			parts := strings.Split(line, "->")
+			if len(parts) > 1 {
+				// trim whitespace and get the mapped port
+				mappedPortParts := strings.Fields(parts[1])
+				if len(mappedPortParts) > 0 {
+					// remove any host information (like 0.0.0.0: or [::]:)
+					mappedPort := strings.TrimPrefix(mappedPortParts[0], "0.0.0.0:")
+					mappedPort = strings.TrimPrefix(mappedPort, "[::]:")
+					return mappedPort
+				}
+			}
+		}
+	}
+
+	// fallback to default internal port if no mapping found
+	return strconv.Itoa(internalPort)
 }
 
 // getContainerIP returns the IP address of a container
@@ -349,8 +408,9 @@ func destroy() {
 	fmt.Println(
 		infoStyle.Render("To clean up Docker images related to Orca, you can run these commands:"),
 	)
-	fmt.Println(infoStyle.Render("  docker rmi postgres    # Remove PostgreSQL image"))
-	fmt.Println(infoStyle.Render("  docker rmi redis       # Remove Redis image"))
+	fmt.Println(infoStyle.Render("  docker rmi postgres               # Remove PostgreSQL image"))
+	fmt.Println(infoStyle.Render("  docker rmi redis                  # Remove Redis image"))
+	fmt.Println(infoStyle.Render("  docker rmi ghcr.io/predixus/orca  # Remove Redis image"))
 	fmt.Println()
 	fmt.Println(infoStyle.Render("Or to remove all unused images:"))
 	fmt.Println(infoStyle.Render("  docker image prune -a  # Remove all unused images"))
