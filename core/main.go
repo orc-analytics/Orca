@@ -27,7 +27,7 @@ func startGRPCServer(
 	}
 	go func(server *orca.OrcaCoreServer) {
 		slog.Info("starting server", "port", port)
-		lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
+		lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", port))
 		if err != nil {
 			slog.Error("failed to listen", "message", err)
 		}
