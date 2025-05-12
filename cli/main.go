@@ -7,8 +7,6 @@ import (
 )
 
 func main() {
-	checkDockerInstalled()
-
 	// starts the stack
 	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
 	// stops it
@@ -29,18 +27,22 @@ func main() {
 	// parse the appropriate subcommand
 	switch os.Args[1] {
 	case "start":
+		checkDockerInstalled()
 		startCmd.Parse(os.Args[2:])
 		// start the stack
 		networkName := createNetworkIfNotExists()
 		startPostgres(networkName)
 		startRedis(networkName)
 	case "stop":
+		checkDockerInstalled()
 		stopCmd.Parse(os.Args[2:])
 		stopContainers()
 	case "status":
+		checkDockerInstalled()
 		statusCmd.Parse(os.Args[2:])
 		showStatus()
 	case "destroy":
+		checkDockerInstalled()
 		destroyCmd.Parse(os.Args[2:])
 		destroy()
 	case "help":
