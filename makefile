@@ -13,6 +13,15 @@ redo_store: .remove_datalayer .remove_store_cache .create_ssl_cert .spin_up_data
 create_ssl: .create_ssl_cert
 test: .test_all
 
+# flags for stripping debugging info
+LDFLAGS = -s -w
+
+## CLI Build scripts
+BINARY_NAME = orca
+
+# disabled CGO to produce statically-linked binaries
+export CGO_ENABLED = 0
+
 .proto:
 	cd core/protobufs && protoc \
 	--go_out=go \
@@ -76,35 +85,40 @@ test: .test_all
 .test_all:
 	cd core && go test ./internal/... -v
 
+# ------------- BUILD -------------
 
-## CLI Build scripts
-BINARY_NAME = orca
-
-# disabled CGO to produce statically-linked binaries
-export CGO_ENABLED = 0
-
-# flags for stripping debugging info
-LDFLAGS = -s -w
-
-# build command
+#  build command
 BUILD = go build -ldflags "$(LDFLAGS)" -o
 
 # platform targets
 .PHONY: cli_all cli_clean cli_linux cli_windows cli_mac_arm cli_mac_intel
 
-cli_all: cli_linux cli_windows cli_mac_arm cli_mac_intel
+build_cli_all: cli_linux cli_windows cli_mac_arm cli_mac_intel
+build_core_all: core_linux core_windows core_mac_arm core_mac_intel
 
 cli_linux:
-	cd cli && GOOS=linux GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-linux .
+	cd cli && GOOS=linux GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-cli-linux .
 
 cli_windows:
-	cd cli && GOOS=windows GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-windows.exe .
+	cd cli && GOOS=windows GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-cli-windows.exe .
 
 cli_mac_arm:
-	cd cli && GOOS=darwin GOARCH=arm64 $(BUILD) ../build/$(BINARY_NAME)-mac-arm .
+	cd cli && GOOS=darwin GOARCH=arm64 $(BUILD) ../build/$(BINARY_NAME)-cli-mac-arm .
 
 cli_mac_intel:
-	cd cli && GOOS=darwin GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-mac-intel .
+	cd cli && GOOS=darwin GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-cli-mac-intel .
+
+core_linux:
+	cd core && GOOS=linux GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-core-linux .
+
+core_windows:
+	cd core && GOOS=windows GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-core-windows.exe .
+
+core_mac_arm:
+	cd core && GOOS=darwin GOARCH=arm64 $(BUILD) ../build/$(BINARY_NAME)-core-mac-arm .
+
+core_mac_intel:
+	cd core && GOOS=darwin GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-core-mac-intel .
 
 cli_clean:
 	rm -rf build/
