@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [v0.1.0] - 12-05-2025
+
 ### Added
 
 - CLI & converted repo to a monorepo.
@@ -24,5 +26,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/Predixus/Orca/compare/v0.0.0...HEAD
+[unreleased]: https://github.com/Predixus/Orca/compare/v0.1.0...HEAD
 [v0.1.0]: https://github.com/Predixus/Orca/compare/v0.0.0...v0.1.0
