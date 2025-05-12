@@ -75,3 +75,36 @@ test: .test_all
 
 .test_all:
 	cd core && go test ./internal/... -v
+
+
+## CLI Build scripts
+BINARY_NAME = orca
+
+# disabled CGO to produce statically-linked binaries
+export CGO_ENABLED = 0
+
+# flags for stripping debugging info
+LDFLAGS = -s -w
+
+# build command
+BUILD = go build -ldflags "$(LDFLAGS)" -o
+
+# platform targets
+.PHONY: cli_all cli_clean cli_linux cli_windows cli_mac_arm cli_mac_intel
+
+cli_all: cli_linux cli_windows cli_mac_arm cli_mac_intel
+
+cli_linux:
+	cd cli && GOOS=linux GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-linux .
+
+cli_windows:
+	cd cli && GOOS=windows GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-windows.exe .
+
+cli_mac_arm:
+	cd cli && GOOS=darwin GOARCH=arm64 $(BUILD) ../build/$(BINARY_NAME)-mac-arm .
+
+cli_mac_intel:
+	cd cli && GOOS=darwin GOARCH=amd64 $(BUILD) ../build/$(BINARY_NAME)-mac-intel .
+
+cli_clean:
+	rm -rf build/
