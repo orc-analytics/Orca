@@ -61,9 +61,12 @@ jobs:
       - name: Build Docker image
         if: steps.version_check.outputs.IS_PRERELEASE == 'false'
         run: |
-          docker build -t ghcr.io/predixus/orca:${{ env.VERSION }} -f Dockerfile .
+          docker build -t ghcr.io/predixus/orca:${{ env.VERSION }} \
+                       -t ghcr.io/predixus/orca:latest \
+                       -f Dockerfile .
 
       - name: Push Docker image
         if: steps.version_check.outputs.IS_PRERELEASE == 'false'
         run: |
           docker push ghcr.io/predixus/orca:${{ env.VERSION }}
+          docker push ghcr.io/predixus/orca:latest
