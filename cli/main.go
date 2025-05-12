@@ -45,6 +45,9 @@ func main() {
 		startRedis(networkName)
 		fmt.Println()
 
+		startOrca(networkName)
+		fmt.Println()
+
 		fmt.Println(successStyle.Render("✅ Orca stack started successfully."))
 		fmt.Println()
 
