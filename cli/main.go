@@ -7,12 +7,16 @@ import (
 )
 
 func main() {
+	checkDockerInstalled()
+
 	// starts the stack
 	startCmd := flag.NewFlagSet("start", flag.ExitOnError)
 	// stops it
 	stopCmd := flag.NewFlagSet("stop", flag.ExitOnError)
 	// prints the status
 	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
+	// tears down all the images & data
+	destroyCmd := flag.NewFlagSet("destroy", flag.ExitOnError)
 	// shows help
 	helpCmd := flag.NewFlagSet("help", flag.ExitOnError)
 
@@ -32,10 +36,13 @@ func main() {
 		startRedis(networkName)
 	case "stop":
 		stopCmd.Parse(os.Args[2:])
-		// stopContainer()
+		stopContainers()
 	case "status":
 		statusCmd.Parse(os.Args[2:])
-		// getContainerStatus()
+		showStatus()
+	case "destroy":
+		destroyCmd.Parse(os.Args[2:])
+		destroy()
 	case "help":
 		helpCmd.Parse(os.Args[2:])
 		if helpCmd.NArg() > 0 {
