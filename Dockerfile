@@ -3,13 +3,14 @@ FROM golang:1.24-alpine AS builder
 WORKDIR /app
 
 COPY core/go.mod core/go.sum ./
-RUN go mod download
 
-# Copy the rest of the application code
-COPY core/* ./
+RUN go mod tidy
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "$(LDFLAGS)" -o orca .
+COPY core/ ./
 
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-v -w" -o orca .
+
+# --- Runtime stage ---
 FROM alpine:latest
 
 WORKDIR /app
@@ -17,3 +18,4 @@ WORKDIR /app
 COPY --from=builder /app/orca .
 
 ENTRYPOINT ["./orca"]
+
