@@ -2,12 +2,14 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 // checkCreateVolume checks if a volume exists for a container and if not creates it
@@ -41,6 +43,74 @@ func checkCreateVolume(containerName string) string {
 	}
 
 	return volumeName
+}
+
+func checkPostgresReady(ctx context.Context, containerName string) (bool, error) {
+	// Command to run pg_isready inside the container
+	healthCmd := exec.CommandContext(
+		ctx,
+		"docker",
+		"exec",
+		containerName,
+		"pg_isready",
+		"-U", "postgres", // Specify the default postgres user
+	)
+
+	// Run the command
+	_, err := healthCmd.CombinedOutput()
+	// pg_isready returns:
+	// 0 - the server is accepting connections
+	// 1 - the server is not accepting connections
+	// 2 - the server is starting up
+	// 3 - the server is not responding
+	if err != nil {
+		// Check if it's an exit error to interpret the return code
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			// pg_isready uses exit codes to indicate status
+			switch exitErr.ExitCode() {
+			case 0:
+				return true, nil // Server is ready
+			case 1, 2, 3:
+				return false, nil // Server not ready
+			default:
+				return false, fmt.Errorf("unexpected pg_isready error: %w", err)
+			}
+		}
+		return false, fmt.Errorf("error running pg_isready: %w", err)
+	}
+
+	// If no error and command succeeded, the server is ready
+	return true, nil
+}
+
+func waitForPgReady(
+	ctx context.Context,
+	containerName string,
+	checkInterval time.Duration,
+) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timeout waiting for container %s to be ready", containerName)
+		default:
+			// Use the postgres-specific ready check
+			healthy, err := checkPostgresReady(ctx, containerName)
+			if err != nil {
+				// Log the error but continue trying
+				fmt.Printf("Error checking container health: %v\n", err)
+			} else if healthy {
+				return nil // Container is ready
+			}
+
+			// Wait before next check
+			select {
+			case <-ctx.Done():
+				return fmt.Errorf("timeout waiting for container %s to be ready", containerName)
+			case <-time.After(checkInterval):
+				// Continue to next iteration
+			}
+		}
+	}
 }
 
 func checkStartContainer(containerName string) bool {
