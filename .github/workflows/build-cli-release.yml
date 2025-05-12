@@ -41,12 +41,6 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           prerelease: ${{ steps.prerelease_check.outputs.IS_PRERELEASE }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT}}
-
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v2
-        with:
           files: |
             build/orca-cli-linux
             build/orca-cli-windows.exe
