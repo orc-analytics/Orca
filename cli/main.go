@@ -22,20 +22,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println()
-
 	// Parse the appropriate subcommand
 	switch os.Args[1] {
 
 	case "start":
 		checkDockerInstalled()
 
-		fmt.Println()
 		startCmd.Parse(os.Args[2:])
 
-		fmt.Println(headerStyle.Render("Starting Orca stack..."))
 		fmt.Println()
-
 		networkName := createNetworkIfNotExists()
 		fmt.Println()
 
@@ -54,7 +49,6 @@ func main() {
 	case "stop":
 		checkDockerInstalled()
 
-		fmt.Println()
 		stopCmd.Parse(os.Args[2:])
 
 		fmt.Println()
@@ -74,7 +68,6 @@ func main() {
 
 	case "destroy":
 		checkDockerInstalled()
-		fmt.Println()
 		destroyCmd.Parse(os.Args[2:])
 		fmt.Println()
 		destroy()

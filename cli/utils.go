@@ -57,12 +57,6 @@ func checkStartContainer(containerName string) bool {
 	output, err := checkCmd.CombinedOutput()
 
 	if err == nil && strings.Contains(string(output), containerName) {
-		fmt.Println(
-			infoStyle.Render(
-				fmt.Sprintf("Container %s already exists, checking run status...", containerName),
-			),
-		)
-
 		// Check if it's already running
 		statusCmd := exec.Command(
 			"docker",
@@ -179,7 +173,6 @@ func createNetworkIfNotExists() string {
 
 // showStatus prints the status of each container along with connection strings
 func showStatus() {
-	fmt.Println(headerStyle.Render("Container Status:\n"))
 	// PostgreSQL status
 	pgStatus := getContainerStatus(pgContainerName)
 	fmt.Println(subHeaderStyle.Render("PostgreSQL:"), statusColor(pgStatus).Render(pgStatus))
@@ -188,7 +181,7 @@ func showStatus() {
 		pgIP := getContainerIP(pgContainerName)
 		pgPort := getContainerPort(pgContainerName, 5432)
 		if pgIP != "" {
-			conn := fmt.Sprintf("postgresql://orca:orca@%s:%s/orca", pgIP, pgPort)
+			conn := fmt.Sprintf("postgresql://orca:orca@%s:%s/orca?sslmode=disable", pgIP, pgPort)
 			fmt.Println(infoStyle.Render("Connection string: " + conn))
 		}
 	}
@@ -312,8 +305,6 @@ func getContainerIP(containerName string) string {
 
 // stopContainers stops all running containers related to Orca
 func stopContainers() {
-	fmt.Println(headerStyle.Render("Stopping Orca Containers"))
-
 	for _, containerName := range orcaContainers {
 		status := getContainerStatus(containerName)
 
@@ -363,7 +354,6 @@ func destroy() {
 	stopContainers()
 
 	// Remove containers
-	fmt.Println(headerStyle.Render("\nRemoving Orca Containers"))
 	for _, containerName := range orcaContainers {
 		fmt.Printf("%s Removing container %s... ", prefixStyle, containerName)
 
@@ -378,7 +368,6 @@ func destroy() {
 	}
 
 	// Remove volumes
-	fmt.Println(headerStyle.Render("\nRemoving Orca Volumes"))
 	for _, volumeName := range orcaVolumes {
 		fmt.Printf("%s Removing volume %s... ", prefixStyle, volumeName)
 
@@ -393,7 +382,6 @@ func destroy() {
 	}
 
 	// Remove the Orca network
-	fmt.Println(headerStyle.Render("\nRemoving Orca Network"))
 	cmd := exec.Command("docker", "network", "rm", "orca-network")
 	err := cmd.Run()
 
@@ -404,7 +392,6 @@ func destroy() {
 	}
 
 	// Instead of automatically removing images, provide instructions to the user
-	fmt.Println(headerStyle.Render("\nOrca Image Cleanup Instructions"))
 	fmt.Println(
 		infoStyle.Render("To clean up Docker images related to Orca, you can run these commands:"),
 	)
@@ -426,10 +413,8 @@ func destroy() {
 // checkDockerInstalled verifies that Docker is installed and accessible
 // If Docker is not installed, it exits with an error message
 func checkDockerInstalled() {
-	fmt.Println(headerStyle.Render("Checking for Docker installation..."))
-
 	cmd := exec.Command("docker", "--version")
-	output, err := cmd.CombinedOutput()
+	_, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Println(errorStyle.Render("ERROR: Docker is not installed or not in PATH"))
 		fmt.Println(infoStyle.Render("Please install Docker before continuing:"))
@@ -440,10 +425,7 @@ func checkDockerInstalled() {
 		os.Exit(1)
 	}
 
-	version := strings.TrimSpace(string(output))
-	fmt.Println(successStyle.Render("Docker found: " + version))
-
-	// Check if Docker daemon is running
+	// check if Docker daemon is running
 	cmd = exec.Command("docker", "info")
 	_, err = cmd.CombinedOutput()
 	if err != nil {
@@ -451,6 +433,4 @@ func checkDockerInstalled() {
 		fmt.Println(infoStyle.Render("Please start the Docker service before continuing."))
 		os.Exit(1)
 	}
-
-	fmt.Println(successStyle.Render("Docker is installed and running correctly."))
 }
