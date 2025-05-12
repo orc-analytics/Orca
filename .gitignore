@@ -33,3 +33,4 @@ cli
 *.log
 local_storage
 __pycache__
+build/
