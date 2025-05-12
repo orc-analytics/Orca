@@ -41,6 +41,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           prerelease: ${{ steps.prerelease_check.outputs.IS_PRERELEASE }}
+          generate_release_notes: true
           files: |
             build/orca-cli-linux
             build/orca-cli-windows.exe
