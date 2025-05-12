@@ -17,5 +17,4 @@ var orcaContainers = []string{
 var orcaVolumes = []string{
 	"orca-pg-instance-data",
 	"orca-redis-instance-data",
-	"orca-instance-data",
 }
