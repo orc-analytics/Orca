@@ -42,7 +42,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           prerelease: ${{ steps.prerelease_check.outputs.IS_PRERELEASE }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT}}
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
@@ -53,4 +53,4 @@ jobs:
             build/orca-cli-mac-arm
             build/orca-cli-mac-intel
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT}}
