@@ -6,20 +6,18 @@ import (
 
 // startPostgres starts the postgres instance that orca needs.
 func startPostgres(networkName string) {
-	containerName := "orca-pg-instance"
-
-	exists := checkStartContainer(containerName)
+	exists := checkStartContainer(pgContainerName)
 
 	if !exists {
 		// create or start a volume
-		volumeName := checkCreateVolume(containerName)
+		volumeName := checkCreateVolume(pgContainerName)
 
 		// run container with volume mounted
 		args := []string{
 			"run",
 			"-d",
 			"--name",
-			containerName,
+			pgContainerName,
 			"--network",
 			networkName,
 			"-e",
@@ -40,17 +38,16 @@ func startPostgres(networkName string) {
 }
 
 func startRedis(networkName string) {
-	containerName := "orca-redis-instance"
-	exists := checkStartContainer(containerName)
+	exists := checkStartContainer(redisContainerName)
 
 	if !exists {
 		// create or start a volume
-		volumeName := checkCreateVolume(containerName)
+		volumeName := checkCreateVolume(redisContainerName)
 
 		// run container with volume mounted
 		args := []string{
 			"run",
-			"--name", containerName,
+			"--name", redisContainerName,
 			"--network", networkName,
 			"-d",
 			"-v", volumeName + ":/data",
