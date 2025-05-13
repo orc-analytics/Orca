@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [v0.3.0] - 13-05-2025
+
 ### Added
 
 - Printout of the docker network gateway IP on `orca status`
@@ -36,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/Predixus/Orca/compare/v0.2.0...HEAD
+[unreleased]: https://github.com/Predixus/Orca/compare/v0.3.0...HEAD
+[v0.3.0]: https://github.com/Predixus/Orca/compare/v0.2.0...v0.3.0
 [v0.2.0]: https://github.com/Predixus/Orca/compare/v0.1.0...v0.2.0
 [v0.1.0]: https://github.com/Predixus/Orca/compare/v0.0.0...v0.1.0
