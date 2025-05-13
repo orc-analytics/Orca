@@ -1,4 +1,4 @@
-module github.com/Predixus/orca/cli
+module github.com/predixus/orca/cli
 
 go 1.24.0
 
