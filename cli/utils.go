@@ -278,10 +278,16 @@ func showStatus() {
 		fmt.Println()
 		fmt.Println(
 			prefixStyle.Render(
-				"Set this environment variable in your Orca SDKs to connect them to Orca:",
+				"Set these environment variablesin your Orca SDKs to connect them to Orca:",
 			),
 		)
 		fmt.Println(prefixStyle.Render("\tORCASERVER=" + conn))
+	}
+
+	// get network IP
+	gatewayIP := getNetworkGatewayIP()
+	if gatewayIP != "" {
+		fmt.Println(prefixStyle.Render("\tHOST=" + strings.Replace(gatewayIP, "'", "", 2)))
 	}
 }
 
@@ -494,4 +500,20 @@ func checkDockerInstalled() {
 		fmt.Println(infoStyle.Render("Please start the Docker service before continuing."))
 		os.Exit(1)
 	}
+}
+
+func getNetworkGatewayIP() string {
+	cmd := exec.Command(
+		"docker",
+		"network",
+		"inspect",
+		networkName,
+		"--format='{{range .IPAM.Config}}{{.Gateway}}{{end}}'",
+	)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println(errorStyle.Render("ERROR: Issue grabbing the gateway IP of the orca network"))
+		return ""
+	}
+	return string(output)
 }
