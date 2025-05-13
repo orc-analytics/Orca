@@ -278,7 +278,7 @@ func showStatus() {
 		fmt.Println()
 		fmt.Println(
 			prefixStyle.Render(
-				"Set these environment variablesin your Orca SDKs to connect them to Orca:",
+				"Set these environment variables in your Orca SDKs to connect them to Orca:",
 			),
 		)
 		fmt.Println(prefixStyle.Render("\tORCASERVER=" + conn))
