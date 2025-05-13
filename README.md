@@ -27,60 +27,20 @@ projects to production 🚀.
 
 ## 🚀 Getting Started
 
-### 1. Install Orca
+### 1. Install the Orca cli
 
-Ensure you have the following installed:
+Prior to installing the CLI ensure that Docker is installed on your system.
 
-- [Golang compiler](https://go.dev/dl/)
-- [GNU Make](https://www.gnu.org/software/make/)
-
-Clone the repo:
+#### Linux / MacOSX
 
 ```bash
-git clone https://github.com/predixus/orca.git
-cd orca
+curl -fsSL https://raw.githubusercontent.com/Predixus/orca/main/install-cli.sh | bash
 ```
 
-Build the binary:
+#### Windows
 
-```bash
-make build
-```
-
-### 2. Setup Database
-
-Start a local PostgreSQL instance with:
-
-```bash
-make build_store
-```
-
-Other DB commands:
-
-```bash
-make start_store    # start DB
-make stop_store     # stop DB
-make remove_store   # delete DB and data
-make redo_store     # reset DB
-```
-
-### 3. Run Orca Core
-
-```bash
-./orca --connStr "postgresql://orca:orca_password@localhost:5432/orca?sslmode=disable"  --platform postgresql --port 3335 --migrate
-```
-
-The `--migrate` flag will instruct orca to provision the schemas within the store.
-
-### 4. Register a Processor
-
-Use gRPC or a client library to register processors and algorithms. Processors should implement the `OrcaProcessor` gRPC interface.
-
-Current processor SDKs:
-
-- [Python](https://www.github.com/Predixus/orca-python.git)
-
----
+Orca heavily leverages dockerised systems as part of the Orca stack. These generally work better on unix
+based systems, so it's advised to install Orca on WSL. Once in WSL, use the above CLI install script.
 
 ## 📦 Architecture
 
