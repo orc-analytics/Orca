@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Printout of the docker network gateway IP on `orca status`
+- A timer on the postgres instance being ready to accept connections before connecting
+
 ## [v0.2.0] - 12-05-2025
 
 - Moved orca core deployement to github packages
