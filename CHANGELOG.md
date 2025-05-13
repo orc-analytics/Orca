@@ -7,12 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [v0.4.0] - 13-05-2025
-
-### Added
-
-- Added CLI install script
-
 ## [v0.3.0] - 13-05-2025
 
 ### Added
