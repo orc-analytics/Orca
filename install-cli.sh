@@ -5,7 +5,6 @@ set -e
 REPO="Predixus/Orca"
 INSTALL_NAME="orca"
 
-
 # Disallow root user
 if [ "$EUID" -eq 0 ]; then
   echo "Do not run this script as root. Please run as a regular user."
@@ -92,20 +91,13 @@ install_binary() {
   FINAL_BINARY="$SHARE_DIR/$INSTALL_NAME"
   SYMLINK_PATH="$BIN_DIR/$INSTALL_NAME"
 
-  # If existing, handle overwrite
-  if [ -e "$SYMLINK_PATH" ] || [ -L "$SYMLINK_PATH" ]; then
-    read -p "A binary named '$INSTALL_NAME' already exists at $SYMLINK_PATH. Replace it? (y/N): " choice
-    case "$choice" in
-      y|Y ) echo "Replacing existing binary...";;
-      * ) echo "Installation aborted."; exit 1;;
-    esac
-    rm -f "$SYMLINK_PATH"
-  fi
+  rm -f "$SYMLINK_PATH"
 
   mv "$TMP_FILE" "$FINAL_BINARY"
   chmod +x "$FINAL_BINARY"
   ln -sf "$FINAL_BINARY" "$SYMLINK_PATH"
 
+  echo ""
   echo "✅ Orca CLI installed to: $FINAL_BINARY"
   echo "✅ Symlink created at: $SYMLINK_PATH"
   echo "🔗 To get started, visit: https://github.com/Predixus/Orca#readme"
