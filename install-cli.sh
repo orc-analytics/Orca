@@ -90,18 +90,29 @@ install_binary() {
   FINAL_BINARY="$SHARE_DIR/$INSTALL_NAME"
   SYMLINK_PATH="$BIN_DIR/$INSTALL_NAME"
 
-  if [ -e "$SYMLINK_PATH" ]; then
-    read -p "A binary named '$INSTALL_NAME' already exists at $SYMLINK_PATH. Replace it? (y/N): " choice
-    case "$choice" in
-      y|Y ) echo "Replacing existing symlink...";;
-      * ) echo "Installation aborted."; exit 1;;
-    esac
-    rm -f "$SYMLINK_PATH"
+  # Detect if running in a pipe (like curl | bash)
+  if [ -t 0 ]; then
+    # Terminal is interactive
+    if [ -e "$SYMLINK_PATH" ]; then
+      read -p "A binary named '$INSTALL_NAME' already exists at $SYMLINK_PATH. Replace it? (y/N): " choice
+      case "$choice" in
+        y|Y ) echo "Replacing existing symlink...";;
+        * ) echo "Installation aborted."; exit 1;;
+      esac
+    fi
+  else
+    # Non-interactive mode (e.g., curl | bash)
+    if [ -e "$SYMLINK_PATH" ]; then
+      echo "Replacing existing binary at $SYMLINK_PATH"
+    fi
   fi
 
+  # Always remove existing symlink before creating a new one
+  rm -f "$SYMLINK_PATH"
+  
   mv "$TMP_FILE" "$FINAL_BINARY"
   chmod +x "$FINAL_BINARY"
-  ln -s "$FINAL_BINARY" "$SYMLINK_PATH"
+  ln -sf "$FINAL_BINARY" "$SYMLINK_PATH"
   echo "Binary installed to $FINAL_BINARY"
   echo "Symlink created at $SYMLINK_PATH"
   echo "To get started, visit the documentation at: https://github.com/Predixus/Orca#readme"
