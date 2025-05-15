@@ -94,15 +94,11 @@ install_binary() {
 
   # If existing, handle overwrite
   if [ -e "$SYMLINK_PATH" ] || [ -L "$SYMLINK_PATH" ]; then
-    # if [ $FORCE_INSTALL -eq 1 ] || [ ! -t 0 ]; then
-    #   echo "Replacing existing binary at $SYMLINK_PATH"
-    # else
     read -p "A binary named '$INSTALL_NAME' already exists at $SYMLINK_PATH. Replace it? (y/N): " choice
     case "$choice" in
       y|Y ) echo "Replacing existing binary...";;
       * ) echo "Installation aborted."; exit 1;;
     esac
-    # fi
     rm -f "$SYMLINK_PATH"
   fi
 
