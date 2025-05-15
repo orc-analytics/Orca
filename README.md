@@ -98,14 +98,4 @@ docker pull pseudomuto/protoc-gen-doc
 
 ## 📄 License
 
-Orca is licensed under the [Business Source License (BSL) 1.1](./LICENSE.md).
-
-- Free for companies under £5 million total value (including production use).
-- Free for trial and evaluation by companies over £5 million.
-- Free for registered charities and educational institutions.
-- No one may build competing software on top of Orca.
-
-**Change Date:**
-Each Orca version will automatically become open source under the GPLv3 license four (4) years after its first public release.
-
-For full license terms, see [LICENSE.md](./LICENSE.md).
+Orca is licensed under the [GNU General Public License v3.0](./LICENSE.md).
