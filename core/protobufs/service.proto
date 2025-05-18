@@ -63,9 +63,9 @@ message Window {
   string origin = 5 [(buf.validate.field).required = true];
 
   option (buf.validate.message).cel = {
-      id: "window.to",
-      message: "`to` must be greater than or equal to `from`",
-      expression: "this.to >= this.from",
+      id: "window.time_to",
+      message: "`time_to` must be greater than or equal to `time_from`",
+      expression: "this.time_to >= this.time_from",
     };
 
 }
