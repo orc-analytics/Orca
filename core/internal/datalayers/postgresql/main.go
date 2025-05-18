@@ -160,8 +160,8 @@ func (d *Datalayer) EmitWindow(
 	insertedWindow, err := d.queries.RegisterWindow(ctx, RegisterWindowParams{
 		WindowTypeName:    window.GetWindowTypeName(),
 		WindowTypeVersion: window.GetWindowTypeVersion(),
-		TimeFrom:          int64(window.GetFrom()),
-		TimeTo:            int64(window.GetTo()),
+		TimeFrom:          int64(window.GetTimeFrom()),
+		TimeTo:            int64(window.GetTimeTo()),
 		Origin:            window.GetOrigin(),
 	})
 	if err != nil {

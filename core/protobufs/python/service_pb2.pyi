@@ -18,17 +18,18 @@ RESULT_STATUS_UNHANDLED_FAILED: ResultStatus
 RESULT_STATUS_SUCEEDED: ResultStatus
 
 class Window(_message.Message):
-    __slots__ = ("to", "window_type_name", "window_type_version", "origin")
-    FROM_FIELD_NUMBER: _ClassVar[int]
-    TO_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("time_from", "time_to", "window_type_name", "window_type_version", "origin")
+    TIME_FROM_FIELD_NUMBER: _ClassVar[int]
+    TIME_TO_FIELD_NUMBER: _ClassVar[int]
     WINDOW_TYPE_NAME_FIELD_NUMBER: _ClassVar[int]
     WINDOW_TYPE_VERSION_FIELD_NUMBER: _ClassVar[int]
     ORIGIN_FIELD_NUMBER: _ClassVar[int]
-    to: int
+    time_from: int
+    time_to: int
     window_type_name: str
     window_type_version: str
     origin: str
-    def __init__(self, to: _Optional[int] = ..., window_type_name: _Optional[str] = ..., window_type_version: _Optional[str] = ..., origin: _Optional[str] = ..., **kwargs) -> None: ...
+    def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., window_type_name: _Optional[str] = ..., window_type_version: _Optional[str] = ..., origin: _Optional[str] = ...) -> None: ...
 
 class WindowType(_message.Message):
     __slots__ = ("name", "version")
