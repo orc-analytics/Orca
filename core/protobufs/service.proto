@@ -39,7 +39,7 @@ service OrcaProcessor {
 message Window {
   // Time that the window starts - nanoseconds since epoch
   // Required: Must be > 0 and < to
-  uint64 from = 1 [(buf.validate.field) = {
+  uint64 time_from = 1 [(buf.validate.field) = {
     required: true,
     uint64: {
       gt: 0
@@ -48,7 +48,7 @@ message Window {
 
   // Time that the window ends - nanoseconds since epoch
   // Required: Must be > from
-  uint64 to = 2 [(buf.validate.field).required = true];
+  uint64 time_to = 2 [(buf.validate.field).required = true];
   
   // The canonical name of the window that uniquely identifies it
   // This allows tracking of window state and results across the system

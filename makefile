@@ -4,7 +4,7 @@ all: .proto .datalayer
 proto: .proto
 datalayer: .datalayer
 
-build_proto: .proto .proto_docs 
+build_proto: .proto 
 build_store: .create_ssl_cert .spin_up_datalayer
 start_store: .start_datalayer
 stop_store: .stop_datalayer
@@ -41,12 +41,6 @@ export CGO_ENABLED = 0
 	sqlc vet -f core/datalayer/postgresql/sqlc.yaml
 	sqlc generate -f core/datalayer/postgresql/sqlc.yaml
 
-.proto_docs:
-	cd core/protobufs && docker run --rm \
-	-v ./../docs/:/out \
-	-v ./:/protos \
-	pseudomuto/protoc-gen-doc \
-	--doc_opt=markdown,ProtocolBuffers.md
 
 .stop_datalayer:
 	cd local_storage && docker-compose stop
