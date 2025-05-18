@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Modified
+
+- Modified the protobufs to use `time_from` and `time_to` rather than `from` and `to` to avoid
+  clashes with reserved words
+
 ## [v0.3.0] - 15-05-2025
 
 ### Added
