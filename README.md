@@ -1,4 +1,6 @@
-# Orca
+![Group 14 (1)](https://github.com/user-attachments/assets/f3725551-c19e-44cd-a8d4-f268bce5ac2a)
+
+![GitHub Release](https://img.shields.io/github/v/release/Predixus/orca)
 
 Orca is a analytics orchestration framework that makes it easy for development and product teams to
 extract insights from timeseries data. It provides a structured and scalable way to schedule, process,
