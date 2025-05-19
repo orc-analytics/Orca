@@ -13,16 +13,23 @@ data-powered AI.
 ## ✨ Features
 
 - [ ] Orca Core:
-  - [x] Register cross-language processors dynamically and scale horizontally. [DOCS](https://orca.predixus.com/docs)
+  - [x] Build cross-language algorithms and scale horizontally. [DOCS](https://orca.predixus.com/docs)
   - [x] Automatically handles algorithm dependencies and execution order. [DOCS](https://orca.predixus.com/docs)
-  - [ ] Telemetry cache, so downstream analytics don't hammer the database
+  - [ ] Telemetry cache, so downstream analytics don't hammer the database for the same data.
+  - [ ]
 - [ ] Supported Storage Solutions
   - [x] PostgreSQL. [DOCS](https://orca.predixus.com/docs)
   - [ ] MongoDB
+  - [ ] BigQuery
+  - [ ] RDS
+- [ ] SDKs
+  - [x] [Python](https://github.com/Predixus/orca-python)
+  - [ ] Node
+  - [ ] Rust
 
 ## Documentation
 
-Full documentation can be found at (orca.predixus.com/docs)[https://orca.predixus.com]
+Full documentation can be found at [orca.predixus.com/docs](https://orca.predixus.com).
 
 ## 📄 License
 
