@@ -117,15 +117,16 @@ func (d *Datalayer) AddAlgorithm(
 	qtx := d.queries.WithTx(pgTx.tx)
 
 	// create algos
-	err := qtx.CreateAlgorithm(ctx,
-		CreateAlgorithmParams{
-			Name:              algo.GetName(),
-			Version:           algo.GetVersion(),
-			ProcessorName:     proc.GetName(),
-			ProcessorRuntime:  proc.GetRuntime(),
-			WindowTypeName:    algo.GetWindowType().GetName(),
-			WindowTypeVersion: algo.GetWindowType().GetVersion(),
-		})
+	params := CreateAlgorithmParams{
+		Name:              algo.GetName(),
+		Version:           algo.GetVersion(),
+		ProcessorName:     proc.GetName(),
+		ProcessorRuntime:  proc.GetRuntime(),
+		WindowTypeName:    algo.GetWindowType().GetName(),
+		WindowTypeVersion: algo.GetWindowType().GetVersion(),
+	}
+	err := qtx.CreateAlgorithm(ctx, params)
+
 	if err != nil {
 		slog.Error("error creating algorithm", "error", err)
 		return err

@@ -38,8 +38,8 @@ export CGO_ENABLED = 0
 
 
 .datalayer:
-	sqlc vet -f core/datalayer/postgresql/sqlc.yaml
-	sqlc generate -f core/datalayer/postgresql/sqlc.yaml
+	sqlc vet -f core/internal/datalayers/postgresql/sqlc.yaml
+	sqlc generate -f core/internal/datalayers/postgresql/sqlc.yaml
 
 
 .stop_datalayer:

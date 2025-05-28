@@ -10,13 +10,13 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-//go:embed ../../datalayer/postgresql/migrations/*.sql
+//go:embed postgresql/migrations/*.sql
 var PostgresqlMigrations embed.FS
 
 func MigrateDatalayer(platform string, connStr string) error {
 	switch platform {
 	case "postgresql":
-		d, err := iofs.New(PostgresqlMigrations, "datalayer/postgresql/migrations")
+		d, err := iofs.New(PostgresqlMigrations, "postgresql/migrations")
 		if err != nil {
 			return fmt.Errorf("failed to load embedded migrations: %w", err)
 		}

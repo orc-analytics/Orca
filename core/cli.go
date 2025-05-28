@@ -8,6 +8,8 @@ import (
 	"net"
 	"os"
 	"strings"
+
+	dlyrs "github.com/predixus/orca/core/internal/datalayers"
 )
 
 type cliFlags struct {
@@ -195,7 +197,7 @@ func runCLI(flags cliFlags) {
 	slog.Info("premigration")
 	if flags.migrate {
 		slog.Info("migrating datalayer")
-		err := MigrateDatalayer(flags.platform, flags.connStr)
+		err := dlyrs.MigrateDatalayer(flags.platform, flags.connStr)
 		if err != nil {
 			slog.Error("could not migrate the datalayer, exiting", "error", err)
 			os.Exit(1)
