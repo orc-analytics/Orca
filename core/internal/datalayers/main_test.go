@@ -17,12 +17,17 @@ func TestAddAlgorithm(t *testing.T) {
 		postgres.WithDatabase("test"),
 		postgres.WithUsername("user"),
 		postgres.WithPassword("password"),
+		postgres.BasicWaitStrategies(),
+		postgres.WithSQLDriver("pgx"),
 	)
-	connStr, err := postgresContainer.ConnectionString(ctx)
+
+	assert.NoError(t, err)
+	connStr, err := postgresContainer.ConnectionString(ctx, "sslmode=disable")
 
 	assert.NoError(t, err)
 
-	err = root.MigrateDatalayer("postgresql", connStr)
+	err = MigrateDatalayer("postgresql", connStr)
+
 	assert.NoError(t, err)
 
 	dlyr, err := NewDatalayerClient(ctx, "postgresql", connStr)
@@ -42,12 +47,42 @@ func TestAddAlgorithm(t *testing.T) {
 		Version:    "1.0.0",
 		WindowType: &windowType,
 	}
-	proc := pb.ProcessorRegistration{
+	proc_1 := pb.ProcessorRegistration{
 		Name:                "TestProcessor",
 		Runtime:             "Test",
 		ConnectionStr:       "Test",
 		SupportedAlgorithms: []*pb.Algorithm{&algo},
 	}
-	err = dlyr.AddAlgorithm(ctx, tx, &algo, &proc)
+
+	// 1. register a processor
+	err = dlyr.CreateProcessorAndPurgeAlgos(ctx, tx, &proc_1)
+	assert.NoError(t, err)
+
+	// 2. register the window type
+	err = dlyr.CreateWindowType(ctx, tx, &windowType)
+	assert.NoError(t, err)
+
+	// 3. add an algorithm
+	err = dlyr.AddAlgorithm(ctx, tx, &algo, &proc_1)
+	assert.NoError(t, err)
+
+	// 4. add the same algorithm again
+	// adding the same algorithm again should cause no issues.
+	err = dlyr.AddAlgorithm(ctx, tx, &algo, &proc_1)
+	assert.NoError(t, err)
+
+	// 5. register a different processor
+	proc_2 := pb.ProcessorRegistration{
+		Name:                "TestProcessor2",
+		Runtime:             "Test",
+		ConnectionStr:       "Test",
+		SupportedAlgorithms: []*pb.Algorithm{&algo},
+	}
+	err = dlyr.CreateProcessorAndPurgeAlgos(ctx, tx, &proc_2)
+	assert.NoError(t, err)
+
+	// 6. register the same algorithm (by name and version), but with a new processor
+	// should have 0 issues as the algorithm + processor pair is unique
+	err = dlyr.AddAlgorithm(ctx, tx, &algo, &proc_2)
 	assert.NoError(t, err)
 }

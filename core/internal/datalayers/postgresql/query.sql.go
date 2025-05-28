@@ -11,43 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const addProcessorAlgorithm = `-- name: AddProcessorAlgorithm :exec
-WITH processor_id AS (
-  SELECT id FROM processor p
-  WHERE p.name = $1 
-  AND p.runtime = $2
-),
-algorithm_id AS (
-  SELECT id FROM algorithm a
-  WHERE a.name = $3 
-  AND a.version = $4
-)
-INSERT INTO processor_algorithm (
-  processor_id,
-  algorithm_id
-) VALUES (
-  (SELECT id FROM processor_id),
-  (SELECT id FROM algorithm_id)
-)
-`
-
-type AddProcessorAlgorithmParams struct {
-	ProcessorName    string
-	ProcessorRuntime string
-	AlgorithmName    string
-	AlgorithmVersion string
-}
-
-func (q *Queries) AddProcessorAlgorithm(ctx context.Context, arg AddProcessorAlgorithmParams) error {
-	_, err := q.db.Exec(ctx, addProcessorAlgorithm,
-		arg.ProcessorName,
-		arg.ProcessorRuntime,
-		arg.AlgorithmName,
-		arg.AlgorithmVersion,
-	)
-	return err
-}
-
 const createAlgorithm = `-- name: CreateAlgorithm :exec
 WITH processor_id AS (
   SELECT id FROM processor p
@@ -69,9 +32,7 @@ INSERT INTO algorithm (
   $2,
   (SELECT id FROM processor_id),
   (SELECT id FROM window_type_id)
-) ON CONFLICT (name, version, processor_id) DO UPDATE
-SET
-  window_type_id = excluded.window_type_id
+) ON CONFLICT DO NOTHING
 `
 
 type CreateAlgorithmParams struct {
@@ -172,14 +133,16 @@ WITH processor_insert AS (
   ) ON CONFLICT (name, runtime) DO UPDATE 
   SET 
     name = EXCLUDED.name,
-    runtime = EXCLUDED.runtime
+    runtime = EXCLUDED.runtime,
+    connection_string = EXCLUDED.connection_string
   RETURNING id
 )
-DELETE FROM processor_algorithm
-WHERE processor_id = (
-  SELECT id FROM processor p
-  WHERE p.name = $1 
-  AND p.runtime = $2
+  -- clean up old algorithm associations
+  DELETE FROM processor_algorithm
+  WHERE processor_id = (
+    SELECT id FROM processor p
+    WHERE p.name = $1 
+    AND p.runtime = $2
 )
 `
 
@@ -189,7 +152,6 @@ type CreateProcessorAndPurgeAlgosParams struct {
 	ConnectionString string
 }
 
-// clean up old algorithm associations
 func (q *Queries) CreateProcessorAndPurgeAlgos(ctx context.Context, arg CreateProcessorAndPurgeAlgosParams) error {
 	_, err := q.db.Exec(ctx, createProcessorAndPurgeAlgos, arg.Name, arg.Runtime, arg.ConnectionString)
 	return err
