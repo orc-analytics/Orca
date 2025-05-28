@@ -28,7 +28,7 @@ CREATE TABLE algorithm (
   processor_id BIGINT NOT NULL,
   window_type_id BIGINT NOT NULL,
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (name, version, processor_id),
+  UNIQUE (name, version),
   FOREIGN KEY (window_type_id) REFERENCES window_type(id),
   FOREIGN KEY (processor_id) REFERENCES processor(id)
 );

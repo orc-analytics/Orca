@@ -1,3 +1,28 @@
+-- name: CreateProcessorAndPurgeAlgos :exec
+WITH processor_insert AS (
+  INSERT INTO processor (
+    name,
+    runtime,
+    connection_string
+  ) VALUES (
+    sqlc.arg('name'),
+    sqlc.arg('runtime'),
+    sqlc.arg('connection_string')
+  ) ON CONFLICT (name, runtime) DO UPDATE 
+  SET 
+    name = EXCLUDED.name,
+    runtime = EXCLUDED.runtime,
+    connection_string = EXCLUDED.connection_string
+  RETURNING id
+)
+  -- clean up old algorithm associations
+  DELETE FROM processor_algorithm
+  WHERE processor_id = (
+    SELECT id FROM processor p
+    WHERE p.name = sqlc.arg('name') 
+    AND p.runtime = sqlc.arg('runtime')
+);
+
 -- name: CreateWindowType :exec
 INSERT INTO window_type (
   name, 
@@ -28,9 +53,7 @@ INSERT INTO algorithm (
   sqlc.arg('version'),
   (SELECT id FROM processor_id),
   (SELECT id FROM window_type_id)
-) ON CONFLICT (name, version, processor_id) DO UPDATE
-SET
-  window_type_id = excluded.window_type_id;
+);
 
 -- name: ReadAlgorithmsForWindow :many
 SELECT a.* FROM algorithm a
@@ -81,49 +104,6 @@ SELECT ad.* FROM algorithm_dependency ad WHERE ad.from_algorithm_id = sqlc.arg('
 
 -- name: ReadAlgorithmExecutionPaths :many
 SELECT aep.* FROM algorithm_execution_paths aep WHERE aep.window_type_id_path ~ ('*.' || sqlc.arg('window_type_id')::TEXT || '.*')::lquery;
-
--- name: CreateProcessorAndPurgeAlgos :exec
-WITH processor_insert AS (
-  INSERT INTO processor (
-    name,
-    runtime,
-    connection_string
-  ) VALUES (
-    sqlc.arg('name'),
-    sqlc.arg('runtime'),
-    sqlc.arg('connection_string')
-  ) ON CONFLICT (name, runtime) DO UPDATE 
-  SET 
-    name = EXCLUDED.name,
-    runtime = EXCLUDED.runtime
-  RETURNING id
-)
--- clean up old algorithm associations
-DELETE FROM processor_algorithm
-WHERE processor_id = (
-  SELECT id FROM processor p
-  WHERE p.name = sqlc.arg('name') 
-  AND p.runtime = sqlc.arg('runtime')
-);
-
--- name: AddProcessorAlgorithm :exec
-WITH processor_id AS (
-  SELECT id FROM processor p
-  WHERE p.name = sqlc.arg('processor_name') 
-  AND p.runtime = sqlc.arg('processor_runtime')
-),
-algorithm_id AS (
-  SELECT id FROM algorithm a
-  WHERE a.name = sqlc.arg('algorithm_name') 
-  AND a.version = sqlc.arg('algorithm_version')
-)
-INSERT INTO processor_algorithm (
-  processor_id,
-  algorithm_id
-) VALUES (
-  (SELECT id FROM processor_id),
-  (SELECT id FROM algorithm_id)
-);
 
 -- name: RegisterWindow :one
 WITH window_type_id AS (
