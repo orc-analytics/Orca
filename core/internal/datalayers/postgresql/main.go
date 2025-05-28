@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/predixus/orca/core/internal/dag"
+	types "github.com/predixus/orca/core/internal/types"
 	pb "github.com/predixus/orca/core/protobufs/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,6 +26,18 @@ type Datalayer struct {
 	queries *Queries
 	conn    *pgx.Conn
 	closeFn func(context.Context) error
+}
+
+type PgTx struct {
+	tx pgx.Tx
+}
+
+func (t *PgTx) Rollback(ctx context.Context) {
+	t.tx.Rollback(ctx)
+}
+
+func (t *PgTx) Commit(ctx context.Context) error {
+	return t.tx.Commit(ctx)
 }
 
 // generate a new client for the postgres datalayer
@@ -46,20 +59,25 @@ func NewClient(ctx context.Context, connStr string) (*Datalayer, error) {
 	}, nil
 }
 
-// CreateProcessor add a processor to the Orca server
-func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegistration) error {
-	slog.Debug("creating processor", "protobuf", proc)
-
+func (d *Datalayer) WithTx(ctx context.Context) (types.Tx, error) {
 	tx, err := d.conn.Begin(ctx)
 	if err != nil {
-		slog.Error("could not start transaction when", "error", err)
-		return err
+		slog.Error("could not start transaction", "error", err)
+		return nil, err
 	}
-	defer tx.Rollback(ctx)
-	qtx := d.queries.WithTx(tx)
+	return &PgTx{tx: tx}, nil
+}
 
+func (d *Datalayer) CreateProcessorAndPurgeAlgos(
+	ctx context.Context,
+	tx types.Tx,
+	proc *pb.ProcessorRegistration,
+) error {
+	pgTx := tx.(*PgTx)
+
+	qtx := d.queries.WithTx(pgTx.tx)
 	// register the processor
-	err = qtx.CreateProcessorAndPurgeAlgos(ctx, CreateProcessorAndPurgeAlgosParams{
+	err := qtx.CreateProcessorAndPurgeAlgos(ctx, CreateProcessorAndPurgeAlgosParams{
 		Name:             proc.GetName(),
 		Runtime:          proc.GetRuntime(),
 		ConnectionString: proc.GetConnectionStr(),
@@ -68,86 +86,88 @@ func (d *Datalayer) CreateProcessor(ctx context.Context, proc *pb.ProcessorRegis
 		slog.Error("could not create processor", "error", err)
 		return err
 	}
+	return nil
+}
 
-	// add all algorithms first
-	for _, algo := range proc.GetSupportedAlgorithms() {
-		// add window types
-		window_type := algo.GetWindowType()
-
-		err := qtx.CreateWindowType(ctx, CreateWindowTypeParams{
-			Name:    window_type.Name,
-			Version: window_type.Version,
-		})
-		if err != nil {
-			slog.Error("could not create window type", "error", err)
-		}
-
-		// create algos
-		err = qtx.CreateAlgorithm(ctx,
-			CreateAlgorithmParams{
-				Name:              algo.GetName(),
-				Version:           algo.GetVersion(),
-				ProcessorName:     proc.GetName(),
-				ProcessorRuntime:  proc.GetRuntime(),
-				WindowTypeName:    algo.GetWindowType().GetName(),
-				WindowTypeVersion: algo.GetWindowType().GetVersion(),
-			})
-		if err != nil {
-			slog.Error("error creating algorithm", "error", err)
-			return err
-		}
+func (d *Datalayer) CreateWindowType(
+	ctx context.Context,
+	tx types.Tx,
+	windowType *pb.WindowType,
+) error {
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+	err := qtx.CreateWindowType(ctx, CreateWindowTypeParams{
+		Name:    windowType.Name,
+		Version: windowType.Version,
+	})
+	if err != nil {
+		slog.Error("could not create window type", "error", err)
+		return err
 	}
+	return nil
+}
 
-	// then add the dependencies and associate the processor with all the algos
-	for _, algo := range proc.GetSupportedAlgorithms() {
+func (d *Datalayer) AddAlgorithm(
+	ctx context.Context,
+	tx types.Tx,
+	algo *pb.Algorithm,
+	proc *pb.ProcessorRegistration,
+) error {
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
 
-		dependencies := algo.GetDependencies()
-		for _, algoDependentOn := range dependencies {
-			err := qtx.CreateAlgorithmDependency(ctx, CreateAlgorithmDependencyParams{
-				FromAlgorithmName:    algoDependentOn.GetName(),
-				FromAlgorithmVersion: algoDependentOn.GetVersion(),
-				FromProcessorName:    algoDependentOn.GetProcessorName(),
-				FromProcessorRuntime: algoDependentOn.GetProcessorRuntime(),
-				ToAlgorithmName:      algo.GetName(),
-				ToAlgorithmVersion:   algo.GetVersion(),
-				ToProcessorName:      proc.GetName(),
-				ToProcessorRuntime:   proc.GetRuntime(),
-			})
-			if err != nil {
-				slog.Error(
-					"cloud not create algotrithm dependency",
-					"algorithm",
-					algo,
-					"depends_on",
-					algoDependentOn,
-					"error",
-					err,
-				)
-				return err
-			}
-		}
+	// create algos
+	err := qtx.CreateAlgorithm(ctx,
+		CreateAlgorithmParams{
+			Name:              algo.GetName(),
+			Version:           algo.GetVersion(),
+			ProcessorName:     proc.GetName(),
+			ProcessorRuntime:  proc.GetRuntime(),
+			WindowTypeName:    algo.GetWindowType().GetName(),
+			WindowTypeVersion: algo.GetWindowType().GetVersion(),
+		})
+	if err != nil {
+		slog.Error("error creating algorithm", "error", err)
+		return err
+	}
+	return nil
+}
 
-		err := qtx.AddProcessorAlgorithm(ctx, AddProcessorAlgorithmParams{
-			ProcessorName:    proc.GetName(),
-			ProcessorRuntime: proc.GetRuntime(),
-			AlgorithmName:    algo.GetName(),
-			AlgorithmVersion: algo.GetVersion(),
+func (d *Datalayer) AddOverwriteAlgorithmDependency(
+	ctx context.Context,
+	tx types.Tx,
+	algo *pb.Algorithm,
+	proc *pb.ProcessorRegistration,
+) error {
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+
+	dependencies := algo.GetDependencies()
+	for _, algoDependentOn := range dependencies {
+		err := qtx.CreateAlgorithmDependency(ctx, CreateAlgorithmDependencyParams{
+			FromAlgorithmName:    algoDependentOn.GetName(),
+			FromAlgorithmVersion: algoDependentOn.GetVersion(),
+			FromProcessorName:    algoDependentOn.GetProcessorName(),
+			FromProcessorRuntime: algoDependentOn.GetProcessorRuntime(),
+			ToAlgorithmName:      algo.GetName(),
+			ToAlgorithmVersion:   algo.GetVersion(),
+			ToProcessorName:      proc.GetName(),
+			ToProcessorRuntime:   proc.GetRuntime(),
 		})
 		if err != nil {
 			slog.Error(
-				"could not associate algo with processor",
-				"proc",
-				proc,
-				"algo",
+				"cloud not create algotrithm dependency",
+				"algorithm",
 				algo,
+				"depends_on",
+				algoDependentOn,
 				"error",
 				err,
 			)
 			return err
 		}
 	}
-
-	return tx.Commit(ctx)
+	return nil
 }
 
 func (d *Datalayer) EmitWindow(

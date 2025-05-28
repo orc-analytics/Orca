@@ -187,10 +187,10 @@ message ProcessorRegistration {
   string name = 1 [(buf.validate.field).required = true];
 
   // Language/runtime of the processor
-  // Examples: "python3.9", "go1.19", "R4.1"
+  // Examples: "python3.9", "go1.19", "Rust4.1"
   string runtime = 2 [(buf.validate.field).required = true];
 
-  // The connection string of the orca slave server
+  // The connection string of the processor 
   // e.g. grpc://localhost:5433
   string connection_str = 3 [(buf.validate.field).required = true];
 
