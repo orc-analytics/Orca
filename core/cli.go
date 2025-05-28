@@ -195,7 +195,7 @@ func runCLI(flags cliFlags) {
 	slog.Info("premigration")
 	if flags.migrate {
 		slog.Info("migrating datalayer")
-		err := migrateDatalayer(flags.platform, flags.connStr)
+		err := MigrateDatalayer(flags.platform, flags.connStr)
 		if err != nil {
 			slog.Error("could not migrate the datalayer, exiting", "error", err)
 			os.Exit(1)

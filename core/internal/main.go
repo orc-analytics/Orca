@@ -6,6 +6,7 @@ import (
 
 	"github.com/bufbuild/protovalidate-go"
 	dlyr "github.com/predixus/orca/core/internal/datalayers"
+	types "github.com/predixus/orca/core/internal/types"
 	pb "github.com/predixus/orca/core/protobufs/go"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
@@ -14,7 +15,7 @@ import (
 type (
 	OrcaCoreServer struct {
 		pb.UnimplementedOrcaCoreServer
-		client dlyr.Datalayer
+		client types.Datalayer
 	}
 )
 
@@ -76,8 +77,7 @@ func (o *OrcaCoreServer) RegisterProcessor(
 		return nil, err
 	}
 	slog.Info("registering processor")
-
-	err = o.client.CreateProcessor(context.Background(), proc)
+	err = dlyr.RegisterProcessor(ctx, o.client, proc)
 	if err != nil {
 		return nil, err
 	}

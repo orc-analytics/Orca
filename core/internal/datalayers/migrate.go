@@ -1,4 +1,4 @@
-package main
+package datalayers
 
 import (
 	"embed"
@@ -10,10 +10,10 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-//go:embed datalayer/postgresql/migrations/*.sql
+//go:embed ../../datalayer/postgresql/migrations/*.sql
 var PostgresqlMigrations embed.FS
 
-func migrateDatalayer(platform string, connStr string) error {
+func MigrateDatalayer(platform string, connStr string) error {
 	switch platform {
 	case "postgresql":
 		d, err := iofs.New(PostgresqlMigrations, "datalayer/postgresql/migrations")

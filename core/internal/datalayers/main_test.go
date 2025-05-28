@@ -2,32 +2,35 @@ package datalayers
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	pb "github.com/predixus/orca/core/protobufs/go"
 	"github.com/stretchr/testify/assert"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
 func TestAddAlgorithm(t *testing.T) {
 	ctx := context.Background()
-	connStr := os.Getenv("ORCA_DATABASE_URL")
-	if connStr == "" {
-		t.Error("could not find `ORCA_DATABASE_URL` env var")
-		return
-	}
 
-	dlyr, err := NewClient(ctx, connStr)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	postgresContainer, err := postgres.Run(ctx,
+		"postgres:17-alpine",
+		postgres.WithDatabase("test"),
+		postgres.WithUsername("user"),
+		postgres.WithPassword("password"),
+	)
+	connStr, err := postgresContainer.ConnectionString(ctx)
+
+	assert.NoError(t, err)
+
+	err = root.MigrateDatalayer("postgresql", connStr)
+	assert.NoError(t, err)
+
+	dlyr, err := NewDatalayerClient(ctx, "postgresql", connStr)
+	assert.NoError(t, err)
+
 	tx, err := dlyr.WithTx(ctx)
 	defer tx.Rollback(ctx)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 
 	windowType := pb.WindowType{
 		Name:    "TestWindow",
