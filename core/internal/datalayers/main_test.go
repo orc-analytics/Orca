@@ -207,7 +207,14 @@ func TestCircularDependency(t *testing.T) {
 		&algo2,
 		&proc,
 	)
-	assert.ErrorIs(t, err, types.CircularDependencyFound)
+	var circularError *types.CircularDependencyError
+	assert.ErrorAs(t, err, &circularError)
+	assert.Equal(t, algo1.GetName(), circularError.FromAlgoName)
+	assert.Equal(t, algo2.GetName(), circularError.ToAlgoName)
+	assert.Equal(t, algo1.GetVersion(), circularError.FromAlgoVersion)
+	assert.Equal(t, algo2.GetVersion(), circularError.ToAlgoVersion)
+	assert.Equal(t, proc.GetName(), circularError.FromAlgoProcessor)
+	assert.Equal(t, proc.GetName(), circularError.ToAlgoProcessor)
 }
 
 func TestValidDependenciesBetweenProcessors(t *testing.T) {
