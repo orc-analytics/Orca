@@ -99,11 +99,33 @@ INSERT INTO algorithm_dependency (
     from_processor_id = excluded.from_processor_id,
     to_processor_id = excluded.to_processor_id;
 
--- name: ReadAlgorithmDependencies :many
-SELECT ad.* FROM algorithm_dependency ad WHERE ad.from_algorithm_id = sqlc.arg('algorithm_id');
+-- name: ReadFromAlgorithmDependencies :many
+WITH from_algo AS (
+  SELECT a.id, a.window_type_id, a.processor_id FROM algorithm a
+  JOIN processor p ON a.processor_id = p.id
+  WHERE a.name = sqlc.arg('from_algorithm_name')
+  AND a.version = sqlc.arg('from_algorithm_version')
+  AND p.name = sqlc.arg('from_processor_name')
+  AND p.runtime = sqlc.arg('from_processor_runtime')
+)
+SELECT ad.* FROM algorithm_dependency ad WHERE ad.from_algorithm_id = from_algo.id;
 
+-- name: ReadAlgorithmId :one
+WITH processor_id AS (
+  SELECT p.id FROM processor p
+  WHERE p.name = sqlc.arg('processor_name')
+  AND p.runtime = sqlc.arg('processor_runtime')
+)
+SELECT a.id FROM algorithm a
+WHERE a.name = sqlc.arg('algorithm_name')
+AND a.version = sqlc.arg('algorithm_version')
+AND a.processor_id = (SELECT id from processor_id);
+  
 -- name: ReadAlgorithmExecutionPaths :many
 SELECT aep.* FROM algorithm_execution_paths aep WHERE aep.window_type_id_path ~ ('*.' || sqlc.arg('window_type_id')::TEXT || '.*')::lquery;
+
+-- name: ReadAlgorithmExecutionPathsForAlgo :many
+SELECT aep.* FROM algorithm_execution_paths aep WHERE aep.final_algo_id=sqlc.arg('algo_id');
 
 -- name: RegisterWindow :one
 WITH window_type_id AS (

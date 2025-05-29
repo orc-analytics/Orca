@@ -218,39 +218,6 @@ func (q *Queries) CreateWindowType(ctx context.Context, arg CreateWindowTypePara
 	return err
 }
 
-const readAlgorithmDependencies = `-- name: ReadAlgorithmDependencies :many
-SELECT ad.id, ad.from_algorithm_id, ad.to_algorithm_id, ad.from_window_type_id, ad.to_window_type_id, ad.from_processor_id, ad.to_processor_id, ad.created FROM algorithm_dependency ad WHERE ad.from_algorithm_id = $1
-`
-
-func (q *Queries) ReadAlgorithmDependencies(ctx context.Context, algorithmID int64) ([]AlgorithmDependency, error) {
-	rows, err := q.db.Query(ctx, readAlgorithmDependencies, algorithmID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []AlgorithmDependency
-	for rows.Next() {
-		var i AlgorithmDependency
-		if err := rows.Scan(
-			&i.ID,
-			&i.FromAlgorithmID,
-			&i.ToAlgorithmID,
-			&i.FromWindowTypeID,
-			&i.ToWindowTypeID,
-			&i.FromProcessorID,
-			&i.ToProcessorID,
-			&i.Created,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const readAlgorithmExecutionPaths = `-- name: ReadAlgorithmExecutionPaths :many
 SELECT aep.final_algo_id, aep.num_dependencies, aep.algo_id_path, aep.window_type_id_path, aep.proc_id_path FROM algorithm_execution_paths aep WHERE aep.window_type_id_path ~ ('*.' || $1::TEXT || '.*')::lquery
 `
@@ -279,6 +246,67 @@ func (q *Queries) ReadAlgorithmExecutionPaths(ctx context.Context, windowTypeID 
 		return nil, err
 	}
 	return items, nil
+}
+
+const readAlgorithmExecutionPathsForAlgo = `-- name: ReadAlgorithmExecutionPathsForAlgo :many
+SELECT aep.final_algo_id, aep.num_dependencies, aep.algo_id_path, aep.window_type_id_path, aep.proc_id_path FROM algorithm_execution_paths aep WHERE aep.final_algo_id=$1
+`
+
+func (q *Queries) ReadAlgorithmExecutionPathsForAlgo(ctx context.Context, algoID int64) ([]AlgorithmExecutionPath, error) {
+	rows, err := q.db.Query(ctx, readAlgorithmExecutionPathsForAlgo, algoID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AlgorithmExecutionPath
+	for rows.Next() {
+		var i AlgorithmExecutionPath
+		if err := rows.Scan(
+			&i.FinalAlgoID,
+			&i.NumDependencies,
+			&i.AlgoIDPath,
+			&i.WindowTypeIDPath,
+			&i.ProcIDPath,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const readAlgorithmId = `-- name: ReadAlgorithmId :one
+WITH processor_id AS (
+  SELECT p.id FROM processor p
+  WHERE p.name = $3
+  AND p.runtime = $4
+)
+SELECT a.id FROM algorithm a
+WHERE a.name = $1
+AND a.version = $2
+AND a.processor_id = (SELECT id from processor_id)
+`
+
+type ReadAlgorithmIdParams struct {
+	AlgorithmName    string
+	AlgorithmVersion string
+	ProcessorName    string
+	ProcessorRuntime string
+}
+
+func (q *Queries) ReadAlgorithmId(ctx context.Context, arg ReadAlgorithmIdParams) (int64, error) {
+	row := q.db.QueryRow(ctx, readAlgorithmId,
+		arg.AlgorithmName,
+		arg.AlgorithmVersion,
+		arg.ProcessorName,
+		arg.ProcessorRuntime,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const readAlgorithmsForWindow = `-- name: ReadAlgorithmsForWindow :many
@@ -345,6 +373,59 @@ func (q *Queries) ReadAllProcessors(ctx context.Context) ([]Processor, error) {
 			&i.Name,
 			&i.Runtime,
 			&i.ConnectionString,
+			&i.Created,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const readFromAlgorithmDependencies = `-- name: ReadFromAlgorithmDependencies :many
+WITH from_algo AS (
+  SELECT a.id, a.window_type_id, a.processor_id FROM algorithm a
+  JOIN processor p ON a.processor_id = p.id
+  WHERE a.name = $1
+  AND a.version = $2
+  AND p.name = $3
+  AND p.runtime = $4
+)
+SELECT ad.id, ad.from_algorithm_id, ad.to_algorithm_id, ad.from_window_type_id, ad.to_window_type_id, ad.from_processor_id, ad.to_processor_id, ad.created FROM algorithm_dependency ad WHERE ad.from_algorithm_id = from_algo.id
+`
+
+type ReadFromAlgorithmDependenciesParams struct {
+	FromAlgorithmName    string
+	FromAlgorithmVersion string
+	FromProcessorName    string
+	FromProcessorRuntime string
+}
+
+func (q *Queries) ReadFromAlgorithmDependencies(ctx context.Context, arg ReadFromAlgorithmDependenciesParams) ([]AlgorithmDependency, error) {
+	rows, err := q.db.Query(ctx, readFromAlgorithmDependencies,
+		arg.FromAlgorithmName,
+		arg.FromAlgorithmVersion,
+		arg.FromProcessorName,
+		arg.FromProcessorRuntime,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AlgorithmDependency
+	for rows.Next() {
+		var i AlgorithmDependency
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromAlgorithmID,
+			&i.ToAlgorithmID,
+			&i.FromWindowTypeID,
+			&i.ToWindowTypeID,
+			&i.FromProcessorID,
+			&i.ToProcessorID,
 			&i.Created,
 		); err != nil {
 			return nil, err
