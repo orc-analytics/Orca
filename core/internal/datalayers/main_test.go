@@ -2,6 +2,7 @@ package datalayers
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	pb "github.com/predixus/orca/core/protobufs/go"
@@ -11,7 +12,25 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
-func setupPg(t *testing.T, ctx context.Context) string {
+var (
+	testConnStr string
+	testCtx     context.Context
+)
+
+func TestMain(m *testing.M) {
+	var cleanup func()
+	testCtx = context.Background()
+	testConnStr, cleanup = setupPgOnce(testCtx)
+
+	// Run all tests
+	code := m.Run()
+
+	// Cleanup
+	cleanup()
+	os.Exit(code)
+}
+
+func setupPgOnce(ctx context.Context) (string, func()) {
 	postgresContainer, err := postgres.Run(ctx,
 		"postgres:17-alpine",
 		postgres.WithDatabase("test"),
@@ -20,29 +39,43 @@ func setupPg(t *testing.T, ctx context.Context) string {
 		postgres.BasicWaitStrategies(),
 		postgres.WithSQLDriver("pgx"),
 	)
+	if err != nil {
+		panic("Failed to start postgres container: " + err.Error())
+	}
 
-	assert.NoError(t, err)
 	connStr, err := postgresContainer.ConnectionString(ctx, "sslmode=disable")
-
-	assert.NoError(t, err)
+	if err != nil {
+		panic("Failed to get connection string: " + err.Error())
+	}
 
 	err = MigrateDatalayer("postgresql", connStr)
-	assert.NoError(t, err)
-	return connStr
+	if err != nil {
+		panic("Failed to migrate database: " + err.Error())
+	}
+
+	cleanup := func() {
+		if err := postgresContainer.Terminate(ctx); err != nil {
+			// Log error but don't panic during cleanup
+			println("Failed to terminate postgres container:", err.Error())
+		}
+	}
+
+	return connStr, cleanup
 }
 
-func TestAddAlgorithm(t *testing.T) {
-	ctx := context.Background()
-
-	// TODO - parametrise over datalayers
-	connStr := setupPg(t, ctx)
-
-	dlyr, err := NewDatalayerClient(ctx, "postgresql", connStr)
+func getCleanTx(t *testing.T, ctx context.Context) (types.Datalayer, types.Tx) {
+	dlyr, err := NewDatalayerClient(ctx, "postgresql", testConnStr)
 	assert.NoError(t, err)
 
 	tx, err := dlyr.WithTx(ctx)
-	defer tx.Rollback(ctx)
 	assert.NoError(t, err)
+
+	return dlyr, tx
+}
+
+func TestAddAlgorithm(t *testing.T) {
+	dlyr, tx := getCleanTx(t, testCtx)
+	defer tx.Rollback(testCtx)
 
 	windowType := pb.WindowType{
 		Name:    "TestWindow",
@@ -62,20 +95,20 @@ func TestAddAlgorithm(t *testing.T) {
 	}
 
 	// 1. register a processor
-	err = dlyr.CreateProcessorAndPurgeAlgos(ctx, tx, &proc_1)
+	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc_1)
 	assert.NoError(t, err)
 
 	// 2. register the window type
-	err = dlyr.CreateWindowType(ctx, tx, &windowType)
+	err = dlyr.CreateWindowType(testCtx, tx, &windowType)
 	assert.NoError(t, err)
 
 	// 3. add an algorithm
-	err = dlyr.AddAlgorithm(ctx, tx, &algo, &proc_1)
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo, &proc_1)
 	assert.NoError(t, err)
 
 	// 4. add the same algorithm again
 	// adding the same algorithm again should cause no issues.
-	err = dlyr.AddAlgorithm(ctx, tx, &algo, &proc_1)
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo, &proc_1)
 	assert.NoError(t, err)
 
 	// 5. register a different processor
@@ -85,27 +118,18 @@ func TestAddAlgorithm(t *testing.T) {
 		ConnectionStr:       "Test",
 		SupportedAlgorithms: []*pb.Algorithm{&algo},
 	}
-	err = dlyr.CreateProcessorAndPurgeAlgos(ctx, tx, &proc_2)
+	err = dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc_2)
 	assert.NoError(t, err)
 
 	// 6. register the same algorithm (by name and version), but with a new processor
 	// should have no issues as the algorithm + processor pair is unique
-	err = dlyr.AddAlgorithm(ctx, tx, &algo, &proc_2)
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo, &proc_2)
 	assert.NoError(t, err)
 }
 
 func TestCircularDependency(t *testing.T) {
-	ctx := context.Background()
-
-	// TODO - parametrise over datalayers
-	connStr := setupPg(t, ctx)
-
-	dlyr, err := NewDatalayerClient(ctx, "postgresql", connStr)
-	assert.NoError(t, err)
-
-	tx, err := dlyr.WithTx(ctx)
-	defer tx.Rollback(ctx)
-	assert.NoError(t, err)
+	dlyr, tx := getCleanTx(t, testCtx)
+	defer tx.Rollback(testCtx)
 
 	windowType := pb.WindowType{
 		Name:    "TestWindow",
@@ -132,19 +156,19 @@ func TestCircularDependency(t *testing.T) {
 	}
 
 	// 1. register a processor
-	err = dlyr.CreateProcessorAndPurgeAlgos(ctx, tx, &proc)
+	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc)
 	assert.NoError(t, err)
 
 	// 2. register the window type
-	err = dlyr.CreateWindowType(ctx, tx, &windowType)
+	err = dlyr.CreateWindowType(testCtx, tx, &windowType)
 	assert.NoError(t, err)
 
 	// 3. add an algorithm
-	err = dlyr.AddAlgorithm(ctx, tx, &algo1, &proc)
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo1, &proc)
 	assert.NoError(t, err)
 
 	// 4. add another algorithm
-	err = dlyr.AddAlgorithm(ctx, tx, &algo2, &proc)
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo2, &proc)
 	assert.NoError(t, err)
 
 	// so far so good
@@ -160,7 +184,7 @@ func TestCircularDependency(t *testing.T) {
 	}
 
 	err = dlyr.AddOverwriteAlgorithmDependency(
-		ctx,
+		testCtx,
 		tx,
 		&algo1,
 		&proc,
@@ -178,7 +202,7 @@ func TestCircularDependency(t *testing.T) {
 	}
 
 	err = dlyr.AddOverwriteAlgorithmDependency(
-		ctx,
+		testCtx,
 		tx,
 		&algo2,
 		&proc,
@@ -187,17 +211,8 @@ func TestCircularDependency(t *testing.T) {
 }
 
 func TestValidDependenciesBetweenProcessors(t *testing.T) {
-	ctx := context.Background()
-
-	// TODO - parametrise over datalayers
-	connStr := setupPg(t, ctx)
-	dlyr, err := NewDatalayerClient(ctx, "postgresql", connStr)
-
-	assert.NoError(t, err)
-
-	tx, err := dlyr.WithTx(ctx)
-	defer tx.Rollback(ctx)
-	assert.NoError(t, err)
+	dlyr, tx := getCleanTx(t, testCtx)
+	defer tx.Rollback(testCtx)
 
 	windowType := pb.WindowType{
 		Name:    "TestWindow",
@@ -259,25 +274,25 @@ func TestValidDependenciesBetweenProcessors(t *testing.T) {
 	}
 
 	// 1. register a processor
-	err = dlyr.CreateProcessorAndPurgeAlgos(ctx, tx, &proc)
+	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc)
 	assert.NoError(t, err)
 
 	// 2. register the window type
-	err = dlyr.CreateWindowType(ctx, tx, &windowType)
+	err = dlyr.CreateWindowType(testCtx, tx, &windowType)
 	assert.NoError(t, err)
 
 	// 3. add algorithms
-	err = dlyr.AddAlgorithm(ctx, tx, &algo1, &proc)
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo1, &proc)
 	assert.NoError(t, err)
-	err = dlyr.AddAlgorithm(ctx, tx, &algo2, &proc)
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo2, &proc)
 	assert.NoError(t, err)
-	err = dlyr.AddAlgorithm(ctx, tx, &algo3, &proc)
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo3, &proc)
 	assert.NoError(t, err)
-	err = dlyr.AddAlgorithm(ctx, tx, &algo4, &proc)
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo4, &proc)
 	assert.NoError(t, err)
 
 	err = dlyr.AddOverwriteAlgorithmDependency(
-		ctx,
+		testCtx,
 		tx,
 		&algo3,
 		&proc,
@@ -285,7 +300,7 @@ func TestValidDependenciesBetweenProcessors(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = dlyr.AddOverwriteAlgorithmDependency(
-		ctx,
+		testCtx,
 		tx,
 		&algo4,
 		&proc,
