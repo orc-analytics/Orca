@@ -183,7 +183,14 @@ func (d *Datalayer) AddOverwriteAlgorithmDependency(
 					"to_algo",
 					algo,
 				)
-				return types.CircularDependencyFound
+				return &types.CircularDependencyError{
+					FromAlgoName:      algoDependentOn.GetName(),
+					ToAlgoName:        algo.GetName(),
+					FromAlgoVersion:   algoDependentOn.GetVersion(),
+					ToAlgoVersion:     algo.GetVersion(),
+					FromAlgoProcessor: proc.GetName(),
+					ToAlgoProcessor:   algoDependentOn.GetProcessorName(),
+				}
 			} else {
 				err = qtx.CreateAlgorithmDependency(ctx, CreateAlgorithmDependencyParams{
 					FromAlgorithmName:    algoDependentOn.GetName(),
