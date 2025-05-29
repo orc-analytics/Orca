@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -126,7 +127,6 @@ func (d *Datalayer) AddAlgorithm(
 		WindowTypeVersion: algo.GetWindowType().GetVersion(),
 	}
 	err := qtx.CreateAlgorithm(ctx, params)
-
 	if err != nil {
 		slog.Error("error creating algorithm", "error", err)
 		return err
@@ -142,30 +142,74 @@ func (d *Datalayer) AddOverwriteAlgorithmDependency(
 ) error {
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
-
+	// get algorithm id
+	algoId, err := qtx.ReadAlgorithmId(ctx, ReadAlgorithmIdParams{
+		AlgorithmName:    algo.GetName(),
+		AlgorithmVersion: algo.GetVersion(),
+		ProcessorName:    proc.GetName(),
+		ProcessorRuntime: proc.GetRuntime(),
+	})
+	if err != nil {
+		slog.Error("could not get algorithm ID", "algorithm", algo)
+		return err
+	}
 	dependencies := algo.GetDependencies()
 	for _, algoDependentOn := range dependencies {
-		err := qtx.CreateAlgorithmDependency(ctx, CreateAlgorithmDependencyParams{
-			FromAlgorithmName:    algoDependentOn.GetName(),
-			FromAlgorithmVersion: algoDependentOn.GetVersion(),
-			FromProcessorName:    algoDependentOn.GetProcessorName(),
-			FromProcessorRuntime: algoDependentOn.GetProcessorRuntime(),
-			ToAlgorithmName:      algo.GetName(),
-			ToAlgorithmVersion:   algo.GetVersion(),
-			ToProcessorName:      proc.GetName(),
-			ToProcessorRuntime:   proc.GetRuntime(),
+		// get algorithm id
+		algoDependentOnId, err := qtx.ReadAlgorithmId(ctx, ReadAlgorithmIdParams{
+			AlgorithmName:    algoDependentOn.GetName(),
+			AlgorithmVersion: algoDependentOn.GetVersion(),
+			ProcessorName:    proc.GetName(),
+			ProcessorRuntime: proc.GetRuntime(),
 		})
 		if err != nil {
-			slog.Error(
-				"cloud not create algotrithm dependency",
-				"algorithm",
-				algo,
-				"depends_on",
-				algoDependentOn,
-				"error",
-				err,
-			)
+			slog.Error("could not get algorithm ID of dependant", "algorithm", algoDependentOn)
 			return err
+		}
+
+		// get the algo execution path
+		execPaths, err := qtx.ReadAlgorithmExecutionPathsForAlgo(ctx, algoDependentOnId)
+		if err != nil {
+			slog.Error("could not obtain execution paths", "algorithm_id", algoDependentOnId)
+			return err
+		}
+		for _, algoPath := range execPaths {
+			algoIds := strings.Split(algoPath.AlgoIDPath, ".")
+			if slices.Contains(algoIds, strconv.Itoa(int(algoId))) {
+				slog.Error(
+					"found circular dependency",
+					"from_algo",
+					algoDependentOn,
+					"to_algo",
+					algo,
+				)
+				return types.CircularDependencyFound
+			} else {
+				err = qtx.CreateAlgorithmDependency(ctx, CreateAlgorithmDependencyParams{
+					FromAlgorithmName:    algoDependentOn.GetName(),
+					FromAlgorithmVersion: algoDependentOn.GetVersion(),
+					FromProcessorName:    algoDependentOn.GetProcessorName(),
+					FromProcessorRuntime: algoDependentOn.GetProcessorRuntime(),
+					ToAlgorithmName:      algo.GetName(),
+					ToAlgorithmVersion:   algo.GetVersion(),
+					ToProcessorName:      proc.GetName(),
+					ToProcessorRuntime:   proc.GetRuntime(),
+				})
+				if err != nil {
+					slog.Error(
+						"cloud not create algotrithm dependency",
+						"algorithm",
+						algo,
+						"depends_on",
+						algoDependentOn,
+						"error",
+						err,
+					)
+					return err
+				}
+
+			}
+
 		}
 	}
 	return nil

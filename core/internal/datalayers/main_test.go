@@ -185,3 +185,110 @@ func TestCircularDependency(t *testing.T) {
 	)
 	assert.ErrorIs(t, err, types.CircularDependencyFound)
 }
+
+func TestValidDependenciesBetweenProcessors(t *testing.T) {
+	ctx := context.Background()
+
+	// TODO - parametrise over datalayers
+	connStr := setupPg(t, ctx)
+	dlyr, err := NewDatalayerClient(ctx, "postgresql", connStr)
+
+	assert.NoError(t, err)
+
+	tx, err := dlyr.WithTx(ctx)
+	defer tx.Rollback(ctx)
+	assert.NoError(t, err)
+
+	windowType := pb.WindowType{
+		Name:    "TestWindow",
+		Version: "1.0.0",
+	}
+
+	algo1 := pb.Algorithm{
+		Name:       "TestAlgorithm1",
+		Version:    "1.0.0",
+		WindowType: &windowType,
+	}
+	algo2 := pb.Algorithm{
+		Name:       "TestAlgorithm2",
+		Version:    "1.0.0",
+		WindowType: &windowType,
+	}
+
+	algo3 := pb.Algorithm{
+		Name:       "TestAlgorithm3",
+		Version:    "1.0.0",
+		WindowType: &windowType,
+	}
+
+	algo4 := pb.Algorithm{
+		Name:       "TestAlgorithm4",
+		Version:    "1.0.0",
+		WindowType: &windowType,
+	}
+
+	proc := pb.ProcessorRegistration{
+		Name:                "TestProcessor",
+		Runtime:             "Test",
+		ConnectionStr:       "Test",
+		SupportedAlgorithms: []*pb.Algorithm{&algo1, &algo2},
+	}
+
+	algo3.Dependencies = []*pb.AlgorithmDependency{
+		{
+			Name:             algo1.Name,
+			Version:          algo1.Version,
+			ProcessorName:    proc.GetName(),
+			ProcessorRuntime: proc.GetRuntime(),
+		},
+		{
+			Name:             algo2.Name,
+			Version:          algo2.Version,
+			ProcessorName:    proc.GetName(),
+			ProcessorRuntime: proc.GetRuntime(),
+		},
+	}
+
+	algo4.Dependencies = []*pb.AlgorithmDependency{
+		{
+			Name:             algo3.Name,
+			Version:          algo3.Version,
+			ProcessorName:    proc.GetName(),
+			ProcessorRuntime: proc.GetRuntime(),
+		},
+	}
+
+	// 1. register a processor
+	err = dlyr.CreateProcessorAndPurgeAlgos(ctx, tx, &proc)
+	assert.NoError(t, err)
+
+	// 2. register the window type
+	err = dlyr.CreateWindowType(ctx, tx, &windowType)
+	assert.NoError(t, err)
+
+	// 3. add algorithms
+	err = dlyr.AddAlgorithm(ctx, tx, &algo1, &proc)
+	assert.NoError(t, err)
+	err = dlyr.AddAlgorithm(ctx, tx, &algo2, &proc)
+	assert.NoError(t, err)
+	err = dlyr.AddAlgorithm(ctx, tx, &algo3, &proc)
+	assert.NoError(t, err)
+	err = dlyr.AddAlgorithm(ctx, tx, &algo4, &proc)
+	assert.NoError(t, err)
+
+	err = dlyr.AddOverwriteAlgorithmDependency(
+		ctx,
+		tx,
+		&algo3,
+		&proc,
+	)
+	assert.NoError(t, err)
+
+	err = dlyr.AddOverwriteAlgorithmDependency(
+		ctx,
+		tx,
+		&algo4,
+		&proc,
+	)
+	assert.NoError(t, err)
+}
