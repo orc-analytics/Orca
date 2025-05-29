@@ -314,3 +314,55 @@ func TestValidDependenciesBetweenProcessors(t *testing.T) {
 	)
 	assert.NoError(t, err)
 }
+
+func TestAlgosSameNamesDifferentProcessors(t *testing.T) {
+	dlyr, tx := getCleanTx(t, testCtx)
+	defer tx.Rollback(testCtx)
+
+	windowType := pb.WindowType{
+		Name:    "TestWindow",
+		Version: "1.0.0",
+	}
+
+	algo1 := pb.Algorithm{
+		Name:       "TestAlgorithm",
+		Version:    "1.0.0",
+		WindowType: &windowType,
+	}
+
+	algo2 := pb.Algorithm{
+		Name:       "TestAlgorithm",
+		Version:    "1.0.0",
+		WindowType: &windowType,
+	}
+
+	proc1 := pb.ProcessorRegistration{
+		Name:                "TestProcessor1",
+		Runtime:             "TestRuntime1",
+		ConnectionStr:       "Test",
+		SupportedAlgorithms: []*pb.Algorithm{&algo1},
+	}
+
+	proc2 := pb.ProcessorRegistration{
+		Name:                "TestProcessor2",
+		Runtime:             "TestRuntime2",
+		ConnectionStr:       "Test",
+		SupportedAlgorithms: []*pb.Algorithm{&algo2},
+	}
+
+	// 1. register the processors
+	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc1)
+	assert.NoError(t, err)
+	err = dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc2)
+	assert.NoError(t, err)
+
+	// 2. register the window type
+	err = dlyr.CreateWindowType(testCtx, tx, &windowType)
+	assert.NoError(t, err)
+
+	// 3. add algorithms
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo1, &proc1)
+	assert.NoError(t, err)
+	err = dlyr.AddAlgorithm(testCtx, tx, &algo2, &proc2)
+	assert.NoError(t, err)
+}
