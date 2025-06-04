@@ -43,17 +43,17 @@ class OrcaCoreStub(object):
         self.RegisterWindowType = channel.unary_unary(
                 '/OrcaCore/RegisterWindowType',
                 request_serializer=service__pb2.WindowRegistration.SerializeToString,
-                response_deserializer=service__pb2.Status.FromString,
+                response_deserializer=service__pb2.WindowTypeRegResponse.FromString,
                 _registered_method=True)
         self.RegisterProcessor = channel.unary_unary(
                 '/OrcaCore/RegisterProcessor',
                 request_serializer=service__pb2.ProcessorRegistration.SerializeToString,
-                response_deserializer=service__pb2.Status.FromString,
+                response_deserializer=service__pb2.ProcRegResponse.FromString,
                 _registered_method=True)
         self.EmitWindow = channel.unary_unary(
                 '/OrcaCore/EmitWindow',
                 request_serializer=service__pb2.Window.SerializeToString,
-                response_deserializer=service__pb2.WindowEmitStatus.FromString,
+                response_deserializer=service__pb2.WindowEmitResponse.FromString,
                 _registered_method=True)
 
 
@@ -93,17 +93,17 @@ def add_OrcaCoreServicer_to_server(servicer, server):
             'RegisterWindowType': grpc.unary_unary_rpc_method_handler(
                     servicer.RegisterWindowType,
                     request_deserializer=service__pb2.WindowRegistration.FromString,
-                    response_serializer=service__pb2.Status.SerializeToString,
+                    response_serializer=service__pb2.WindowTypeRegResponse.SerializeToString,
             ),
             'RegisterProcessor': grpc.unary_unary_rpc_method_handler(
                     servicer.RegisterProcessor,
                     request_deserializer=service__pb2.ProcessorRegistration.FromString,
-                    response_serializer=service__pb2.Status.SerializeToString,
+                    response_serializer=service__pb2.ProcRegResponse.SerializeToString,
             ),
             'EmitWindow': grpc.unary_unary_rpc_method_handler(
                     servicer.EmitWindow,
                     request_deserializer=service__pb2.Window.FromString,
-                    response_serializer=service__pb2.WindowEmitStatus.SerializeToString,
+                    response_serializer=service__pb2.WindowEmitResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -138,7 +138,7 @@ class OrcaCore(object):
             target,
             '/OrcaCore/RegisterWindowType',
             service__pb2.WindowRegistration.SerializeToString,
-            service__pb2.Status.FromString,
+            service__pb2.WindowTypeRegResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -165,7 +165,7 @@ class OrcaCore(object):
             target,
             '/OrcaCore/RegisterProcessor',
             service__pb2.ProcessorRegistration.SerializeToString,
-            service__pb2.Status.FromString,
+            service__pb2.ProcRegResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -192,7 +192,7 @@ class OrcaCore(object):
             target,
             '/OrcaCore/EmitWindow',
             service__pb2.Window.SerializeToString,
-            service__pb2.WindowEmitStatus.FromString,
+            service__pb2.WindowEmitResponse.FromString,
             options,
             channel_credentials,
             insecure,

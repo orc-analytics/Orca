@@ -130,56 +130,56 @@ func (DataGetterResult_Status) EnumDescriptor() ([]byte, []int) {
 }
 
 // A status enum that captures scenarios regarding a window being emmited
-type WindowEmitStatus_StatusEnum int32
+type WindowEmitResponse_StatusEnum int32
 
 const (
 	// When no algorithms could be found that are triggered by this window
-	WindowEmitStatus_NO_TRIGGERED_ALGORITHMS WindowEmitStatus_StatusEnum = 0
+	WindowEmitResponse_NO_TRIGGERED_ALGORITHMS WindowEmitResponse_StatusEnum = 0
 	// When processing has successfully been triggered
-	WindowEmitStatus_PROCESSING_TRIGGERED WindowEmitStatus_StatusEnum = 1
+	WindowEmitResponse_PROCESSING_TRIGGERED WindowEmitResponse_StatusEnum = 1
 	// When triggering has failed
-	WindowEmitStatus_TRIGGERING_FAILED WindowEmitStatus_StatusEnum = 2
+	WindowEmitResponse_TRIGGERING_FAILED WindowEmitResponse_StatusEnum = 2
 )
 
-// Enum value maps for WindowEmitStatus_StatusEnum.
+// Enum value maps for WindowEmitResponse_StatusEnum.
 var (
-	WindowEmitStatus_StatusEnum_name = map[int32]string{
+	WindowEmitResponse_StatusEnum_name = map[int32]string{
 		0: "NO_TRIGGERED_ALGORITHMS",
 		1: "PROCESSING_TRIGGERED",
 		2: "TRIGGERING_FAILED",
 	}
-	WindowEmitStatus_StatusEnum_value = map[string]int32{
+	WindowEmitResponse_StatusEnum_value = map[string]int32{
 		"NO_TRIGGERED_ALGORITHMS": 0,
 		"PROCESSING_TRIGGERED":    1,
 		"TRIGGERING_FAILED":       2,
 	}
 )
 
-func (x WindowEmitStatus_StatusEnum) Enum() *WindowEmitStatus_StatusEnum {
-	p := new(WindowEmitStatus_StatusEnum)
+func (x WindowEmitResponse_StatusEnum) Enum() *WindowEmitResponse_StatusEnum {
+	p := new(WindowEmitResponse_StatusEnum)
 	*p = x
 	return p
 }
 
-func (x WindowEmitStatus_StatusEnum) String() string {
+func (x WindowEmitResponse_StatusEnum) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (WindowEmitStatus_StatusEnum) Descriptor() protoreflect.EnumDescriptor {
+func (WindowEmitResponse_StatusEnum) Descriptor() protoreflect.EnumDescriptor {
 	return file_service_proto_enumTypes[2].Descriptor()
 }
 
-func (WindowEmitStatus_StatusEnum) Type() protoreflect.EnumType {
+func (WindowEmitResponse_StatusEnum) Type() protoreflect.EnumType {
 	return &file_service_proto_enumTypes[2]
 }
 
-func (x WindowEmitStatus_StatusEnum) Number() protoreflect.EnumNumber {
+func (x WindowEmitResponse_StatusEnum) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use WindowEmitStatus_StatusEnum.Descriptor instead.
-func (WindowEmitStatus_StatusEnum) EnumDescriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{8, 0}
+// Deprecated: Use WindowEmitResponse_StatusEnum.Descriptor instead.
+func (WindowEmitResponse_StatusEnum) EnumDescriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{10, 0}
 }
 
 // Overall health status of the processor
@@ -236,7 +236,7 @@ func (x HealthCheckResponse_Status) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use HealthCheckResponse_Status.Descriptor instead.
 func (HealthCheckResponse_Status) EnumDescriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{20, 0}
+	return file_service_proto_rawDescGZIP(), []int{21, 0}
 }
 
 // DataGetter defines a function that accepts a Window and returns some binary data
@@ -833,27 +833,27 @@ func (x *WindowType) GetVersion() string {
 	return ""
 }
 
-type WindowEmitStatus struct {
-	state         protoimpl.MessageState      `protogen:"open.v1"`
-	Status        WindowEmitStatus_StatusEnum `protobuf:"varint,1,opt,name=status,proto3,enum=WindowEmitStatus_StatusEnum" json:"status,omitempty"`
+// response message when windows types are registered
+type WindowTypeRegResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *WindowEmitStatus) Reset() {
-	*x = WindowEmitStatus{}
+func (x *WindowTypeRegResponse) Reset() {
+	*x = WindowTypeRegResponse{}
 	mi := &file_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *WindowEmitStatus) String() string {
+func (x *WindowTypeRegResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WindowEmitStatus) ProtoMessage() {}
+func (*WindowTypeRegResponse) ProtoMessage() {}
 
-func (x *WindowEmitStatus) ProtoReflect() protoreflect.Message {
+func (x *WindowTypeRegResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -865,16 +865,91 @@ func (x *WindowEmitStatus) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WindowEmitStatus.ProtoReflect.Descriptor instead.
-func (*WindowEmitStatus) Descriptor() ([]byte, []int) {
+// Deprecated: Use WindowTypeRegResponse.ProtoReflect.Descriptor instead.
+func (*WindowTypeRegResponse) Descriptor() ([]byte, []int) {
 	return file_service_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *WindowEmitStatus) GetStatus() WindowEmitStatus_StatusEnum {
+// response message when a processor is registered
+type ProcRegResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProcRegResponse) Reset() {
+	*x = ProcRegResponse{}
+	mi := &file_service_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProcRegResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProcRegResponse) ProtoMessage() {}
+
+func (x *ProcRegResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProcRegResponse.ProtoReflect.Descriptor instead.
+func (*ProcRegResponse) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{9}
+}
+
+// response message when windows are emitted
+type WindowEmitResponse struct {
+	state         protoimpl.MessageState        `protogen:"open.v1"`
+	Status        WindowEmitResponse_StatusEnum `protobuf:"varint,1,opt,name=status,proto3,enum=WindowEmitResponse_StatusEnum" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WindowEmitResponse) Reset() {
+	*x = WindowEmitResponse{}
+	mi := &file_service_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WindowEmitResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WindowEmitResponse) ProtoMessage() {}
+
+func (x *WindowEmitResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WindowEmitResponse.ProtoReflect.Descriptor instead.
+func (*WindowEmitResponse) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *WindowEmitResponse) GetStatus() WindowEmitResponse_StatusEnum {
 	if x != nil {
 		return x.Status
 	}
-	return WindowEmitStatus_NO_TRIGGERED_ALGORITHMS
+	return WindowEmitResponse_NO_TRIGGERED_ALGORITHMS
 }
 
 // AlgorithmDependency defines a requirement that one algorithm has on another's results.
@@ -897,7 +972,7 @@ type AlgorithmDependency struct {
 
 func (x *AlgorithmDependency) Reset() {
 	*x = AlgorithmDependency{}
-	mi := &file_service_proto_msgTypes[9]
+	mi := &file_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -909,7 +984,7 @@ func (x *AlgorithmDependency) String() string {
 func (*AlgorithmDependency) ProtoMessage() {}
 
 func (x *AlgorithmDependency) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[9]
+	mi := &file_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -922,7 +997,7 @@ func (x *AlgorithmDependency) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlgorithmDependency.ProtoReflect.Descriptor instead.
 func (*AlgorithmDependency) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{9}
+	return file_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *AlgorithmDependency) GetName() string {
@@ -978,7 +1053,7 @@ type Algorithm struct {
 
 func (x *Algorithm) Reset() {
 	*x = Algorithm{}
-	mi := &file_service_proto_msgTypes[10]
+	mi := &file_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -990,7 +1065,7 @@ func (x *Algorithm) String() string {
 func (*Algorithm) ProtoMessage() {}
 
 func (x *Algorithm) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[10]
+	mi := &file_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1003,7 +1078,7 @@ func (x *Algorithm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Algorithm.ProtoReflect.Descriptor instead.
 func (*Algorithm) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{10}
+	return file_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Algorithm) GetName() string {
@@ -1051,7 +1126,7 @@ type FloatArray struct {
 
 func (x *FloatArray) Reset() {
 	*x = FloatArray{}
-	mi := &file_service_proto_msgTypes[11]
+	mi := &file_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1063,7 +1138,7 @@ func (x *FloatArray) String() string {
 func (*FloatArray) ProtoMessage() {}
 
 func (x *FloatArray) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[11]
+	mi := &file_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1076,7 +1151,7 @@ func (x *FloatArray) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FloatArray.ProtoReflect.Descriptor instead.
 func (*FloatArray) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{11}
+	return file_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *FloatArray) GetValues() []float32 {
@@ -1107,7 +1182,7 @@ type Result struct {
 
 func (x *Result) Reset() {
 	*x = Result{}
-	mi := &file_service_proto_msgTypes[12]
+	mi := &file_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1119,7 +1194,7 @@ func (x *Result) String() string {
 func (*Result) ProtoMessage() {}
 
 func (x *Result) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[12]
+	mi := &file_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1132,7 +1207,7 @@ func (x *Result) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Result.ProtoReflect.Descriptor instead.
 func (*Result) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{12}
+	return file_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *Result) GetStatus() ResultStatus {
@@ -1220,7 +1295,7 @@ type WindowRegistration struct {
 
 func (x *WindowRegistration) Reset() {
 	*x = WindowRegistration{}
-	mi := &file_service_proto_msgTypes[13]
+	mi := &file_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1232,7 +1307,7 @@ func (x *WindowRegistration) String() string {
 func (*WindowRegistration) ProtoMessage() {}
 
 func (x *WindowRegistration) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[13]
+	mi := &file_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1245,7 +1320,7 @@ func (x *WindowRegistration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WindowRegistration.ProtoReflect.Descriptor instead.
 func (*WindowRegistration) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{13}
+	return file_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *WindowRegistration) GetWindowType() *WindowType {
@@ -1279,7 +1354,7 @@ type ProcessorRegistration struct {
 
 func (x *ProcessorRegistration) Reset() {
 	*x = ProcessorRegistration{}
-	mi := &file_service_proto_msgTypes[14]
+	mi := &file_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1291,7 +1366,7 @@ func (x *ProcessorRegistration) String() string {
 func (*ProcessorRegistration) ProtoMessage() {}
 
 func (x *ProcessorRegistration) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[14]
+	mi := &file_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1304,7 +1379,7 @@ func (x *ProcessorRegistration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessorRegistration.ProtoReflect.Descriptor instead.
 func (*ProcessorRegistration) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{14}
+	return file_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ProcessorRegistration) GetName() string {
@@ -1369,7 +1444,7 @@ type ExecutionRequest struct {
 
 func (x *ExecutionRequest) Reset() {
 	*x = ExecutionRequest{}
-	mi := &file_service_proto_msgTypes[15]
+	mi := &file_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1381,7 +1456,7 @@ func (x *ExecutionRequest) String() string {
 func (*ExecutionRequest) ProtoMessage() {}
 
 func (x *ExecutionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[15]
+	mi := &file_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1394,7 +1469,7 @@ func (x *ExecutionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecutionRequest.ProtoReflect.Descriptor instead.
 func (*ExecutionRequest) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{15}
+	return file_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ExecutionRequest) GetExecId() string {
@@ -1444,7 +1519,7 @@ type ExecutionResult struct {
 
 func (x *ExecutionResult) Reset() {
 	*x = ExecutionResult{}
-	mi := &file_service_proto_msgTypes[16]
+	mi := &file_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1456,7 +1531,7 @@ func (x *ExecutionResult) String() string {
 func (*ExecutionResult) ProtoMessage() {}
 
 func (x *ExecutionResult) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[16]
+	mi := &file_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1469,7 +1544,7 @@ func (x *ExecutionResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecutionResult.ProtoReflect.Descriptor instead.
 func (*ExecutionResult) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{16}
+	return file_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ExecutionResult) GetExecId() string {
@@ -1497,7 +1572,7 @@ type AlgorithmResult struct {
 
 func (x *AlgorithmResult) Reset() {
 	*x = AlgorithmResult{}
-	mi := &file_service_proto_msgTypes[17]
+	mi := &file_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1509,7 +1584,7 @@ func (x *AlgorithmResult) String() string {
 func (*AlgorithmResult) ProtoMessage() {}
 
 func (x *AlgorithmResult) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[17]
+	mi := &file_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1522,7 +1597,7 @@ func (x *AlgorithmResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlgorithmResult.ProtoReflect.Descriptor instead.
 func (*AlgorithmResult) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{17}
+	return file_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *AlgorithmResult) GetAlgorithm() *Algorithm {
@@ -1539,58 +1614,6 @@ func (x *AlgorithmResult) GetResult() *Result {
 	return nil
 }
 
-type Status struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Received      bool                   `protobuf:"varint,1,opt,name=received,proto3" json:"received,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Status) Reset() {
-	*x = Status{}
-	mi := &file_service_proto_msgTypes[18]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Status) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Status) ProtoMessage() {}
-
-func (x *Status) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[18]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Status.ProtoReflect.Descriptor instead.
-func (*Status) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{18}
-}
-
-func (x *Status) GetReceived() bool {
-	if x != nil {
-		return x.Received
-	}
-	return false
-}
-
-func (x *Status) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
 // HealthCheckRequest is sent to processors to verify they are functioning
 type HealthCheckRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1603,7 +1626,7 @@ type HealthCheckRequest struct {
 
 func (x *HealthCheckRequest) Reset() {
 	*x = HealthCheckRequest{}
-	mi := &file_service_proto_msgTypes[19]
+	mi := &file_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1615,7 +1638,7 @@ func (x *HealthCheckRequest) String() string {
 func (*HealthCheckRequest) ProtoMessage() {}
 
 func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[19]
+	mi := &file_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1628,7 +1651,7 @@ func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthCheckRequest.ProtoReflect.Descriptor instead.
 func (*HealthCheckRequest) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{19}
+	return file_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *HealthCheckRequest) GetTimestamp() int64 {
@@ -1653,7 +1676,7 @@ type HealthCheckResponse struct {
 
 func (x *HealthCheckResponse) Reset() {
 	*x = HealthCheckResponse{}
-	mi := &file_service_proto_msgTypes[20]
+	mi := &file_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1665,7 +1688,7 @@ func (x *HealthCheckResponse) String() string {
 func (*HealthCheckResponse) ProtoMessage() {}
 
 func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[20]
+	mi := &file_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1678,7 +1701,7 @@ func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthCheckResponse.ProtoReflect.Descriptor instead.
 func (*HealthCheckResponse) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{20}
+	return file_service_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *HealthCheckResponse) GetStatus() HealthCheckResponse_Status {
@@ -1719,7 +1742,7 @@ type ProcessorMetrics struct {
 
 func (x *ProcessorMetrics) Reset() {
 	*x = ProcessorMetrics{}
-	mi := &file_service_proto_msgTypes[21]
+	mi := &file_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1731,7 +1754,7 @@ func (x *ProcessorMetrics) String() string {
 func (*ProcessorMetrics) ProtoMessage() {}
 
 func (x *ProcessorMetrics) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[21]
+	mi := &file_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1744,7 +1767,7 @@ func (x *ProcessorMetrics) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessorMetrics.ProtoReflect.Descriptor instead.
 func (*ProcessorMetrics) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{21}
+	return file_service_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ProcessorMetrics) GetActiveTasks() int32 {
@@ -1888,10 +1911,13 @@ var file_service_proto_rawDesc = string([]byte{
 	0x20, 0x01, 0x28, 0x09, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x04, 0x6e, 0x61,
 	0x6d, 0x65, 0x12, 0x20, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20,
 	0x01, 0x28, 0x09, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x07, 0x76, 0x65, 0x72,
-	0x73, 0x69, 0x6f, 0x6e, 0x22, 0xac, 0x01, 0x0a, 0x10, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x45,
-	0x6d, 0x69, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x3c, 0x0a, 0x06, 0x73, 0x74, 0x61,
-	0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1c, 0x2e, 0x57, 0x69, 0x6e, 0x64,
-	0x6f, 0x77, 0x45, 0x6d, 0x69, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x53, 0x74, 0x61,
+	0x73, 0x69, 0x6f, 0x6e, 0x22, 0x17, 0x0a, 0x15, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x54, 0x79,
+	0x70, 0x65, 0x52, 0x65, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x11, 0x0a,
+	0x0f, 0x50, 0x72, 0x6f, 0x63, 0x52, 0x65, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0xb0, 0x01, 0x0a, 0x12, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x45, 0x6d, 0x69, 0x74, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3e, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75,
+	0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1e, 0x2e, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77,
+	0x45, 0x6d, 0x69, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x53, 0x74, 0x61,
 	0x74, 0x75, 0x73, 0x45, 0x6e, 0x75, 0x6d, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52,
 	0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x22, 0x5a, 0x0a, 0x0a, 0x53, 0x74, 0x61, 0x74, 0x75,
 	0x73, 0x45, 0x6e, 0x75, 0x6d, 0x12, 0x1b, 0x0a, 0x17, 0x4e, 0x4f, 0x5f, 0x54, 0x52, 0x49, 0x47,
@@ -1999,11 +2025,7 @@ var file_service_proto_rawDesc = string([]byte{
 	0x01, 0x01, 0x52, 0x09, 0x61, 0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x12, 0x27, 0x0a,
 	0x06, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x07, 0x2e,
 	0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x06,
-	0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x22, 0x3e, 0x0a, 0x06, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73,
-	0x12, 0x1a, 0x0a, 0x08, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x64, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x08, 0x52, 0x08, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x64, 0x12, 0x18, 0x0a, 0x07,
-	0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d,
-	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x3a, 0x0a, 0x12, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68,
+	0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x22, 0x3a, 0x0a, 0x12, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68,
 	0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x24, 0x0a, 0x09,
 	0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x42,
 	0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61,
@@ -2040,32 +2062,34 @@ var file_service_proto_rawDesc = string([]byte{
 	0x54, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x55, 0x4e, 0x48, 0x41, 0x4e, 0x44, 0x4c,
 	0x45, 0x44, 0x5f, 0x46, 0x41, 0x49, 0x4c, 0x45, 0x44, 0x10, 0x01, 0x12, 0x1a, 0x0a, 0x16, 0x52,
 	0x45, 0x53, 0x55, 0x4c, 0x54, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x53, 0x55, 0x43,
-	0x45, 0x45, 0x44, 0x45, 0x44, 0x10, 0x02, 0x32, 0x9e, 0x01, 0x0a, 0x08, 0x4f, 0x72, 0x63, 0x61,
-	0x43, 0x6f, 0x72, 0x65, 0x12, 0x32, 0x0a, 0x12, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72,
+	0x45, 0x45, 0x44, 0x45, 0x44, 0x10, 0x02, 0x32, 0xb8, 0x01, 0x0a, 0x08, 0x4f, 0x72, 0x63, 0x61,
+	0x43, 0x6f, 0x72, 0x65, 0x12, 0x41, 0x0a, 0x12, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72,
 	0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x54, 0x79, 0x70, 0x65, 0x12, 0x13, 0x2e, 0x57, 0x69, 0x6e,
 	0x64, 0x6f, 0x77, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x1a,
-	0x07, 0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x34, 0x0a, 0x11, 0x52, 0x65, 0x67, 0x69,
-	0x73, 0x74, 0x65, 0x72, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x6f, 0x72, 0x12, 0x16, 0x2e,
-	0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x6f, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72,
-	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x1a, 0x07, 0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x28,
-	0x0a, 0x0a, 0x45, 0x6d, 0x69, 0x74, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x12, 0x07, 0x2e, 0x57,
-	0x69, 0x6e, 0x64, 0x6f, 0x77, 0x1a, 0x11, 0x2e, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x45, 0x6d,
-	0x69, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x32, 0xc4, 0x01, 0x0a, 0x0d, 0x4f, 0x72, 0x63,
-	0x61, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x6f, 0x72, 0x12, 0x37, 0x0a, 0x0e, 0x45, 0x78,
-	0x65, 0x63, 0x75, 0x74, 0x65, 0x44, 0x61, 0x67, 0x50, 0x61, 0x72, 0x74, 0x12, 0x11, 0x2e, 0x45,
-	0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x10, 0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x75, 0x6c,
-	0x74, 0x30, 0x01, 0x12, 0x38, 0x0a, 0x0b, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65,
-	0x63, 0x6b, 0x12, 0x13, 0x2e, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65, 0x63, 0x6b,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x14, 0x2e, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68,
-	0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x40, 0x0a,
-	0x11, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x65, 0x44, 0x61, 0x74, 0x61, 0x47, 0x65, 0x74, 0x74,
-	0x65, 0x72, 0x12, 0x18, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x47, 0x65, 0x74, 0x74, 0x65, 0x72, 0x45,
-	0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x61, 0x73, 0x6b, 0x1a, 0x11, 0x2e, 0x44,
-	0x61, 0x74, 0x61, 0x47, 0x65, 0x74, 0x74, 0x65, 0x72, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x42,
-	0x27, 0x5a, 0x25, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x72,
-	0x65, 0x64, 0x69, 0x78, 0x75, 0x73, 0x2f, 0x6f, 0x72, 0x63, 0x61, 0x2f, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x62, 0x75, 0x66, 0x73, 0x2f, 0x67, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x16, 0x2e, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x54, 0x79, 0x70, 0x65, 0x52, 0x65, 0x67, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3d, 0x0a, 0x11, 0x52, 0x65, 0x67, 0x69, 0x73,
+	0x74, 0x65, 0x72, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x6f, 0x72, 0x12, 0x16, 0x2e, 0x50,
+	0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x6f, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x1a, 0x10, 0x2e, 0x50, 0x72, 0x6f, 0x63, 0x52, 0x65, 0x67, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2a, 0x0a, 0x0a, 0x45, 0x6d, 0x69, 0x74, 0x57, 0x69,
+	0x6e, 0x64, 0x6f, 0x77, 0x12, 0x07, 0x2e, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x1a, 0x13, 0x2e,
+	0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x45, 0x6d, 0x69, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x32, 0xc4, 0x01, 0x0a, 0x0d, 0x4f, 0x72, 0x63, 0x61, 0x50, 0x72, 0x6f, 0x63, 0x65,
+	0x73, 0x73, 0x6f, 0x72, 0x12, 0x37, 0x0a, 0x0e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x65, 0x44,
+	0x61, 0x67, 0x50, 0x61, 0x72, 0x74, 0x12, 0x11, 0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69,
+	0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x10, 0x2e, 0x45, 0x78, 0x65, 0x63,
+	0x75, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x30, 0x01, 0x12, 0x38, 0x0a,
+	0x0b, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x12, 0x13, 0x2e, 0x48,
+	0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x14, 0x2e, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x40, 0x0a, 0x11, 0x45, 0x78, 0x65, 0x63, 0x75,
+	0x74, 0x65, 0x44, 0x61, 0x74, 0x61, 0x47, 0x65, 0x74, 0x74, 0x65, 0x72, 0x12, 0x18, 0x2e, 0x44,
+	0x61, 0x74, 0x61, 0x47, 0x65, 0x74, 0x74, 0x65, 0x72, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69,
+	0x6f, 0x6e, 0x54, 0x61, 0x73, 0x6b, 0x1a, 0x11, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x47, 0x65, 0x74,
+	0x74, 0x65, 0x72, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x42, 0x27, 0x5a, 0x25, 0x67, 0x69, 0x74,
+	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x72, 0x65, 0x64, 0x69, 0x78, 0x75, 0x73,
+	0x2f, 0x6f, 0x72, 0x63, 0x61, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x73, 0x2f,
+	0x67, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -2081,35 +2105,36 @@ func file_service_proto_rawDescGZIP() []byte {
 }
 
 var file_service_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_service_proto_goTypes = []any{
-	(ResultStatus)(0),                // 0: ResultStatus
-	(DataGetterResult_Status)(0),     // 1: DataGetterResult.Status
-	(WindowEmitStatus_StatusEnum)(0), // 2: WindowEmitStatus.StatusEnum
-	(HealthCheckResponse_Status)(0),  // 3: HealthCheckResponse.Status
-	(*DataGetter)(nil),               // 4: DataGetter
-	(*DataGetterDependency)(nil),     // 5: DataGetterDependency
-	(*CacheConnectionInfo)(nil),      // 6: CacheConnectionInfo
-	(*DataGetterExecutionTask)(nil),  // 7: DataGetterExecutionTask
-	(*DataGetterResult)(nil),         // 8: DataGetterResult
-	(*CachedDataReference)(nil),      // 9: CachedDataReference
-	(*Window)(nil),                   // 10: Window
-	(*WindowType)(nil),               // 11: WindowType
-	(*WindowEmitStatus)(nil),         // 12: WindowEmitStatus
-	(*AlgorithmDependency)(nil),      // 13: AlgorithmDependency
-	(*Algorithm)(nil),                // 14: Algorithm
-	(*FloatArray)(nil),               // 15: FloatArray
-	(*Result)(nil),                   // 16: Result
-	(*WindowRegistration)(nil),       // 17: WindowRegistration
-	(*ProcessorRegistration)(nil),    // 18: ProcessorRegistration
-	(*ExecutionRequest)(nil),         // 19: ExecutionRequest
-	(*ExecutionResult)(nil),          // 20: ExecutionResult
-	(*AlgorithmResult)(nil),          // 21: AlgorithmResult
-	(*Status)(nil),                   // 22: Status
-	(*HealthCheckRequest)(nil),       // 23: HealthCheckRequest
-	(*HealthCheckResponse)(nil),      // 24: HealthCheckResponse
-	(*ProcessorMetrics)(nil),         // 25: ProcessorMetrics
-	(*structpb.Struct)(nil),          // 26: google.protobuf.Struct
+	(ResultStatus)(0),                  // 0: ResultStatus
+	(DataGetterResult_Status)(0),       // 1: DataGetterResult.Status
+	(WindowEmitResponse_StatusEnum)(0), // 2: WindowEmitResponse.StatusEnum
+	(HealthCheckResponse_Status)(0),    // 3: HealthCheckResponse.Status
+	(*DataGetter)(nil),                 // 4: DataGetter
+	(*DataGetterDependency)(nil),       // 5: DataGetterDependency
+	(*CacheConnectionInfo)(nil),        // 6: CacheConnectionInfo
+	(*DataGetterExecutionTask)(nil),    // 7: DataGetterExecutionTask
+	(*DataGetterResult)(nil),           // 8: DataGetterResult
+	(*CachedDataReference)(nil),        // 9: CachedDataReference
+	(*Window)(nil),                     // 10: Window
+	(*WindowType)(nil),                 // 11: WindowType
+	(*WindowTypeRegResponse)(nil),      // 12: WindowTypeRegResponse
+	(*ProcRegResponse)(nil),            // 13: ProcRegResponse
+	(*WindowEmitResponse)(nil),         // 14: WindowEmitResponse
+	(*AlgorithmDependency)(nil),        // 15: AlgorithmDependency
+	(*Algorithm)(nil),                  // 16: Algorithm
+	(*FloatArray)(nil),                 // 17: FloatArray
+	(*Result)(nil),                     // 18: Result
+	(*WindowRegistration)(nil),         // 19: WindowRegistration
+	(*ProcessorRegistration)(nil),      // 20: ProcessorRegistration
+	(*ExecutionRequest)(nil),           // 21: ExecutionRequest
+	(*ExecutionResult)(nil),            // 22: ExecutionResult
+	(*AlgorithmResult)(nil),            // 23: AlgorithmResult
+	(*HealthCheckRequest)(nil),         // 24: HealthCheckRequest
+	(*HealthCheckResponse)(nil),        // 25: HealthCheckResponse
+	(*ProcessorMetrics)(nil),           // 26: ProcessorMetrics
+	(*structpb.Struct)(nil),            // 27: google.protobuf.Struct
 }
 var file_service_proto_depIdxs = []int32{
 	11, // 0: DataGetter.window_type:type_name -> WindowType
@@ -2119,38 +2144,38 @@ var file_service_proto_depIdxs = []int32{
 	6,  // 4: DataGetterExecutionTask.cache_info:type_name -> CacheConnectionInfo
 	1,  // 5: DataGetterResult.status:type_name -> DataGetterResult.Status
 	6,  // 6: CachedDataReference.cache_info:type_name -> CacheConnectionInfo
-	26, // 7: Window.metadata:type_name -> google.protobuf.Struct
-	2,  // 8: WindowEmitStatus.status:type_name -> WindowEmitStatus.StatusEnum
+	27, // 7: Window.metadata:type_name -> google.protobuf.Struct
+	2,  // 8: WindowEmitResponse.status:type_name -> WindowEmitResponse.StatusEnum
 	11, // 9: Algorithm.window_type:type_name -> WindowType
-	13, // 10: Algorithm.dependencies:type_name -> AlgorithmDependency
+	15, // 10: Algorithm.dependencies:type_name -> AlgorithmDependency
 	5,  // 11: Algorithm.required_data_getters:type_name -> DataGetterDependency
 	0,  // 12: Result.status:type_name -> ResultStatus
-	15, // 13: Result.float_values:type_name -> FloatArray
-	26, // 14: Result.struct_value:type_name -> google.protobuf.Struct
+	17, // 13: Result.float_values:type_name -> FloatArray
+	27, // 14: Result.struct_value:type_name -> google.protobuf.Struct
 	11, // 15: WindowRegistration.window_type:type_name -> WindowType
 	11, // 16: ProcessorRegistration.window_type:type_name -> WindowType
 	4,  // 17: ProcessorRegistration.data_getters:type_name -> DataGetter
-	14, // 18: ProcessorRegistration.supported_algorithms:type_name -> Algorithm
+	16, // 18: ProcessorRegistration.supported_algorithms:type_name -> Algorithm
 	10, // 19: ExecutionRequest.window:type_name -> Window
-	21, // 20: ExecutionRequest.algorithm_results:type_name -> AlgorithmResult
-	14, // 21: ExecutionRequest.algorithms:type_name -> Algorithm
+	23, // 20: ExecutionRequest.algorithm_results:type_name -> AlgorithmResult
+	16, // 21: ExecutionRequest.algorithms:type_name -> Algorithm
 	9,  // 22: ExecutionRequest.cached_data:type_name -> CachedDataReference
-	21, // 23: ExecutionResult.algorithm_result:type_name -> AlgorithmResult
-	14, // 24: AlgorithmResult.algorithm:type_name -> Algorithm
-	16, // 25: AlgorithmResult.result:type_name -> Result
+	23, // 23: ExecutionResult.algorithm_result:type_name -> AlgorithmResult
+	16, // 24: AlgorithmResult.algorithm:type_name -> Algorithm
+	18, // 25: AlgorithmResult.result:type_name -> Result
 	3,  // 26: HealthCheckResponse.status:type_name -> HealthCheckResponse.Status
-	25, // 27: HealthCheckResponse.metrics:type_name -> ProcessorMetrics
-	17, // 28: OrcaCore.RegisterWindowType:input_type -> WindowRegistration
-	18, // 29: OrcaCore.RegisterProcessor:input_type -> ProcessorRegistration
+	26, // 27: HealthCheckResponse.metrics:type_name -> ProcessorMetrics
+	19, // 28: OrcaCore.RegisterWindowType:input_type -> WindowRegistration
+	20, // 29: OrcaCore.RegisterProcessor:input_type -> ProcessorRegistration
 	10, // 30: OrcaCore.EmitWindow:input_type -> Window
-	19, // 31: OrcaProcessor.ExecuteDagPart:input_type -> ExecutionRequest
-	23, // 32: OrcaProcessor.HealthCheck:input_type -> HealthCheckRequest
+	21, // 31: OrcaProcessor.ExecuteDagPart:input_type -> ExecutionRequest
+	24, // 32: OrcaProcessor.HealthCheck:input_type -> HealthCheckRequest
 	7,  // 33: OrcaProcessor.ExecuteDataGetter:input_type -> DataGetterExecutionTask
-	22, // 34: OrcaCore.RegisterWindowType:output_type -> Status
-	22, // 35: OrcaCore.RegisterProcessor:output_type -> Status
-	12, // 36: OrcaCore.EmitWindow:output_type -> WindowEmitStatus
-	20, // 37: OrcaProcessor.ExecuteDagPart:output_type -> ExecutionResult
-	24, // 38: OrcaProcessor.HealthCheck:output_type -> HealthCheckResponse
+	12, // 34: OrcaCore.RegisterWindowType:output_type -> WindowTypeRegResponse
+	13, // 35: OrcaCore.RegisterProcessor:output_type -> ProcRegResponse
+	14, // 36: OrcaCore.EmitWindow:output_type -> WindowEmitResponse
+	22, // 37: OrcaProcessor.ExecuteDagPart:output_type -> ExecutionResult
+	25, // 38: OrcaProcessor.HealthCheck:output_type -> HealthCheckResponse
 	8,  // 39: OrcaProcessor.ExecuteDataGetter:output_type -> DataGetterResult
 	34, // [34:40] is the sub-list for method output_type
 	28, // [28:34] is the sub-list for method input_type
@@ -2164,7 +2189,7 @@ func file_service_proto_init() {
 	if File_service_proto != nil {
 		return
 	}
-	file_service_proto_msgTypes[12].OneofWrappers = []any{
+	file_service_proto_msgTypes[14].OneofWrappers = []any{
 		(*Result_SingleValue)(nil),
 		(*Result_FloatValues)(nil),
 		(*Result_StructValue)(nil),
@@ -2175,7 +2200,7 @@ func file_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_service_proto_rawDesc), len(file_service_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   22,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

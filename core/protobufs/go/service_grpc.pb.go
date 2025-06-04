@@ -36,11 +36,11 @@ const (
 // - Manages data getter caching and lifecycle
 type OrcaCoreClient interface {
 	// Register a window type with the orca service
-	RegisterWindowType(ctx context.Context, in *WindowRegistration, opts ...grpc.CallOption) (*Status, error)
+	RegisterWindowType(ctx context.Context, in *WindowRegistration, opts ...grpc.CallOption) (*WindowTypeRegResponse, error)
 	// Register a processor node and its supported algorithms
-	RegisterProcessor(ctx context.Context, in *ProcessorRegistration, opts ...grpc.CallOption) (*Status, error)
+	RegisterProcessor(ctx context.Context, in *ProcessorRegistration, opts ...grpc.CallOption) (*ProcRegResponse, error)
 	// Submit a window for processing
-	EmitWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*WindowEmitStatus, error)
+	EmitWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*WindowEmitResponse, error)
 }
 
 type orcaCoreClient struct {
@@ -51,9 +51,9 @@ func NewOrcaCoreClient(cc grpc.ClientConnInterface) OrcaCoreClient {
 	return &orcaCoreClient{cc}
 }
 
-func (c *orcaCoreClient) RegisterWindowType(ctx context.Context, in *WindowRegistration, opts ...grpc.CallOption) (*Status, error) {
+func (c *orcaCoreClient) RegisterWindowType(ctx context.Context, in *WindowRegistration, opts ...grpc.CallOption) (*WindowTypeRegResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Status)
+	out := new(WindowTypeRegResponse)
 	err := c.cc.Invoke(ctx, OrcaCore_RegisterWindowType_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -61,9 +61,9 @@ func (c *orcaCoreClient) RegisterWindowType(ctx context.Context, in *WindowRegis
 	return out, nil
 }
 
-func (c *orcaCoreClient) RegisterProcessor(ctx context.Context, in *ProcessorRegistration, opts ...grpc.CallOption) (*Status, error) {
+func (c *orcaCoreClient) RegisterProcessor(ctx context.Context, in *ProcessorRegistration, opts ...grpc.CallOption) (*ProcRegResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Status)
+	out := new(ProcRegResponse)
 	err := c.cc.Invoke(ctx, OrcaCore_RegisterProcessor_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -71,9 +71,9 @@ func (c *orcaCoreClient) RegisterProcessor(ctx context.Context, in *ProcessorReg
 	return out, nil
 }
 
-func (c *orcaCoreClient) EmitWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*WindowEmitStatus, error) {
+func (c *orcaCoreClient) EmitWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*WindowEmitResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WindowEmitStatus)
+	out := new(WindowEmitResponse)
 	err := c.cc.Invoke(ctx, OrcaCore_EmitWindow_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -93,11 +93,11 @@ func (c *orcaCoreClient) EmitWindow(ctx context.Context, in *Window, opts ...grp
 // - Manages data getter caching and lifecycle
 type OrcaCoreServer interface {
 	// Register a window type with the orca service
-	RegisterWindowType(context.Context, *WindowRegistration) (*Status, error)
+	RegisterWindowType(context.Context, *WindowRegistration) (*WindowTypeRegResponse, error)
 	// Register a processor node and its supported algorithms
-	RegisterProcessor(context.Context, *ProcessorRegistration) (*Status, error)
+	RegisterProcessor(context.Context, *ProcessorRegistration) (*ProcRegResponse, error)
 	// Submit a window for processing
-	EmitWindow(context.Context, *Window) (*WindowEmitStatus, error)
+	EmitWindow(context.Context, *Window) (*WindowEmitResponse, error)
 	mustEmbedUnimplementedOrcaCoreServer()
 }
 
@@ -108,13 +108,13 @@ type OrcaCoreServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrcaCoreServer struct{}
 
-func (UnimplementedOrcaCoreServer) RegisterWindowType(context.Context, *WindowRegistration) (*Status, error) {
+func (UnimplementedOrcaCoreServer) RegisterWindowType(context.Context, *WindowRegistration) (*WindowTypeRegResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterWindowType not implemented")
 }
-func (UnimplementedOrcaCoreServer) RegisterProcessor(context.Context, *ProcessorRegistration) (*Status, error) {
+func (UnimplementedOrcaCoreServer) RegisterProcessor(context.Context, *ProcessorRegistration) (*ProcRegResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterProcessor not implemented")
 }
-func (UnimplementedOrcaCoreServer) EmitWindow(context.Context, *Window) (*WindowEmitStatus, error) {
+func (UnimplementedOrcaCoreServer) EmitWindow(context.Context, *Window) (*WindowEmitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EmitWindow not implemented")
 }
 func (UnimplementedOrcaCoreServer) mustEmbedUnimplementedOrcaCoreServer() {}

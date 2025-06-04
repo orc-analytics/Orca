@@ -121,19 +121,27 @@ class WindowType(_message.Message):
     version: str
     def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ...) -> None: ...
 
-class WindowEmitStatus(_message.Message):
+class WindowTypeRegResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class ProcRegResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class WindowEmitResponse(_message.Message):
     __slots__ = ("status",)
     class StatusEnum(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
-        NO_TRIGGERED_ALGORITHMS: _ClassVar[WindowEmitStatus.StatusEnum]
-        PROCESSING_TRIGGERED: _ClassVar[WindowEmitStatus.StatusEnum]
-        TRIGGERING_FAILED: _ClassVar[WindowEmitStatus.StatusEnum]
-    NO_TRIGGERED_ALGORITHMS: WindowEmitStatus.StatusEnum
-    PROCESSING_TRIGGERED: WindowEmitStatus.StatusEnum
-    TRIGGERING_FAILED: WindowEmitStatus.StatusEnum
+        NO_TRIGGERED_ALGORITHMS: _ClassVar[WindowEmitResponse.StatusEnum]
+        PROCESSING_TRIGGERED: _ClassVar[WindowEmitResponse.StatusEnum]
+        TRIGGERING_FAILED: _ClassVar[WindowEmitResponse.StatusEnum]
+    NO_TRIGGERED_ALGORITHMS: WindowEmitResponse.StatusEnum
+    PROCESSING_TRIGGERED: WindowEmitResponse.StatusEnum
+    TRIGGERING_FAILED: WindowEmitResponse.StatusEnum
     STATUS_FIELD_NUMBER: _ClassVar[int]
-    status: WindowEmitStatus.StatusEnum
-    def __init__(self, status: _Optional[_Union[WindowEmitStatus.StatusEnum, str]] = ...) -> None: ...
+    status: WindowEmitResponse.StatusEnum
+    def __init__(self, status: _Optional[_Union[WindowEmitResponse.StatusEnum, str]] = ...) -> None: ...
 
 class AlgorithmDependency(_message.Message):
     __slots__ = ("name", "version", "processor_name", "processor_runtime")
@@ -232,14 +240,6 @@ class AlgorithmResult(_message.Message):
     algorithm: Algorithm
     result: Result
     def __init__(self, algorithm: _Optional[_Union[Algorithm, _Mapping]] = ..., result: _Optional[_Union[Result, _Mapping]] = ...) -> None: ...
-
-class Status(_message.Message):
-    __slots__ = ("received", "message")
-    RECEIVED_FIELD_NUMBER: _ClassVar[int]
-    MESSAGE_FIELD_NUMBER: _ClassVar[int]
-    received: bool
-    message: str
-    def __init__(self, received: bool = ..., message: _Optional[str] = ...) -> None: ...
 
 class HealthCheckRequest(_message.Message):
     __slots__ = ("timestamp",)

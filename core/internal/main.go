@@ -57,7 +57,7 @@ func validate[T proto.Message](msg T) error {
 	return nil
 }
 
-// Register a window type with Orca Core
+// Orca gRPC server implementations
 func (o *OrcaCoreServer) RegisterWindowType(
 	ctx context.Context,
 	w *pb.WindowRegistration,
@@ -67,11 +67,27 @@ func (o *OrcaCoreServer) RegisterWindowType(
 		return nil, err
 	}
 	slog.Info("registering window type")
-	err = dlyr.RegisterWindowType(ctx, o.client, w)
+
+	tx, err := o.client.WithTx(ctx)
+	if err != nil {
+		slog.Error("could not start a transaction", "error", err)
+		return nil, err
+	}
+
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
+
+	err = o.client.CreateWindowType(ctx, tx, w.GetWindowType())
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	slog.Info("Registered window")
+	return &pb.Status{
+		Received: true,
+	}, tx.Commit(ctx)
 }
 
 // Register a processor with orca-core. Called when a processor startsup.
@@ -84,15 +100,75 @@ func (o *OrcaCoreServer) RegisterProcessor(
 		return nil, err
 	}
 	slog.Info("registering processor")
-	err = dlyr.RegisterProcessor(ctx, o.client, proc)
+
+	tx, err := o.client.WithTx(ctx)
 	if err != nil {
+		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
+
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
+
+	// register/refresh the processor
+	err = o.client.RefreshProcessor(ctx, tx, proc)
+	if err != nil {
+		slog.Error("could not create processor", "error", err)
+		return nil, err
+	}
+
+	// add all algorithms first
+	for _, algo := range proc.GetSupportedAlgorithms() {
+		// create algos
+		err = o.client.AddAlgorithm(ctx, tx, algo, proc)
+		if err != nil {
+			slog.Error("error creating algorithm", "error", err)
+			return nil, err
+		}
+	}
+
+	// then add the dependencies and associate the processor with all the algos
+	for _, algo := range proc.GetSupportedAlgorithms() {
+
+		dependencies := algo.GetDependencies()
+		for _, algoDependentOn := range dependencies {
+			err := o.client.AddOverwriteAlgorithmDependency(
+				ctx,
+				tx,
+				algo,
+				proc,
+			)
+			if err != nil {
+				slog.Error(
+					"could not create algotrithm dependency",
+					"algorithm",
+					algo,
+					"depends_on",
+					algoDependentOn,
+					"error",
+					err,
+				)
+				return nil, err
+			}
+		}
+	}
+
+	// then add datagetters
+	for _, dg := range proc.GetDataGetters() {
+		err := o.client.AddOverwriteDataGetter(ctx, tx, dg, proc)
+		if err != nil {
+			slog.Error("could not create data getter", "data getter", dg, "error", err)
+		}
+		return nil, err
+	}
+
 	slog.Debug("registered processor", "processor", proc)
 	return &pb.Status{
 		Received: true,
-		Message:  "Successfully registered processor",
-	}, nil
+	}, tx.Commit(ctx)
 }
 
 func (o *OrcaCoreServer) EmitWindow(

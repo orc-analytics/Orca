@@ -14,13 +14,13 @@ import "vendor/validate.proto";
 // - Manages data getter caching and lifecycle
 service OrcaCore {
   // Register a window type with the orca service
-  rpc RegisterWindowType(WindowRegistration) returns (Status);
+  rpc RegisterWindowType(WindowRegistration) returns (WindowTypeRegResponse); 
 
   // Register a processor node and its supported algorithms
-  rpc RegisterProcessor(ProcessorRegistration) returns (Status);
+  rpc RegisterProcessor(ProcessorRegistration) returns (ProcRegResponse);
 
   // Submit a window for processing
-  rpc EmitWindow(Window) returns (WindowEmitStatus);
+  rpc EmitWindow(Window) returns (WindowEmitResponse);
 }
 
 // OrcaProcessor defines the interface that each processing node must implement.
@@ -191,7 +191,14 @@ message WindowType {
   string version = 2 [(buf.validate.field).required=true];
 }
 
-message WindowEmitStatus {
+// response message when windows types are registered
+message WindowTypeRegResponse {}
+
+// response message when a processor is registered
+message ProcRegResponse {}
+
+// response message when windows are emitted
+message WindowEmitResponse{
 
   // A status enum that captures scenarios regarding a window being emmited
   enum StatusEnum {
@@ -355,10 +362,6 @@ message AlgorithmResult {
   Result result = 2 [(buf.validate.field).required=true];
 }
 
-message Status {
-  bool received = 1;
-  string message = 2;
-}
 
 // HealthCheckRequest is sent to processors to verify they are functioning
 message HealthCheckRequest {
