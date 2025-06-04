@@ -33,6 +33,11 @@ type (
 			algo *pb.Algorithm,
 			proc *pb.ProcessorRegistration,
 		) error
+		AddOverwriteDataGetter(
+			ctx context.Context,
+			tx Tx,
+			proc *pb.ProcessorRegistration,
+		) error
 		EmitWindow(ctx context.Context, window *pb.Window) (pb.WindowEmitStatus, error)
 	}
 )

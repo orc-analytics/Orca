@@ -146,6 +146,11 @@ INSERT INTO windows (
 ) RETURNING window_type_id, id;
 
 -- name: CreateDataGetter :one
+WITH processor_id AS (
+  SELECT id FROM processor p
+  WHERE p.name = sqlc.arg('processor_name') 
+  AND p.runtime = sqlc.arg('processor_runtime')
+)
 INSERT INTO data_getters (
   processor_id,
   name,
@@ -153,7 +158,7 @@ INSERT INTO data_getters (
   ttl_seconds,
   max_size_bytes
 ) VALUES (
-  sqlc.arg('processor_id'),
+  (SELECT id FROM processor_id),
   sqlc.arg('name'),
   sqlc.arg('window_type_id'),
   sqlc.arg('ttl_seconds'),

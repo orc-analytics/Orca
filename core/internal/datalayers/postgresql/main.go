@@ -73,7 +73,7 @@ func (d *Datalayer) CreateProcessorAndPurgeAlgos(
 	ctx context.Context,
 	tx types.Tx,
 	proc *pb.ProcessorRegistration,
-) error {
+) (int, error) {
 	pgTx := tx.(*PgTx)
 
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -219,6 +219,28 @@ func (d *Datalayer) AddOverwriteAlgorithmDependency(
 
 		}
 	}
+	return nil
+}
+
+func (d *Datalayer) AddOverwriteDataGetter(
+	ctx context.Context,
+	tx types.Tx,
+	proc *pb.ProcessorRegistration,
+) error {
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+
+
+  qtx.CreateDataGetter(ctx, CreateDataGetterParams{
+    
+	Name             string
+	WindowTypeID     int64
+	TtlSeconds       int64
+	MaxSizeBytes     int64
+	ProcessorName    string
+	ProcessorRuntime string
+  })
+
 	return nil
 }
 

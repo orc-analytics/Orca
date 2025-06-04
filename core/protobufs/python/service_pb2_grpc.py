@@ -31,6 +31,7 @@ class OrcaCoreStub(object):
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
+    - Manages data getter caching and lifecycle
     """
 
     def __init__(self, channel):
@@ -57,6 +58,7 @@ class OrcaCoreServicer(object):
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
+    - Manages data getter caching and lifecycle
     """
 
     def RegisterProcessor(self, request, context):
@@ -100,6 +102,7 @@ class OrcaCore(object):
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
+    - Manages data getter caching and lifecycle
     """
 
     @staticmethod
@@ -182,6 +185,11 @@ class OrcaProcessorStub(object):
                 request_serializer=service__pb2.HealthCheckRequest.SerializeToString,
                 response_deserializer=service__pb2.HealthCheckResponse.FromString,
                 _registered_method=True)
+        self.ExecuteDataGetter = channel.unary_unary(
+                '/OrcaProcessor/ExecuteDataGetter',
+                request_serializer=service__pb2.DataGetterExecutionTask.SerializeToString,
+                response_deserializer=service__pb2.DataGetterResult.FromString,
+                _registered_method=True)
 
 
 class OrcaProcessorServicer(object):
@@ -208,6 +216,13 @@ class OrcaProcessorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ExecuteDataGetter(self, request, context):
+        """Execute a data getter and store results in cache
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_OrcaProcessorServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -220,6 +235,11 @@ def add_OrcaProcessorServicer_to_server(servicer, server):
                     servicer.HealthCheck,
                     request_deserializer=service__pb2.HealthCheckRequest.FromString,
                     response_serializer=service__pb2.HealthCheckResponse.SerializeToString,
+            ),
+            'ExecuteDataGetter': grpc.unary_unary_rpc_method_handler(
+                    servicer.ExecuteDataGetter,
+                    request_deserializer=service__pb2.DataGetterExecutionTask.FromString,
+                    response_serializer=service__pb2.DataGetterResult.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -282,6 +302,33 @@ class OrcaProcessor(object):
             '/OrcaProcessor/HealthCheck',
             service__pb2.HealthCheckRequest.SerializeToString,
             service__pb2.HealthCheckResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ExecuteDataGetter(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrcaProcessor/ExecuteDataGetter',
+            service__pb2.DataGetterExecutionTask.SerializeToString,
+            service__pb2.DataGetterResult.FromString,
             options,
             channel_credentials,
             insecure,

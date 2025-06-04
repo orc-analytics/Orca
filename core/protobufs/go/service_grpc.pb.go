@@ -32,6 +32,7 @@ const (
 // - Coordinates algorithm execution across distributed processors
 // - Tracks DAG dependencies and execution state
 // - Routes results between dependent algorithms
+// - Manages data getter caching and lifecycle
 type OrcaCoreClient interface {
 	// Register a processor node and its supported algorithms
 	RegisterProcessor(ctx context.Context, in *ProcessorRegistration, opts ...grpc.CallOption) (*Status, error)
@@ -76,6 +77,7 @@ func (c *orcaCoreClient) EmitWindow(ctx context.Context, in *Window, opts ...grp
 // - Coordinates algorithm execution across distributed processors
 // - Tracks DAG dependencies and execution state
 // - Routes results between dependent algorithms
+// - Manages data getter caching and lifecycle
 type OrcaCoreServer interface {
 	// Register a processor node and its supported algorithms
 	RegisterProcessor(context.Context, *ProcessorRegistration) (*Status, error)
@@ -175,8 +177,9 @@ var OrcaCore_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	OrcaProcessor_ExecuteDagPart_FullMethodName = "/OrcaProcessor/ExecuteDagPart"
-	OrcaProcessor_HealthCheck_FullMethodName    = "/OrcaProcessor/HealthCheck"
+	OrcaProcessor_ExecuteDagPart_FullMethodName    = "/OrcaProcessor/ExecuteDagPart"
+	OrcaProcessor_HealthCheck_FullMethodName       = "/OrcaProcessor/HealthCheck"
+	OrcaProcessor_ExecuteDataGetter_FullMethodName = "/OrcaProcessor/ExecuteDataGetter"
 )
 
 // OrcaProcessorClient is the client API for OrcaProcessor service.
@@ -195,6 +198,8 @@ type OrcaProcessorClient interface {
 	ExecuteDagPart(ctx context.Context, in *ExecutionRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ExecutionResult], error)
 	// Check health/status of processor. i.e. a heartbeat
 	HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error)
+	// Execute a data getter and store results in cache
+	ExecuteDataGetter(ctx context.Context, in *DataGetterExecutionTask, opts ...grpc.CallOption) (*DataGetterResult, error)
 }
 
 type orcaProcessorClient struct {
@@ -234,6 +239,16 @@ func (c *orcaProcessorClient) HealthCheck(ctx context.Context, in *HealthCheckRe
 	return out, nil
 }
 
+func (c *orcaProcessorClient) ExecuteDataGetter(ctx context.Context, in *DataGetterExecutionTask, opts ...grpc.CallOption) (*DataGetterResult, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DataGetterResult)
+	err := c.cc.Invoke(ctx, OrcaProcessor_ExecuteDataGetter_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrcaProcessorServer is the server API for OrcaProcessor service.
 // All implementations must embed UnimplementedOrcaProcessorServer
 // for forward compatibility.
@@ -250,6 +265,8 @@ type OrcaProcessorServer interface {
 	ExecuteDagPart(*ExecutionRequest, grpc.ServerStreamingServer[ExecutionResult]) error
 	// Check health/status of processor. i.e. a heartbeat
 	HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
+	// Execute a data getter and store results in cache
+	ExecuteDataGetter(context.Context, *DataGetterExecutionTask) (*DataGetterResult, error)
 	mustEmbedUnimplementedOrcaProcessorServer()
 }
 
@@ -265,6 +282,9 @@ func (UnimplementedOrcaProcessorServer) ExecuteDagPart(*ExecutionRequest, grpc.S
 }
 func (UnimplementedOrcaProcessorServer) HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HealthCheck not implemented")
+}
+func (UnimplementedOrcaProcessorServer) ExecuteDataGetter(context.Context, *DataGetterExecutionTask) (*DataGetterResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExecuteDataGetter not implemented")
 }
 func (UnimplementedOrcaProcessorServer) mustEmbedUnimplementedOrcaProcessorServer() {}
 func (UnimplementedOrcaProcessorServer) testEmbeddedByValue()                       {}
@@ -316,6 +336,24 @@ func _OrcaProcessor_HealthCheck_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrcaProcessor_ExecuteDataGetter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DataGetterExecutionTask)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaProcessorServer).ExecuteDataGetter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaProcessor_ExecuteDataGetter_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaProcessorServer).ExecuteDataGetter(ctx, req.(*DataGetterExecutionTask))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrcaProcessor_ServiceDesc is the grpc.ServiceDesc for OrcaProcessor service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -326,6 +364,10 @@ var OrcaProcessor_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "HealthCheck",
 			Handler:    _OrcaProcessor_HealthCheck_Handler,
+		},
+		{
+			MethodName: "ExecuteDataGetter",
+			Handler:    _OrcaProcessor_ExecuteDataGetter_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -166,7 +166,7 @@ message Window {
   // Additional metadata specific to this instance of `WindowType`.
   // E.g. Asset information
   // Must be provided as an arbitrary struct
-  google.protobuf.Struct metadata = 4;
+  google.protobuf.Struct metadata = 6;
 }
 
 // WindowType defines a category of window that can trigger algorithms.
