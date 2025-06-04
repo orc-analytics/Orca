@@ -11,13 +11,13 @@ import "vendor/validate.proto";
 // - Coordinates algorithm execution across distributed processors
 // - Tracks DAG dependencies and execution state
 // - Routes results between dependent algorithms
+// - Manages data getter caching and lifecycle
 service OrcaCore {
   // Register a processor node and its supported algorithms
   rpc RegisterProcessor(ProcessorRegistration) returns (Status);
 
   // Submit a window for processing
   rpc EmitWindow(Window) returns (WindowEmitStatus);
-
 }
 
 // OrcaProcessor defines the interface that each processing node must implement.
@@ -33,9 +33,109 @@ service OrcaProcessor {
 
   // Check health/status of processor. i.e. a heartbeat
   rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+  
+  // Execute a data getter and store results in cache
+  rpc ExecuteDataGetter(DataGetterExecutionTask) returns (DataGetterResult);
 }
 
-// Window represents a time-bounded processing context that triggers algorithm execution. Windows are the primary input that start DAG processing flows.
+// Cache configuration for data getters
+message DataGetterCacheConfig {
+  // TTL for cache entries in seconds (0 = no expiration - default)
+  int32 ttl_seconds = 1;
+
+  // Maximum size of cached data in bytes (0 = no limit - default)
+  int64 max_size_bytes = 2;
+}
+
+// DataGetter defines a function that accepts a Window and returns some binary data
+// that is consumed by algorithms.
+message DataGetter {
+  // The name of the data getter - must be unique within a processor
+  string name = 1 [(buf.validate.field).required = true];
+
+  // The window type that this data getter is triggered by
+  WindowType window_type = 2 [(buf.validate.field).required = true];
+
+  // Cache configuration for this data getter
+  DataGetterCacheConfig cache_config = 3;
+}
+
+
+// Cache connection information
+message CacheConnectionInfo {
+  // Cache type (i.e. one of: "redis")
+  string cache_type = 1 [(buf.validate.field).required = true];
+
+  // Connection string (e.g., "redis://localhost:6379")
+  string connection_string = 2 [(buf.validate.field).required = true];
+}
+
+// Task sent to processor to execute a data getter and cache the results
+message DataGetterExecutionTask {
+  // Unique execution ID
+  string execution_id = 1 [(buf.validate.field).required = true];
+
+  // Window context for the data getter
+  Window window = 2 [(buf.validate.field).required = true];
+
+  // Data getter to execute
+  DataGetter data_getter = 3 [(buf.validate.field).required = true];
+
+  // Cache key to store results under
+  string cache_key = 4 [(buf.validate.field).required = true];
+
+  // Cache connection information
+  CacheConnectionInfo cache_info = 5 [(buf.validate.field).required = true];
+}
+
+// Result of data getter execution
+message DataGetterResult {
+  // Execution ID
+  string execution_id = 1 [(buf.validate.field).required = true];
+
+  // Status of execution
+  enum Status {
+    SUCCESS = 0;
+    FAILED = 1;
+    CACHE_STORE_FAILED = 2;
+  }
+  Status status = 2 [(buf.validate.field).required = true];
+
+  // Cache key where data was stored if successful
+  string cache_key = 3;
+
+  // Size of cached data in bytes
+  int64 data_size_bytes = 4;
+
+  // Error message if failed
+  string error_message = 5;
+
+  // Timestamp when completed
+  int64 timestamp = 6 [(buf.validate.field).required = true];
+}
+
+
+// Reference to cached data for algorithms
+message CachedDataReference {
+  // Name of the data getter that produced this data
+  string data_getter_name = 1 [(buf.validate.field).required = true];
+
+  // Cache key where the data is stored
+  string cache_key = 2 [(buf.validate.field).required = true];
+
+  // Cache connection info
+  CacheConnectionInfo cache_info = 3 [(buf.validate.field).required = true];
+
+  // Timestamp when data was cached
+  int64 cached_timestamp = 4;
+
+  // Size of cached data
+  int64 data_size_bytes = 5;
+}
+
+
+// Window represents a time-bounded processing context that triggers algorithm execution.
+// Windows are the primary input that start DAG processing flows.
 message Window {
   // Time that the window starts - nanoseconds since epoch
   // Required: Must be > 0 and < to
@@ -63,11 +163,15 @@ message Window {
   string origin = 5 [(buf.validate.field).required = true];
 
   option (buf.validate.message).cel = {
-      id: "window.time_to",
-      message: "`time_to` must be greater than or equal to `time_from`",
-      expression: "this.time_to >= this.time_from",
-    };
+    id: "window.time_to",
+    message: "`time_to` must be greater than or equal to `time_from`",
+    expression: "this.time_to >= this.time_from",
+  };
 
+  // Additional metadata specific to this instance of `WindowType`.
+  // E.g. Asset information
+  // Must be provided as an arbitrary struct
+  google.protobuf.Struct metadata = 4;
 }
 
 // WindowType defines a category of window that can trigger algorithms.
@@ -135,6 +239,9 @@ message Algorithm {
   // The algorithm won't execute until all dependencies have completed
   // Dependencies must not form cycles - this is statically checked on processor registration
   repeated AlgorithmDependency dependencies = 4;
+
+  // Required datagetters for this algorithm to run
+  repeated string required_data_getters = 5;
 }
 
 // ResultStatus indicates the outcome of algorithm execution
@@ -179,7 +286,6 @@ message Result {
   int64 timestamp = 5 [(buf.validate.field).required = true];
 }
 
-
 // ProcessorRegistration is sent by processors when they start up to announce their capabilities
 // to the orchestrator. This establishes a long-lived connection for receiving tasks.
 message ProcessorRegistration {
@@ -197,27 +303,9 @@ message ProcessorRegistration {
   // Algorithms this processor can execute
   // The processor must implement all listed algorithms
   repeated Algorithm supported_algorithms = 4 [(buf.validate.field).required = true];
-}
 
-// ProcessingTask represents a single algorithm execution request sent to a processor.
-// Tasks are streamed to processors as their dependencies are satisfied.
-message ProcessingTask {
-  // Unique ID for this specific task execution
-  // Used to correlate results and track execution state
-  string task_id = 1 [(buf.validate.field).required = true];
-
-  // Algorithm to execute
-  // Must be one of the algorithms the processor registered support for
-  Algorithm algorithm = 2 [(buf.validate.field).required = true];
-
-  // Window that triggered this task
-  // Provides the time context for the algorithm execution
-  Window window = 3 [(buf.validate.field).required = true];
-
-  // Results from dependent algorithms
-  // Contains all results that this algorithm declared dependencies on
-  // All dependencies will be present when task is sent
-  repeated Result dependency_results = 4;
+  // Data getters that this processor owns
+  repeated DataGetter data_getters = 5;
 }
 
 // ExecutionRequest provides a complete view of a processing DAG's execution
@@ -234,6 +322,9 @@ message ExecutionRequest {
 
   // The algorithms to execute
   repeated Algorithm algorithms = 4;
+
+  // References to cached data from data getters
+  repeated CachedDataReference cached_data = 5;
 }
 
 message ExecutionResult {
