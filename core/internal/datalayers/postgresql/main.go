@@ -225,22 +225,24 @@ func (d *Datalayer) AddOverwriteAlgorithmDependency(
 func (d *Datalayer) AddOverwriteDataGetter(
 	ctx context.Context,
 	tx types.Tx,
+	dg *pb.DataGetter,
 	proc *pb.ProcessorRegistration,
 ) error {
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
-
-
-  qtx.CreateDataGetter(ctx, CreateDataGetterParams{
-    
-	Name             string
-	WindowTypeID     int64
-	TtlSeconds       int64
-	MaxSizeBytes     int64
-	ProcessorName    string
-	ProcessorRuntime string
-  })
-
+	_, err := qtx.CreateDataGetter(ctx, CreateDataGetterParams{
+		Name:             dg.GetName(),
+		WindowName:       dg.WindowType.GetName(),
+		WindowVersion:    dg.WindowType.GetVersion(),
+		TtlSeconds:       int64(dg.GetTtlSeconds()),
+		MaxSizeBytes:     int64(dg.GetMaxSizeBytes()),
+		ProcessorName:    proc.GetName(),
+		ProcessorRuntime: proc.GetRuntime(),
+	})
+	if err != nil {
+		slog.Error("issue adding data getter", "error", err)
+		return err
+	}
 	return nil
 }
 

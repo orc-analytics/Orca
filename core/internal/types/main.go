@@ -36,7 +36,7 @@ type (
 		AddOverwriteDataGetter(
 			ctx context.Context,
 			tx Tx,
-			proc *pb.ProcessorRegistration,
+			dg *pb.DataGetter,
 		) error
 		EmitWindow(ctx context.Context, window *pb.Window) (pb.WindowEmitStatus, error)
 	}

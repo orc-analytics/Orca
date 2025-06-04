@@ -123,21 +123,25 @@ func (q *Queries) CreateAlgorithmDependency(ctx context.Context, arg CreateAlgor
 const createDataGetter = `-- name: CreateDataGetter :one
 WITH processor_id AS (
   SELECT id FROM processor p
-  WHERE p.name = $5 
-  AND p.runtime = $6
+  WHERE p.name = $4 
+  AND p.runtime = $5
+), window_type_id AS (
+  SELECT id FROM window_type w
+  WHERE w.name = $6 
+  AND w.version = $7
 )
 INSERT INTO data_getters (
   processor_id,
-  name,
   window_type_id,
+  name,
   ttl_seconds,
   max_size_bytes
 ) VALUES (
   (SELECT id FROM processor_id),
+  (SELECT id FROM window_type_id),
   $1,
   $2,
-  $3,
-  $4
+  $3
 ) ON CONFLICT (name, processor_id) DO UPDATE
 SET 
   name = EXCLUDED.name,
@@ -147,21 +151,23 @@ RETURNING id
 
 type CreateDataGetterParams struct {
 	Name             string
-	WindowTypeID     int64
 	TtlSeconds       int64
 	MaxSizeBytes     int64
 	ProcessorName    string
 	ProcessorRuntime string
+	WindowName       string
+	WindowVersion    string
 }
 
 func (q *Queries) CreateDataGetter(ctx context.Context, arg CreateDataGetterParams) (int64, error) {
 	row := q.db.QueryRow(ctx, createDataGetter,
 		arg.Name,
-		arg.WindowTypeID,
 		arg.TtlSeconds,
 		arg.MaxSizeBytes,
 		arg.ProcessorName,
 		arg.ProcessorRuntime,
+		arg.WindowName,
+		arg.WindowVersion,
 	)
 	var id int64
 	err := row.Scan(&id)

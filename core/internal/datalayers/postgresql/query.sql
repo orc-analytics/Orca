@@ -150,17 +150,21 @@ WITH processor_id AS (
   SELECT id FROM processor p
   WHERE p.name = sqlc.arg('processor_name') 
   AND p.runtime = sqlc.arg('processor_runtime')
+), window_type_id AS (
+  SELECT id FROM window_type w
+  WHERE w.name = sqlc.arg('window_name') 
+  AND w.version = sqlc.arg('window_version')
 )
 INSERT INTO data_getters (
   processor_id,
-  name,
   window_type_id,
+  name,
   ttl_seconds,
   max_size_bytes
 ) VALUES (
   (SELECT id FROM processor_id),
+  (SELECT id FROM window_type_id),
   sqlc.arg('name'),
-  sqlc.arg('window_type_id'),
   sqlc.arg('ttl_seconds'),
   sqlc.arg('max_size_bytes')
 ) ON CONFLICT (name, processor_id) DO UPDATE
