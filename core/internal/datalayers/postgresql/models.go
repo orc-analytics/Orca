@@ -53,13 +53,6 @@ type Processor struct {
 	Created          pgtype.Timestamp
 }
 
-type ProcessorAlgorithm struct {
-	ID          int64
-	ProcessorID int64
-	AlgorithmID int64
-	Created     pgtype.Timestamp
-}
-
 type Result struct {
 	ID           int64
 	WindowsID    pgtype.Int8

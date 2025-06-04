@@ -15,7 +15,7 @@ type (
 	}
 	Datalayer interface {
 		WithTx(ctx context.Context) (Tx, error)
-		CreateProcessorAndPurgeAlgos(
+		RefreshProcessor(
 			ctx context.Context,
 			tx Tx,
 			proc *pb.ProcessorRegistration,

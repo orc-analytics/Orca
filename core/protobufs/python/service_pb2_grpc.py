@@ -27,7 +27,7 @@ if _version_not_supported:
 
 class OrcaCoreStub(object):
     """OrcaCore is the central orchestration service that:
-    - Manages the lifecycle of processing windows
+    - Manages the lifecycle of registering and processing windows
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
@@ -40,6 +40,11 @@ class OrcaCoreStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.RegisterWindow = channel.unary_unary(
+                '/OrcaCore/RegisterWindow',
+                request_serializer=service__pb2.WindowRegistration.SerializeToString,
+                response_deserializer=service__pb2.Status.FromString,
+                _registered_method=True)
         self.RegisterProcessor = channel.unary_unary(
                 '/OrcaCore/RegisterProcessor',
                 request_serializer=service__pb2.ProcessorRegistration.SerializeToString,
@@ -54,12 +59,19 @@ class OrcaCoreStub(object):
 
 class OrcaCoreServicer(object):
     """OrcaCore is the central orchestration service that:
-    - Manages the lifecycle of processing windows
+    - Manages the lifecycle of registering and processing windows
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
     - Manages data getter caching and lifecycle
     """
+
+    def RegisterWindow(self, request, context):
+        """Register a window type with the orca service
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
     def RegisterProcessor(self, request, context):
         """Register a processor node and its supported algorithms
@@ -78,6 +90,11 @@ class OrcaCoreServicer(object):
 
 def add_OrcaCoreServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'RegisterWindow': grpc.unary_unary_rpc_method_handler(
+                    servicer.RegisterWindow,
+                    request_deserializer=service__pb2.WindowRegistration.FromString,
+                    response_serializer=service__pb2.Status.SerializeToString,
+            ),
             'RegisterProcessor': grpc.unary_unary_rpc_method_handler(
                     servicer.RegisterProcessor,
                     request_deserializer=service__pb2.ProcessorRegistration.FromString,
@@ -98,12 +115,39 @@ def add_OrcaCoreServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class OrcaCore(object):
     """OrcaCore is the central orchestration service that:
-    - Manages the lifecycle of processing windows
+    - Manages the lifecycle of registering and processing windows
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
     - Manages data getter caching and lifecycle
     """
+
+    @staticmethod
+    def RegisterWindow(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrcaCore/RegisterWindow',
+            service__pb2.WindowRegistration.SerializeToString,
+            service__pb2.Status.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
 
     @staticmethod
     def RegisterProcessor(request,

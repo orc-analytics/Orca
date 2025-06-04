@@ -29,39 +29,28 @@ CREATE TABLE algorithm (
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (name, version),
   FOREIGN KEY (window_type_id) REFERENCES window_type(id),
-  FOREIGN KEY (processor_id) REFERENCES processor(id)
+  FOREIGN KEY (processor_id) REFERENCES processor(id) ON DELETE CASCADE
 );
 
 -- Store of all the dependencies between algorithms
 CREATE TABLE algorithm_dependency (
   id BIGSERIAL PRIMARY KEY,
   from_algorithm_id BIGINT NOT NULL,
-  to_algorithm_id BIGINT NOT NULL,
+  to_algorithm_id BIGINT NOT NULL, 
   from_window_type_id BIGINT NOT NULL,
   to_window_type_id BIGINT NOT NULL,
   from_processor_id BIGINT NOT NULL,
   to_processor_id BIGINT NOT NULL,
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (from_algorithm_id, to_algorithm_id),
-  FOREIGN KEY (from_algorithm_id) REFERENCES algorithm(id),
-  FOREIGN KEY (to_algorithm_id) REFERENCES algorithm(id),
+  FOREIGN KEY (from_algorithm_id) REFERENCES algorithm(id) ON DELETE CASCADE,
+  FOREIGN KEY (to_algorithm_id) REFERENCES algorithm(id) ON DELETE CASCADE,
   FOREIGN KEY (from_window_type_id) REFERENCES window_type(id),
   FOREIGN KEY (to_window_type_id) REFERENCES window_type(id),
   FOREIGN KEY (from_processor_id) REFERENCES processor(id),
   FOREIGN KEY (to_processor_id) REFERENCES processor(id),
   -- Prevent self-dependencies
   CHECK (from_algorithm_id != to_algorithm_id)
-);
-
--- Map of which processors support which algorithms
-CREATE TABLE processor_algorithm (
-  id BIGSERIAL PRIMARY KEY,
-  processor_id BIGINT NOT NULL,
-  algorithm_id BIGINT NOT NULL,
-  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (processor_id, algorithm_id),
-  FOREIGN KEY (algorithm_id) REFERENCES algorithm(id),
-  FOREIGN KEY (processor_id) REFERENCES processor(id)
 );
 
 -- Windows that trigger algorithms

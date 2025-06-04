@@ -69,7 +69,7 @@ func (d *Datalayer) WithTx(ctx context.Context) (types.Tx, error) {
 	return &PgTx{tx: tx}, nil
 }
 
-func (d *Datalayer) CreateProcessorAndPurgeAlgos(
+func (d *Datalayer) RefreshProcessor(
 	ctx context.Context,
 	tx types.Tx,
 	proc *pb.ProcessorRegistration,
@@ -77,8 +77,19 @@ func (d *Datalayer) CreateProcessorAndPurgeAlgos(
 	pgTx := tx.(*PgTx)
 
 	qtx := d.queries.WithTx(pgTx.tx)
+
+	// delete any existing processors by the same name
+	err := qtx.DeleteProcessor(ctx, DeleteProcessorParams{
+		Name:    proc.GetName(),
+		Runtime: proc.GetRuntime(),
+	})
+	if err != nil {
+		slog.Error("issue deleteing processor", "processor", proc, "error", err)
+		return err
+	}
+
 	// register the processor
-	err := qtx.CreateProcessorAndPurgeAlgos(ctx, CreateProcessorAndPurgeAlgosParams{
+	err = qtx.CreateProcessor(ctx, CreateProcessorParams{
 		Name:             proc.GetName(),
 		Runtime:          proc.GetRuntime(),
 		ConnectionString: proc.GetConnectionStr(),

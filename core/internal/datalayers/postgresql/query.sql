@@ -1,27 +1,24 @@
--- name: CreateProcessorAndPurgeAlgos :exec
-WITH processor_insert AS (
-  INSERT INTO processor (
-    name,
-    runtime,
-    connection_string
-  ) VALUES (
-    sqlc.arg('name'),
-    sqlc.arg('runtime'),
-    sqlc.arg('connection_string')
-  ) ON CONFLICT (name, runtime) DO UPDATE 
-  SET 
-    name = EXCLUDED.name,
-    runtime = EXCLUDED.runtime,
-    connection_string = EXCLUDED.connection_string
-  RETURNING id
-)
-  -- clean up old algorithm associations
-  DELETE FROM processor_algorithm
-  WHERE processor_id = (
-    SELECT id FROM processor p
-    WHERE p.name = sqlc.arg('name') 
-    AND p.runtime = sqlc.arg('runtime')
+
+-- name: DeleteProcessor :exec
+DELETE FROM processor WHERE (
+  name = sqlc.arg('name') AND
+  runtime = sqlc.arg('runtime')
 );
+
+-- name: CreateProcessor :exec
+INSERT INTO processor (
+  name,
+  runtime,
+  connection_string
+) VALUES (
+  sqlc.arg('name'),
+  sqlc.arg('runtime'),
+  sqlc.arg('connection_string')
+) ON CONFLICT (name, runtime) DO UPDATE 
+SET 
+  name = EXCLUDED.name,
+  runtime = EXCLUDED.runtime,
+  connection_string = EXCLUDED.connection_string;
 
 -- name: CreateWindowType :exec
 INSERT INTO window_type (

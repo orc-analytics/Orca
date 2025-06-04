@@ -174,40 +174,30 @@ func (q *Queries) CreateDataGetter(ctx context.Context, arg CreateDataGetterPara
 	return id, err
 }
 
-const createProcessorAndPurgeAlgos = `-- name: CreateProcessorAndPurgeAlgos :exec
-WITH processor_insert AS (
-  INSERT INTO processor (
-    name,
-    runtime,
-    connection_string
-  ) VALUES (
-    $1,
-    $2,
-    $3
-  ) ON CONFLICT (name, runtime) DO UPDATE 
-  SET 
-    name = EXCLUDED.name,
-    runtime = EXCLUDED.runtime,
-    connection_string = EXCLUDED.connection_string
-  RETURNING id
-)
-  -- clean up old algorithm associations
-  DELETE FROM processor_algorithm
-  WHERE processor_id = (
-    SELECT id FROM processor p
-    WHERE p.name = $1 
-    AND p.runtime = $2
-)
+const createProcessor = `-- name: CreateProcessor :exec
+INSERT INTO processor (
+  name,
+  runtime,
+  connection_string
+) VALUES (
+  $1,
+  $2,
+  $3
+) ON CONFLICT (name, runtime) DO UPDATE 
+SET 
+  name = EXCLUDED.name,
+  runtime = EXCLUDED.runtime,
+  connection_string = EXCLUDED.connection_string
 `
 
-type CreateProcessorAndPurgeAlgosParams struct {
+type CreateProcessorParams struct {
 	Name             string
 	Runtime          string
 	ConnectionString string
 }
 
-func (q *Queries) CreateProcessorAndPurgeAlgos(ctx context.Context, arg CreateProcessorAndPurgeAlgosParams) error {
-	_, err := q.db.Exec(ctx, createProcessorAndPurgeAlgos, arg.Name, arg.Runtime, arg.ConnectionString)
+func (q *Queries) CreateProcessor(ctx context.Context, arg CreateProcessorParams) error {
+	_, err := q.db.Exec(ctx, createProcessor, arg.Name, arg.Runtime, arg.ConnectionString)
 	return err
 }
 
@@ -269,6 +259,23 @@ type CreateWindowTypeParams struct {
 
 func (q *Queries) CreateWindowType(ctx context.Context, arg CreateWindowTypeParams) error {
 	_, err := q.db.Exec(ctx, createWindowType, arg.Name, arg.Version)
+	return err
+}
+
+const deleteProcessor = `-- name: DeleteProcessor :exec
+DELETE FROM processor WHERE (
+  name = $1 AND
+  runtime = $2
+)
+`
+
+type DeleteProcessorParams struct {
+	Name    string
+	Runtime string
+}
+
+func (q *Queries) DeleteProcessor(ctx context.Context, arg DeleteProcessorParams) error {
+	_, err := q.db.Exec(ctx, deleteProcessor, arg.Name, arg.Runtime)
 	return err
 }
 

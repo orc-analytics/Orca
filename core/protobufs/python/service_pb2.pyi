@@ -181,6 +181,12 @@ class Result(_message.Message):
     timestamp: int
     def __init__(self, status: _Optional[_Union[ResultStatus, str]] = ..., single_value: _Optional[float] = ..., float_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
+class WindowRegistration(_message.Message):
+    __slots__ = ("window_type",)
+    WINDOW_TYPE_FIELD_NUMBER: _ClassVar[int]
+    window_type: WindowType
+    def __init__(self, window_type: _Optional[_Union[WindowType, _Mapping]] = ...) -> None: ...
+
 class ProcessorRegistration(_message.Message):
     __slots__ = ("name", "runtime", "connection_str", "window_type", "data_getters", "supported_algorithms")
     NAME_FIELD_NUMBER: _ClassVar[int]

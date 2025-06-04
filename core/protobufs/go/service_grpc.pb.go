@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	OrcaCore_RegisterWindow_FullMethodName    = "/OrcaCore/RegisterWindow"
 	OrcaCore_RegisterProcessor_FullMethodName = "/OrcaCore/RegisterProcessor"
 	OrcaCore_EmitWindow_FullMethodName        = "/OrcaCore/EmitWindow"
 )
@@ -28,12 +29,14 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // OrcaCore is the central orchestration service that:
-// - Manages the lifecycle of processing windows
+// - Manages the lifecycle of registering and processing windows
 // - Coordinates algorithm execution across distributed processors
 // - Tracks DAG dependencies and execution state
 // - Routes results between dependent algorithms
 // - Manages data getter caching and lifecycle
 type OrcaCoreClient interface {
+	// Register a window type with the orca service
+	RegisterWindow(ctx context.Context, in *WindowRegistration, opts ...grpc.CallOption) (*Status, error)
 	// Register a processor node and its supported algorithms
 	RegisterProcessor(ctx context.Context, in *ProcessorRegistration, opts ...grpc.CallOption) (*Status, error)
 	// Submit a window for processing
@@ -46,6 +49,16 @@ type orcaCoreClient struct {
 
 func NewOrcaCoreClient(cc grpc.ClientConnInterface) OrcaCoreClient {
 	return &orcaCoreClient{cc}
+}
+
+func (c *orcaCoreClient) RegisterWindow(ctx context.Context, in *WindowRegistration, opts ...grpc.CallOption) (*Status, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Status)
+	err := c.cc.Invoke(ctx, OrcaCore_RegisterWindow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *orcaCoreClient) RegisterProcessor(ctx context.Context, in *ProcessorRegistration, opts ...grpc.CallOption) (*Status, error) {
@@ -73,12 +86,14 @@ func (c *orcaCoreClient) EmitWindow(ctx context.Context, in *Window, opts ...grp
 // for forward compatibility.
 //
 // OrcaCore is the central orchestration service that:
-// - Manages the lifecycle of processing windows
+// - Manages the lifecycle of registering and processing windows
 // - Coordinates algorithm execution across distributed processors
 // - Tracks DAG dependencies and execution state
 // - Routes results between dependent algorithms
 // - Manages data getter caching and lifecycle
 type OrcaCoreServer interface {
+	// Register a window type with the orca service
+	RegisterWindow(context.Context, *WindowRegistration) (*Status, error)
 	// Register a processor node and its supported algorithms
 	RegisterProcessor(context.Context, *ProcessorRegistration) (*Status, error)
 	// Submit a window for processing
@@ -93,6 +108,9 @@ type OrcaCoreServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOrcaCoreServer struct{}
 
+func (UnimplementedOrcaCoreServer) RegisterWindow(context.Context, *WindowRegistration) (*Status, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterWindow not implemented")
+}
 func (UnimplementedOrcaCoreServer) RegisterProcessor(context.Context, *ProcessorRegistration) (*Status, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterProcessor not implemented")
 }
@@ -118,6 +136,24 @@ func RegisterOrcaCoreServer(s grpc.ServiceRegistrar, srv OrcaCoreServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&OrcaCore_ServiceDesc, srv)
+}
+
+func _OrcaCore_RegisterWindow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WindowRegistration)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaCoreServer).RegisterWindow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaCore_RegisterWindow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaCoreServer).RegisterWindow(ctx, req.(*WindowRegistration))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _OrcaCore_RegisterProcessor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -163,6 +199,10 @@ var OrcaCore_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "OrcaCore",
 	HandlerType: (*OrcaCoreServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "RegisterWindow",
+			Handler:    _OrcaCore_RegisterWindow_Handler,
+		},
 		{
 			MethodName: "RegisterProcessor",
 			Handler:    _OrcaCore_RegisterProcessor_Handler,

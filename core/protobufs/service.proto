@@ -7,12 +7,15 @@ import "google/protobuf/struct.proto";
 import "vendor/validate.proto";
 
 // OrcaCore is the central orchestration service that:
-// - Manages the lifecycle of processing windows
+// - Manages the lifecycle of registering and processing windows
 // - Coordinates algorithm execution across distributed processors
 // - Tracks DAG dependencies and execution state
 // - Routes results between dependent algorithms
 // - Manages data getter caching and lifecycle
 service OrcaCore {
+  // Register a window type with the orca service
+  rpc RegisterWindow(WindowRegistration) returns (Status);
+
   // Register a processor node and its supported algorithms
   rpc RegisterProcessor(ProcessorRegistration) returns (Status);
 
@@ -286,6 +289,12 @@ message Result {
 
   // Timestamp when the result was produced
   int64 timestamp = 5 [(buf.validate.field).required = true];
+}
+
+// WindowRegistration is sent by any service that wants to register a window with the orca service
+message WindowRegistration {
+  // The window type to register
+  WindowType window_type = 1 [(buf.validate.field).required = true];
 }
 
 // ProcessorRegistration is sent by processors when they start up to announce their capabilities

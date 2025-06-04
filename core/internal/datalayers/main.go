@@ -64,7 +64,7 @@ func RegisterProcessor(
 	}()
 
 	// register the processor
-	err = dlyr.CreateProcessorAndPurgeAlgos(ctx, tx, proc)
+	err = dlyr.RefreshProcessor(ctx, tx, proc)
 	if err != nil {
 		slog.Error("could not create processor", "error", err)
 		return err
