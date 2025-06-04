@@ -72,8 +72,8 @@ CREATE TABLE data_getters (
   ttl_seconds bigint not null,
   max_size_bytes bigint not null,
   foreign key (window_type_id) references window_type(id),
-  foreign key (processor_id) references processor(id),
-  unique(processor_id, name)
+  foreign key (processor_id) references processor(id) ON DELETE CASCADE,
+  UNIQUE(processor_id, name)
 );
 
 -- Where the results are stored

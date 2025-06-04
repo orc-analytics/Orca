@@ -58,7 +58,7 @@ func validate[T proto.Message](msg T) error {
 }
 
 // Register a window type with Orca Core
-func (o *OrcaCoreServer) RegisterWindow(
+func (o *OrcaCoreServer) RegisterWindowType(
 	ctx context.Context,
 	w *pb.WindowRegistration,
 ) (*pb.Status, error) {
@@ -67,6 +67,10 @@ func (o *OrcaCoreServer) RegisterWindow(
 		return nil, err
 	}
 	slog.Info("registering window type")
+	err = dlyr.RegisterWindowType(ctx, o.client, w)
+	if err != nil {
+		return nil, err
+	}
 	return nil, nil
 }
 

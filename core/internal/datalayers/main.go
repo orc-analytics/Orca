@@ -45,6 +45,7 @@ func NewDatalayerClient(
 	}
 }
 
+// wrapper funcs that stitch together the logic
 func RegisterProcessor(
 	ctx context.Context,
 	dlyr types.Datalayer,
@@ -116,4 +117,25 @@ func RegisterProcessor(
 	}
 
 	return tx.Commit(ctx)
+}
+
+func RegisterWindowType(ctx context.Context, dlyr types.Datalayer, w *pb.WindowRegistration) error {
+	slog.Debug("registering window type", "window registration", w)
+
+	tx, err := dlyr.WithTx(ctx)
+	if err != nil {
+		slog.Error("could not start a transaction", "error", err)
+		return err
+	}
+
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
+	err = dlyr.CreateWindowType(ctx, tx, w.GetWindowType())
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -95,7 +95,7 @@ func TestAddAlgorithm(t *testing.T) {
 	}
 
 	// 1. register a processor
-	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc_1)
+	err := dlyr.RefreshProcessor(testCtx, tx, &proc_1)
 	assert.NoError(t, err)
 
 	// 2. register the window type
@@ -118,7 +118,7 @@ func TestAddAlgorithm(t *testing.T) {
 		ConnectionStr:       "Test",
 		SupportedAlgorithms: []*pb.Algorithm{&algo},
 	}
-	err = dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc_2)
+	err = dlyr.RefreshProcessor(testCtx, tx, &proc_2)
 	assert.NoError(t, err)
 
 	// 6. register the same algorithm (by name and version), but with a new processor
@@ -156,7 +156,7 @@ func TestCircularDependency(t *testing.T) {
 	}
 
 	// 1. register a processor
-	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc)
+	err := dlyr.RefreshProcessor(testCtx, tx, &proc)
 	assert.NoError(t, err)
 
 	// 2. register the window type
@@ -281,7 +281,7 @@ func TestValidDependenciesBetweenProcessors(t *testing.T) {
 	}
 
 	// 1. register a processor
-	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc)
+	err := dlyr.RefreshProcessor(testCtx, tx, &proc)
 	assert.NoError(t, err)
 
 	// 2. register the window type
@@ -351,9 +351,9 @@ func TestAlgosSameNamesDifferentProcessors(t *testing.T) {
 	}
 
 	// 1. register the processors
-	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc1)
+	err := dlyr.RefreshProcessor(testCtx, tx, &proc1)
 	assert.NoError(t, err)
-	err = dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc2)
+	err = dlyr.RefreshProcessor(testCtx, tx, &proc2)
 	assert.NoError(t, err)
 
 	// 2. register the window type

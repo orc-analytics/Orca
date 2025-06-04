@@ -154,6 +154,14 @@ func (d *Datalayer) AddAlgorithm(
 				algo.WindowType.GetName(),
 			)
 		}
+		slog.Error(
+			"unknown sql error when trying to add algorithm",
+			"algorithm",
+			algo,
+			"error",
+			err,
+		)
+		return err
 	}
 	if err != nil {
 		slog.Error("error creating algorithm", "error", err)
@@ -267,6 +275,30 @@ func (d *Datalayer) AddOverwriteDataGetter(
 		ProcessorName:    proc.GetName(),
 		ProcessorRuntime: proc.GetRuntime(),
 	})
+	pgErr := errorToPgError(err)
+	if pgErr != nil {
+		if pgErr.Code == NotNullViolation {
+			slog.Error(
+				"could not add datagetter because triggering window does not exist",
+				"datagetter",
+				dg,
+			)
+			return fmt.Errorf(
+				"Data getter '%v' is triggered by window type '%v' of version '%v', but the window does not exist. Add it first.",
+				dg.GetName(),
+				dg.WindowType.GetName(),
+				dg.WindowType.GetVersion(),
+			)
+		}
+		slog.Error(
+			"unknown sql error when trying to add datagetter",
+			"datagetter",
+			dg,
+			"error",
+			err,
+		)
+		return err
+	}
 	if err != nil {
 		slog.Error("issue adding data getter", "error", err)
 		return err

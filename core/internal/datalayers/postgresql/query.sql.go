@@ -274,6 +274,9 @@ type DeleteProcessorParams struct {
 	Runtime string
 }
 
+// TODO Potential exploit to delete processors unintentionally.
+// Would need to factor in some outside source like Git to better
+// manage this.
 func (q *Queries) DeleteProcessor(ctx context.Context, arg DeleteProcessorParams) error {
 	_, err := q.db.Exec(ctx, deleteProcessor, arg.Name, arg.Runtime)
 	return err

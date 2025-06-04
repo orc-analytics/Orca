@@ -1,4 +1,7 @@
 
+-- TODO Potential exploit to delete processors unintentionally.
+-- Would need to factor in some outside source like Git to better
+-- manage this.
 -- name: DeleteProcessor :exec
 DELETE FROM processor WHERE (
   name = sqlc.arg('name') AND
