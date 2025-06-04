@@ -120,6 +120,47 @@ func (q *Queries) CreateAlgorithmDependency(ctx context.Context, arg CreateAlgor
 	return err
 }
 
+const createDataGetter = `-- name: CreateDataGetter :one
+INSERT INTO data_getters (
+  processor_id,
+  name,
+  window_type_id,
+  ttl_seconds,
+  max_size_bytes
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5
+) ON CONFLICT (name, processor_id) DO UPDATE
+SET 
+  name = EXCLUDED.name,
+  processor_id = EXCLUDED.processor_id
+RETURNING id
+`
+
+type CreateDataGetterParams struct {
+	ProcessorID  int64
+	Name         string
+	WindowTypeID int64
+	TtlSeconds   int64
+	MaxSizeBytes int64
+}
+
+func (q *Queries) CreateDataGetter(ctx context.Context, arg CreateDataGetterParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createDataGetter,
+		arg.ProcessorID,
+		arg.Name,
+		arg.WindowTypeID,
+		arg.TtlSeconds,
+		arg.MaxSizeBytes,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
 const createProcessorAndPurgeAlgos = `-- name: CreateProcessorAndPurgeAlgos :exec
 WITH processor_insert AS (
   INSERT INTO processor (

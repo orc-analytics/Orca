@@ -145,6 +145,24 @@ INSERT INTO windows (
   sqlc.arg('origin')
 ) RETURNING window_type_id, id;
 
+-- name: CreateDataGetter :one
+INSERT INTO data_getters (
+  processor_id,
+  name,
+  window_type_id,
+  ttl_seconds,
+  max_size_bytes
+) VALUES (
+  sqlc.arg('processor_id'),
+  sqlc.arg('name'),
+  sqlc.arg('window_type_id'),
+  sqlc.arg('ttl_seconds'),
+  sqlc.arg('max_size_bytes')
+) ON CONFLICT (name, processor_id) DO UPDATE
+SET 
+  name = EXCLUDED.name,
+  processor_id = EXCLUDED.processor_id
+RETURNING id;
 
 -- name: CreateResult :one
 INSERT INTO results (

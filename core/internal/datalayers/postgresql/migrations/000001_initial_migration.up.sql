@@ -1,6 +1,5 @@
 CREATE EXTENSION ltree;
 
-
 -- Window types that can trigger algorithms
 CREATE TABLE window_type (
   id BIGSERIAL PRIMARY KEY,
@@ -76,6 +75,18 @@ CREATE TABLE windows (
   FOREIGN KEY (window_type_id) REFERENCES window_type(id)
 );
 
+CREATE TABLE data_getters (
+  id bigserial primary key,
+  processor_id bigint not null,
+  name text not null,
+  window_type_id bigint not null,
+  ttl_seconds bigint not null,
+  max_size_bytes bigint not null,
+  foreign key (window_type_id) references window_type(id),
+  foreign key (processor_id) references processor(id),
+  unique(processor_id, name)
+);
+
 -- Where the results are stored
 CREATE TABLE results (
   id BIGSERIAL PRIMARY KEY,
@@ -149,7 +160,6 @@ final_view AS (
 SELECT * FROM final_view;
 
 -- function to refresh the materialised view
-
 CREATE OR REPLACE FUNCTION refresh_algorithm_exec_paths()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -169,3 +179,13 @@ CREATE TRIGGER refresh_algorithm_execution_paths_after_dependency_change
 AFTER INSERT OR UPDATE OR DELETE ON algorithm_dependency
 FOR EACH STATEMENT
 EXECUTE FUNCTION refresh_algorithm_exec_paths();
+
+-- create some specific indexes to help with query speed
+CREATE INDEX idx_algorithm_processor_id ON algorithm(processor_id);
+CREATE INDEX idx_algorithm_window_type_id ON algorithm(window_type_id);
+CREATE INDEX idx_dependency_from_algo ON algorithm_dependency(from_algorithm_id);
+CREATE INDEX idx_dependency_to_algo ON algorithm_dependency(to_algorithm_id);
+CREATE INDEX idx_results_algorithm_id ON results(algorithm_id);
+CREATE INDEX idx_results_window_type_id ON results(window_type_id);
+CREATE INDEX idx_results_windows_id ON results(windows_id);
+

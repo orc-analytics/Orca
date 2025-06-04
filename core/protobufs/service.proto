@@ -38,14 +38,6 @@ service OrcaProcessor {
   rpc ExecuteDataGetter(DataGetterExecutionTask) returns (DataGetterResult);
 }
 
-// Cache configuration for data getters
-message DataGetterCacheConfig {
-  // TTL for cache entries in seconds (0 = no expiration - default)
-  int32 ttl_seconds = 1;
-
-  // Maximum size of cached data in bytes (0 = no limit - default)
-  int64 max_size_bytes = 2;
-}
 
 // DataGetter defines a function that accepts a Window and returns some binary data
 // that is consumed by algorithms.
@@ -56,8 +48,11 @@ message DataGetter {
   // The window type that this data getter is triggered by
   WindowType window_type = 2 [(buf.validate.field).required = true];
 
-  // Cache configuration for this data getter
-  DataGetterCacheConfig cache_config = 3;
+  // TTL for cache entries in seconds (0 = no expiration - default)
+  int32 ttl_seconds = 3;
+
+  // Maximum size of cached data in bytes (0 = no limit - default)
+  int64 max_size_bytes = 4;
 }
 
 
