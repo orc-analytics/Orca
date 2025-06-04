@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // style for the placeholder text
