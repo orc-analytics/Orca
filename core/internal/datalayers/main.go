@@ -63,7 +63,7 @@ func RegisterProcessor(
 		}
 	}()
 
-	// register the processor
+	// register/refresh the processor
 	err = dlyr.RefreshProcessor(ctx, tx, proc)
 	if err != nil {
 		slog.Error("could not create processor", "error", err)
@@ -72,15 +72,6 @@ func RegisterProcessor(
 
 	// add all algorithms first
 	for _, algo := range proc.GetSupportedAlgorithms() {
-		// add window types
-		window_type := algo.GetWindowType()
-
-		err := dlyr.CreateWindowType(ctx, tx, window_type)
-		if err != nil {
-			slog.Error("could not create window type", "error", err)
-			return err
-		}
-
 		// create algos
 		err = dlyr.AddAlgorithm(ctx, tx, algo, proc)
 		if err != nil {

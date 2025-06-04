@@ -57,6 +57,19 @@ func validate[T proto.Message](msg T) error {
 	return nil
 }
 
+// Register a window type with Orca Core
+func (o *OrcaCoreServer) RegisterWindow(
+	ctx context.Context,
+	w *pb.WindowRegistration,
+) (*pb.Status, error) {
+	err := validate(w)
+	if err != nil {
+		return nil, err
+	}
+	slog.Info("registering window type")
+	return nil, nil
+}
+
 // Register a processor with orca-core. Called when a processor startsup.
 func (o *OrcaCoreServer) RegisterProcessor(
 	ctx context.Context,

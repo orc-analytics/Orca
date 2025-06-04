@@ -14,7 +14,7 @@ import "vendor/validate.proto";
 // - Manages data getter caching and lifecycle
 service OrcaCore {
   // Register a window type with the orca service
-  rpc RegisterWindow(WindowRegistration) returns (Status);
+  rpc RegisterWindowType(WindowRegistration) returns (Status);
 
   // Register a processor node and its supported algorithms
   rpc RegisterProcessor(ProcessorRegistration) returns (Status);

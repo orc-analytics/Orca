@@ -138,6 +138,23 @@ func (d *Datalayer) AddAlgorithm(
 		WindowTypeVersion: algo.GetWindowType().GetVersion(),
 	}
 	err := qtx.CreateAlgorithm(ctx, params)
+	pgErr := errorToPgError(err)
+	if pgErr != nil {
+		if pgErr.Code == Test {
+			slog.Error(
+				"attempted to create algorithm for window type that is not present",
+				"algo",
+				algo,
+			)
+			return fmt.Errorf(
+				"Algo %v depends on window type %v, of version %v. But window type %v does not exist. Add it first.",
+				algo.GetName(),
+				algo.WindowType.GetName(),
+				algo.WindowType.GetVersion(),
+				algo.WindowType.GetName(),
+			)
+		}
+	}
 	if err != nil {
 		slog.Error("error creating algorithm", "error", err)
 		return err

@@ -40,8 +40,8 @@ class OrcaCoreStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.RegisterWindow = channel.unary_unary(
-                '/OrcaCore/RegisterWindow',
+        self.RegisterWindowType = channel.unary_unary(
+                '/OrcaCore/RegisterWindowType',
                 request_serializer=service__pb2.WindowRegistration.SerializeToString,
                 response_deserializer=service__pb2.Status.FromString,
                 _registered_method=True)
@@ -66,7 +66,7 @@ class OrcaCoreServicer(object):
     - Manages data getter caching and lifecycle
     """
 
-    def RegisterWindow(self, request, context):
+    def RegisterWindowType(self, request, context):
         """Register a window type with the orca service
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -90,8 +90,8 @@ class OrcaCoreServicer(object):
 
 def add_OrcaCoreServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'RegisterWindow': grpc.unary_unary_rpc_method_handler(
-                    servicer.RegisterWindow,
+            'RegisterWindowType': grpc.unary_unary_rpc_method_handler(
+                    servicer.RegisterWindowType,
                     request_deserializer=service__pb2.WindowRegistration.FromString,
                     response_serializer=service__pb2.Status.SerializeToString,
             ),
@@ -123,7 +123,7 @@ class OrcaCore(object):
     """
 
     @staticmethod
-    def RegisterWindow(request,
+    def RegisterWindowType(request,
             target,
             options=(),
             channel_credentials=None,
@@ -136,7 +136,7 @@ class OrcaCore(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/OrcaCore/RegisterWindow',
+            '/OrcaCore/RegisterWindowType',
             service__pb2.WindowRegistration.SerializeToString,
             service__pb2.Status.FromString,
             options,
