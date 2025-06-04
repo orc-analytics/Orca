@@ -73,7 +73,7 @@ func (d *Datalayer) CreateProcessorAndPurgeAlgos(
 	ctx context.Context,
 	tx types.Tx,
 	proc *pb.ProcessorRegistration,
-) (int, error) {
+) error {
 	pgTx := tx.(*PgTx)
 
 	qtx := d.queries.WithTx(pgTx.tx)

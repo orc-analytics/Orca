@@ -40,7 +40,7 @@ func NewDatalayerClient(
 	case PostgreSQL:
 		return psql.NewClient(ctx, connStr)
 	default:
-		slog.Error("attempted to access unsuported platform", "platform", platform)
+		slog.Error("datalayer not supported", "platform", platform)
 		return nil, fmt.Errorf("platform not implemented: %s", platform)
 	}
 }
@@ -52,13 +52,16 @@ func RegisterProcessor(
 ) error {
 	slog.Debug("creating processor", "protobuf", proc)
 	tx, err := dlyr.WithTx(ctx)
-
-	defer tx.Rollback(ctx)
-
 	if err != nil {
 		slog.Error("could not start a transaction", "error", err)
 		return err
 	}
+
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	// register the processor
 	err = dlyr.CreateProcessorAndPurgeAlgos(ctx, tx, proc)
@@ -99,7 +102,7 @@ func RegisterProcessor(
 			)
 			if err != nil {
 				slog.Error(
-					"cloud not create algotrithm dependency",
+					"could not create algotrithm dependency",
 					"algorithm",
 					algo,
 					"depends_on",
@@ -110,6 +113,15 @@ func RegisterProcessor(
 				return err
 			}
 		}
+	}
+
+	// then add datagetters
+	for _, dg := range proc.GetDataGetters() {
+		err := dlyr.AddOverwriteDataGetter(ctx, tx, dg, proc)
+		if err != nil {
+			slog.Error("could not create data getter", "data getter", dg, "error", err)
+		}
+		return err
 	}
 
 	return tx.Commit(ctx)

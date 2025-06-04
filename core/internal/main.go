@@ -8,7 +8,6 @@ import (
 	dlyr "github.com/predixus/orca/core/internal/datalayers"
 	types "github.com/predixus/orca/core/internal/types"
 	pb "github.com/predixus/orca/core/protobufs/go"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -17,15 +16,6 @@ type (
 		pb.UnimplementedOrcaCoreServer
 		client types.Datalayer
 	}
-)
-
-var (
-	MAX_PROCESSORS = 20
-	processors     = make(
-		[]grpc.ServerStreamingServer[pb.ProcessingTask],
-		MAX_PROCESSORS,
-		MAX_PROCESSORS,
-	)
 )
 
 // NewServer produces a new ORCA gRPC server
