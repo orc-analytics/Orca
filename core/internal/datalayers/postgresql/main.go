@@ -309,7 +309,7 @@ func (d *Datalayer) AddOverwriteDataGetter(
 func (d *Datalayer) EmitWindow(
 	ctx context.Context,
 	window *pb.Window,
-) (pb.WindowEmitStatus, error) {
+) (pb.WindowEmitResponse, error) {
 	slog.Info("recieved window")
 
 	slog.Debug("inserting window", "window", window)
@@ -323,8 +323,8 @@ func (d *Datalayer) EmitWindow(
 	if err != nil {
 		slog.Error("could not insert window", "error", err)
 		if strings.Contains(err.Error(), "(SQLSTATE 23503)") {
-			return pb.WindowEmitStatus{
-					Status: pb.WindowEmitStatus_TRIGGERING_FAILED,
+			return pb.WindowEmitResponse{
+					Status: pb.WindowEmitResponse_TRIGGERING_FAILED,
 				}, fmt.Errorf(
 					"window type does not exist - insert via window type registration: %v",
 					err.Error(),
@@ -344,7 +344,7 @@ func (d *Datalayer) EmitWindow(
 			"error",
 			err,
 		)
-		return pb.WindowEmitStatus{Status: pb.WindowEmitStatus_TRIGGERING_FAILED}, err
+		return pb.WindowEmitResponse{Status: pb.WindowEmitResponse_TRIGGERING_FAILED}, err
 	}
 
 	// create the algo path args
@@ -372,18 +372,18 @@ func (d *Datalayer) EmitWindow(
 			"error",
 			err,
 		)
-		return pb.WindowEmitStatus{Status: pb.WindowEmitStatus_TRIGGERING_FAILED}, err
+		return pb.WindowEmitResponse{Status: pb.WindowEmitResponse_TRIGGERING_FAILED}, err
 	}
 
 	if len(executionPlan.Stages) > 0 {
 		go processTasks(d, executionPlan, window, insertedWindow)
 
-		return pb.WindowEmitStatus{
-			Status: pb.WindowEmitStatus_PROCESSING_TRIGGERED,
+		return pb.WindowEmitResponse{
+			Status: pb.WindowEmitResponse_PROCESSING_TRIGGERED,
 		}, nil
 	} else {
-		return pb.WindowEmitStatus{
-			Status: pb.WindowEmitStatus_NO_TRIGGERED_ALGORITHMS,
+		return pb.WindowEmitResponse{
+			Status: pb.WindowEmitResponse_NO_TRIGGERED_ALGORITHMS,
 		}, nil
 	}
 }

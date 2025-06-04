@@ -39,7 +39,7 @@ type (
 			dg *pb.DataGetter,
 			proc *pb.ProcessorRegistration,
 		) error
-		EmitWindow(ctx context.Context, window *pb.Window) (pb.WindowEmitStatus, error)
+		EmitWindow(ctx context.Context, window *pb.Window) (pb.WindowEmitResponse, error)
 	}
 )
 

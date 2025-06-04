@@ -61,7 +61,7 @@ func validate[T proto.Message](msg T) error {
 func (o *OrcaCoreServer) RegisterWindowType(
 	ctx context.Context,
 	w *pb.WindowRegistration,
-) (*pb.Status, error) {
+) (*pb.WindowTypeRegResponse, error) {
 	err := validate(w)
 	if err != nil {
 		return nil, err
@@ -85,16 +85,14 @@ func (o *OrcaCoreServer) RegisterWindowType(
 		return nil, err
 	}
 	slog.Info("Registered window")
-	return &pb.Status{
-		Received: true,
-	}, tx.Commit(ctx)
+	return &pb.WindowTypeRegResponse{}, tx.Commit(ctx)
 }
 
 // Register a processor with orca-core. Called when a processor startsup.
 func (o *OrcaCoreServer) RegisterProcessor(
 	ctx context.Context,
 	proc *pb.ProcessorRegistration,
-) (*pb.Status, error) {
+) (*pb.ProcRegResponse, error) {
 	err := validate(proc)
 	if err != nil {
 		return nil, err
@@ -166,15 +164,13 @@ func (o *OrcaCoreServer) RegisterProcessor(
 	}
 
 	slog.Debug("registered processor", "processor", proc)
-	return &pb.Status{
-		Received: true,
-	}, tx.Commit(ctx)
+	return &pb.ProcRegResponse{}, tx.Commit(ctx)
 }
 
 func (o *OrcaCoreServer) EmitWindow(
 	ctx context.Context,
 	window *pb.Window,
-) (*pb.WindowEmitStatus, error) {
+) (*pb.WindowEmitResponse, error) {
 	err := validate(window)
 	if err != nil {
 		return nil, err
