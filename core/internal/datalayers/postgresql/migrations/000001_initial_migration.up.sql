@@ -47,8 +47,8 @@ CREATE TABLE algorithm_dependency (
   FOREIGN KEY (to_algorithm_id) REFERENCES algorithm(id) ON DELETE CASCADE,
   FOREIGN KEY (from_window_type_id) REFERENCES window_type(id),
   FOREIGN KEY (to_window_type_id) REFERENCES window_type(id),
-  FOREIGN KEY (from_processor_id) REFERENCES processor(id),
-  FOREIGN KEY (to_processor_id) REFERENCES processor(id),
+  FOREIGN KEY (from_processor_id) REFERENCES processor(id) ON DELETE CASCADE,
+  FOREIGN KEY (to_processor_id) REFERENCES processor(id) ON DELETE CASCADE,
   -- Prevent self-dependencies
   CHECK (from_algorithm_id != to_algorithm_id)
 );

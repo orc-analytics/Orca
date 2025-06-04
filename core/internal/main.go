@@ -57,7 +57,7 @@ func validate[T proto.Message](msg T) error {
 	return nil
 }
 
-// Orca gRPC server implementations
+// Orca gRPC server function implementations
 func (o *OrcaCoreServer) RegisterWindowType(
 	ctx context.Context,
 	w *pb.WindowRegistration,
@@ -159,11 +159,11 @@ func (o *OrcaCoreServer) RegisterProcessor(
 		err := o.client.AddOverwriteDataGetter(ctx, tx, dg, proc)
 		if err != nil {
 			slog.Error("could not create data getter", "data getter", dg, "error", err)
+			return nil, err
 		}
-		return nil, err
 	}
 
-	slog.Debug("registered processor", "processor", proc)
+	slog.Info("registered processor")
 	return &pb.ProcRegResponse{}, tx.Commit(ctx)
 }
 
