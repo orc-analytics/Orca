@@ -4,7 +4,6 @@ all: .proto .datalayer
 proto: .proto
 datalayer: .datalayer
 
-build_proto: .proto 
 build_store: .create_ssl_cert .spin_up_datalayer
 start_store: .start_datalayer
 stop_store: .stop_datalayer

@@ -55,6 +55,13 @@ message DataGetter {
   int64 max_size_bytes = 4;
 }
 
+message DataGetterDependency {
+  // The name of the data getter - must be unique within a processor
+  string name = 1 [(buf.validate.field).required = true];
+
+  // The window type that this data getter is triggered by
+  WindowType window_type = 2 [(buf.validate.field).required = true];
+}
 
 // Cache connection information
 message CacheConnectionInfo {
@@ -236,7 +243,7 @@ message Algorithm {
   repeated AlgorithmDependency dependencies = 4;
 
   // Required datagetters for this algorithm to run
-  repeated string required_data_getters = 5;
+  repeated DataGetterDependency required_data_getters = 5;
 }
 
 // ResultStatus indicates the outcome of algorithm execution
@@ -294,13 +301,15 @@ message ProcessorRegistration {
   // The connection string of the processor 
   // e.g. grpc://localhost:5433
   string connection_str = 3 [(buf.validate.field).required = true];
-
-  // Algorithms this processor can execute
-  // The processor must implement all listed algorithms
-  repeated Algorithm supported_algorithms = 4 [(buf.validate.field).required = true];
+  
+  // Window types that this processor defines
+  repeated WindowType window_type = 4;
 
   // Data getters that this processor owns
   repeated DataGetter data_getters = 5;
+
+  // Algorithms this processor can execute
+  repeated Algorithm supported_algorithms = 6;
 }
 
 // ExecutionRequest provides a complete view of a processing DAG's execution

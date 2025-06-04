@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added check on processor registration whether the the registration introduces a circular dependancy
+- Added the concept of a data getter
+
+### Changed
+
+- Kept window definitions seperate to algorithms
 
 ## [v0.4.0] - 18-05-2025
 

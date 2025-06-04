@@ -29,6 +29,14 @@ class DataGetter(_message.Message):
     max_size_bytes: int
     def __init__(self, name: _Optional[str] = ..., window_type: _Optional[_Union[WindowType, _Mapping]] = ..., ttl_seconds: _Optional[int] = ..., max_size_bytes: _Optional[int] = ...) -> None: ...
 
+class DataGetterDependency(_message.Message):
+    __slots__ = ("name", "window_type")
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    WINDOW_TYPE_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    window_type: WindowType
+    def __init__(self, name: _Optional[str] = ..., window_type: _Optional[_Union[WindowType, _Mapping]] = ...) -> None: ...
+
 class CacheConnectionInfo(_message.Message):
     __slots__ = ("cache_type", "connection_string")
     CACHE_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -150,8 +158,8 @@ class Algorithm(_message.Message):
     version: str
     window_type: WindowType
     dependencies: _containers.RepeatedCompositeFieldContainer[AlgorithmDependency]
-    required_data_getters: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., window_type: _Optional[_Union[WindowType, _Mapping]] = ..., dependencies: _Optional[_Iterable[_Union[AlgorithmDependency, _Mapping]]] = ..., required_data_getters: _Optional[_Iterable[str]] = ...) -> None: ...
+    required_data_getters: _containers.RepeatedCompositeFieldContainer[DataGetterDependency]
+    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., window_type: _Optional[_Union[WindowType, _Mapping]] = ..., dependencies: _Optional[_Iterable[_Union[AlgorithmDependency, _Mapping]]] = ..., required_data_getters: _Optional[_Iterable[_Union[DataGetterDependency, _Mapping]]] = ...) -> None: ...
 
 class FloatArray(_message.Message):
     __slots__ = ("values",)
@@ -174,18 +182,20 @@ class Result(_message.Message):
     def __init__(self, status: _Optional[_Union[ResultStatus, str]] = ..., single_value: _Optional[float] = ..., float_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
 class ProcessorRegistration(_message.Message):
-    __slots__ = ("name", "runtime", "connection_str", "supported_algorithms", "data_getters")
+    __slots__ = ("name", "runtime", "connection_str", "window_type", "data_getters", "supported_algorithms")
     NAME_FIELD_NUMBER: _ClassVar[int]
     RUNTIME_FIELD_NUMBER: _ClassVar[int]
     CONNECTION_STR_FIELD_NUMBER: _ClassVar[int]
-    SUPPORTED_ALGORITHMS_FIELD_NUMBER: _ClassVar[int]
+    WINDOW_TYPE_FIELD_NUMBER: _ClassVar[int]
     DATA_GETTERS_FIELD_NUMBER: _ClassVar[int]
+    SUPPORTED_ALGORITHMS_FIELD_NUMBER: _ClassVar[int]
     name: str
     runtime: str
     connection_str: str
-    supported_algorithms: _containers.RepeatedCompositeFieldContainer[Algorithm]
+    window_type: _containers.RepeatedCompositeFieldContainer[WindowType]
     data_getters: _containers.RepeatedCompositeFieldContainer[DataGetter]
-    def __init__(self, name: _Optional[str] = ..., runtime: _Optional[str] = ..., connection_str: _Optional[str] = ..., supported_algorithms: _Optional[_Iterable[_Union[Algorithm, _Mapping]]] = ..., data_getters: _Optional[_Iterable[_Union[DataGetter, _Mapping]]] = ...) -> None: ...
+    supported_algorithms: _containers.RepeatedCompositeFieldContainer[Algorithm]
+    def __init__(self, name: _Optional[str] = ..., runtime: _Optional[str] = ..., connection_str: _Optional[str] = ..., window_type: _Optional[_Iterable[_Union[WindowType, _Mapping]]] = ..., data_getters: _Optional[_Iterable[_Union[DataGetter, _Mapping]]] = ..., supported_algorithms: _Optional[_Iterable[_Union[Algorithm, _Mapping]]] = ...) -> None: ...
 
 class ExecutionRequest(_message.Message):
     __slots__ = ("exec_id", "window", "algorithm_results", "algorithms", "cached_data")
