@@ -111,6 +111,13 @@ func (o *OrcaCoreServer) RegisterProcessor(
 		}
 	}()
 
+	// register/refresh the processor
+	err = o.client.RefreshProcessor(ctx, tx, proc)
+	if err != nil {
+		slog.Error("could not create processor", "error", err)
+		return nil, err
+	}
+
 	// add datagetters
 	for _, dg := range proc.GetDataGetters() {
 		err := o.client.AddOverwriteDataGetter(ctx, tx, dg, proc)
@@ -118,13 +125,6 @@ func (o *OrcaCoreServer) RegisterProcessor(
 			slog.Error("could not create data getter", "data getter", dg, "error", err)
 			return nil, err
 		}
-	}
-
-	// register/refresh the processor
-	err = o.client.RefreshProcessor(ctx, tx, proc)
-	if err != nil {
-		slog.Error("could not create processor", "error", err)
-		return nil, err
 	}
 
 	// add all algorithms first
