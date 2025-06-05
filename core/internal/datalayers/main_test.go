@@ -366,3 +366,55 @@ func TestAlgosSameNamesDifferentProcessors(t *testing.T) {
 	err = dlyr.AddAlgorithm(testCtx, tx, &algo2, &proc2)
 	assert.NoError(t, err)
 }
+
+func TestAddDataGetterWithoutWindow(t *testing.T) {
+	dlyr, tx := getCleanTx(t, testCtx)
+	defer tx.Rollback(testCtx)
+
+	dg := pb.DataGetter{
+		Name: "TestDataGetter",
+		WindowType: &pb.WindowType{
+			Name:    "TestWindow",
+			Version: "1.0.0",
+		},
+	}
+	proc := pb.ProcessorRegistration{
+		Name:          "TestProcessor",
+		Runtime:       "TestRuntime",
+		ConnectionStr: "Test",
+	}
+
+	err := dlyr.AddOverwriteDataGetter(testCtx, tx, &dg, &proc)
+	assert.Error(t, err)
+}
+
+func TestAddDataGetter(t *testing.T) {
+	dlyr, tx := getCleanTx(t, testCtx)
+	defer tx.Rollback(testCtx)
+
+	dg := pb.DataGetter{
+		Name: "TestDataGetter",
+		WindowType: &pb.WindowType{
+			Name:    "TestWindow",
+			Version: "1.0.0",
+		},
+	}
+	proc := pb.ProcessorRegistration{
+		Name:          "TestProcessor",
+		Runtime:       "TestRuntime",
+		ConnectionStr: "Test",
+	}
+
+	win := pb.WindowType{
+		Name:    "TestWindow",
+		Version: "1.0.0",
+	}
+	err := dlyr.RefreshProcessor(testCtx, tx, &proc)
+	assert.NoError(t, err)
+
+	err = dlyr.CreateWindowType(testCtx, tx, &win)
+	assert.NoError(t, err)
+
+	err = dlyr.AddOverwriteDataGetter(testCtx, tx, &dg, &proc)
+	assert.NoError(t, err)
+}
