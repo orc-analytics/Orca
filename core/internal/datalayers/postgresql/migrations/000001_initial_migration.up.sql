@@ -19,6 +19,19 @@ CREATE TABLE processor (
   UNIQUE (name, runtime)
 );
 
+-- Data getters (moved up before algorithm_required_datagetters)
+CREATE TABLE data_getters (
+  id bigserial primary key,
+  processor_id bigint not null,
+  name text not null,
+  window_type_id bigint not null,
+  ttl_seconds bigint not null,
+  max_size_bytes bigint not null,
+  foreign key (window_type_id) references window_type(id),
+  foreign key (processor_id) references processor(id) ON DELETE CASCADE,
+  UNIQUE(processor_id, name)
+);
+
 -- Store of all the algorithms
 CREATE TABLE algorithm (
   id BIGSERIAL PRIMARY KEY,
@@ -53,7 +66,7 @@ CREATE TABLE algorithm_dependency (
   CHECK (from_algorithm_id != to_algorithm_id)
 );
 
--- What algorithms require data from what data getters
+-- What algorithms require data from what data getters (now data_getters exists)
 CREATE TABLE algorithm_required_datagetters (
   id BIGSERIAL NOT NULL,
   data_getter_id BIGINT NOT NULL, 
@@ -61,8 +74,7 @@ CREATE TABLE algorithm_required_datagetters (
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(data_getter_id, algorithm_id),
   FOREIGN KEY (data_getter_id) REFERENCES data_getters(id) ON DELETE CASCADE,
-  FOREIGN KEY (algorithm_id) REFERENCES algorithms(id) ON DELETE CASCADE,
-
+  FOREIGN KEY (algorithm_id) REFERENCES algorithm(id) ON DELETE CASCADE
 );
 
 -- Windows that trigger algorithms
@@ -74,18 +86,6 @@ CREATE TABLE windows (
   origin TEXT NOT NULL, -- the location that emitted the window
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (window_type_id) REFERENCES window_type(id)
-);
-
-CREATE TABLE data_getters (
-  id bigserial primary key,
-  processor_id bigint not null,
-  name text not null,
-  window_type_id bigint not null,
-  ttl_seconds bigint not null,
-  max_size_bytes bigint not null,
-  foreign key (window_type_id) references window_type(id),
-  foreign key (processor_id) references processor(id) ON DELETE CASCADE,
-  UNIQUE(processor_id, name)
 );
 
 -- Where the results are stored
