@@ -163,6 +163,23 @@ func (o *OrcaCoreServer) RegisterProcessor(
 		}
 	}
 
+	// then associate algorithms with any data getters
+	for _, algo := range proc.GetSupportedAlgorithms() {
+		for _, dg := range algo.GetRequiredDataGetters() {
+			err = o.client.AddOverwriteAlgorithmRequiredDataGetter(
+				ctx,
+				tx,
+				dg,
+				algo,
+				proc,
+			)
+			if err != nil {
+				slog.Error("issue adding required data getter", "error", err, "datagetter", dg)
+				return nil, err
+			}
+		}
+	}
+
 	slog.Info("registered processor")
 	return &pb.ProcRegResponse{}, tx.Commit(ctx)
 }

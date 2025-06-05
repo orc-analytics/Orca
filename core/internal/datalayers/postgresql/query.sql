@@ -119,7 +119,7 @@ INSERT INTO algorithm_required_datagetters (
 ) VALUES (
   (SELECT id FROM datagetter),
   (SELECT id FROM algo)
-);
+) ON CONFLICT (data_getter_id, algorithm_id) DO NOTHING;
 
 -- name: ReadFromAlgorithmDependencies :many
 WITH from_algo AS (

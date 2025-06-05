@@ -58,8 +58,11 @@ CREATE TABLE algorithm_required_datagetters (
   id BIGSERIAL NOT NULL,
   data_getter_id BIGINT NOT NULL, 
   algorithm_id BIGINT NOT NULL,
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(data_getter_id, algorithm_id),
   FOREIGN KEY (data_getter_id) REFERENCES data_getters(id) ON DELETE CASCADE,
-  FOREIGN KEY (algorithm_id) REFERENCES algorithms(id) ON DELETE CASCADE
+  FOREIGN KEY (algorithm_id) REFERENCES algorithms(id) ON DELETE CASCADE,
+
 );
 
 -- Windows that trigger algorithms

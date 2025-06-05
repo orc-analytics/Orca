@@ -306,6 +306,45 @@ func (d *Datalayer) AddOverwriteDataGetter(
 	return nil
 }
 
+func (d *Datalayer) AddOverwriteAlgorithmRequiredDataGetter(
+	ctx context.Context,
+	tx types.Tx,
+	dg *pb.DataGetterDependency,
+	algo *pb.Algorithm,
+	proc *pb.ProcessorRegistration,
+) error {
+	slog.Debug("adding data getter requirement from algorithm", "datagetter", dg)
+
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+
+	err := qtx.CreateAlgorithmRequiredDataGetter(
+		ctx,
+		CreateAlgorithmRequiredDataGetterParams{
+			AlgorithmName:    algo.GetName(),
+			AlgorithmVersion: algo.GetVersion(),
+			ProcessorName:    proc.GetName(),
+			ProcessorRuntime: proc.GetRuntime(),
+			DatagetterName:   dg.GetName(),
+		},
+	)
+	if err != nil {
+		slog.Error(
+			"issue adding datagetter to algorithm relationship",
+			"error",
+			err,
+			"datagetter",
+			dg,
+			"algorithm",
+			algo,
+			"processor",
+			proc,
+		)
+		return err
+	}
+	return nil
+}
+
 func (d *Datalayer) EmitWindow(
 	ctx context.Context,
 	window *pb.Window,

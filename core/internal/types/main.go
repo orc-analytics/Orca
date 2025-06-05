@@ -39,6 +39,13 @@ type (
 			dg *pb.DataGetter,
 			proc *pb.ProcessorRegistration,
 		) error
+		AddOverwriteAlgorithmRequiredDataGetter(
+			ctx context.Context,
+			tx Tx,
+			dg *pb.DataGetterDependency,
+			algo *pb.Algorithm,
+			proc *pb.ProcessorRegistration,
+		) error
 		EmitWindow(ctx context.Context, window *pb.Window) (pb.WindowEmitResponse, error)
 	}
 )
