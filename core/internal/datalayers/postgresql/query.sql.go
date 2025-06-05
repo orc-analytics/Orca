@@ -120,6 +120,48 @@ func (q *Queries) CreateAlgorithmDependency(ctx context.Context, arg CreateAlgor
 	return err
 }
 
+const createAlgorithmRequiredDataGetter = `-- name: CreateAlgorithmRequiredDataGetter :exec
+WITH algo AS (
+  SELECT a.id FROM algorithm a
+  WHERE a.name = $1 AND a.version = $2
+),
+processor AS (
+  SELECT p.id FROM processor p
+  WHERE p.name = $3 AND p.runtime = $4
+),
+datagetter AS (
+  SELECT d.id FROM data_getters d
+  WHERE d.name = $5 AND d.processor_id = (SELECT id FROM processor)
+)
+
+INSERT INTO algorithm_required_datagetters (
+  data_getter_id,
+  algorithm_id
+) VALUES (
+  (SELECT id FROM datagetter),
+  (SELECT id FROM algo)
+)
+`
+
+type CreateAlgorithmRequiredDataGetterParams struct {
+	AlgorithmName    string
+	AlgorithmVersion string
+	ProcessorName    string
+	ProcessorRuntime string
+	DatagetterName   string
+}
+
+func (q *Queries) CreateAlgorithmRequiredDataGetter(ctx context.Context, arg CreateAlgorithmRequiredDataGetterParams) error {
+	_, err := q.db.Exec(ctx, createAlgorithmRequiredDataGetter,
+		arg.AlgorithmName,
+		arg.AlgorithmVersion,
+		arg.ProcessorName,
+		arg.ProcessorRuntime,
+		arg.DatagetterName,
+	)
+	return err
+}
+
 const createDataGetter = `-- name: CreateDataGetter :one
 WITH processor_id AS (
   SELECT id FROM processor p

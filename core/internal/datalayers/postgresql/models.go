@@ -36,6 +36,12 @@ type AlgorithmExecutionPath struct {
 	ProcIDPath       string
 }
 
+type AlgorithmRequiredDatagetter struct {
+	ID           int64
+	DataGetterID int64
+	AlgorithmID  int64
+}
+
 type DataGetter struct {
 	ID           int64
 	ProcessorID  int64

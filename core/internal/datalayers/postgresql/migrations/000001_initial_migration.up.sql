@@ -53,6 +53,15 @@ CREATE TABLE algorithm_dependency (
   CHECK (from_algorithm_id != to_algorithm_id)
 );
 
+-- What algorithms require data from what data getters
+CREATE TABLE algorithm_required_datagetters (
+  id BIGSERIAL NOT NULL,
+  data_getter_id BIGINT NOT NULL, 
+  algorithm_id BIGINT NOT NULL,
+  FOREIGN KEY (data_getter_id) REFERENCES data_getters(id) ON DELETE CASCADE,
+  FOREIGN KEY (algorithm_id) REFERENCES algorithms(id) ON DELETE CASCADE
+);
+
 -- Windows that trigger algorithms
 CREATE TABLE windows (
   id BIGSERIAL PRIMARY KEY,

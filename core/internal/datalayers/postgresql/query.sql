@@ -99,6 +99,28 @@ INSERT INTO algorithm_dependency (
     from_processor_id = excluded.from_processor_id,
     to_processor_id = excluded.to_processor_id;
 
+-- name: CreateAlgorithmRequiredDataGetter :exec
+WITH algo AS (
+  SELECT a.id FROM algorithm a
+  WHERE a.name = sqlc.arg('algorithm_name') AND a.version = sqlc.arg('algorithm_version')
+),
+processor AS (
+  SELECT p.id FROM processor p
+  WHERE p.name = sqlc.arg('processor_name') AND p.runtime = sqlc.arg('processor_runtime')
+),
+datagetter AS (
+  SELECT d.id FROM data_getters d
+  WHERE d.name = sqlc.arg('datagetter_name') AND d.processor_id = (SELECT id FROM processor)
+)
+
+INSERT INTO algorithm_required_datagetters (
+  data_getter_id,
+  algorithm_id
+) VALUES (
+  (SELECT id FROM datagetter),
+  (SELECT id FROM algo)
+);
+
 -- name: ReadFromAlgorithmDependencies :many
 WITH from_algo AS (
   SELECT a.id, a.window_type_id, a.processor_id FROM algorithm a
