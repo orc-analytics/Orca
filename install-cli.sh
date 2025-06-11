@@ -62,12 +62,15 @@ download_binary() {
 
 # Determine writable install directories
 find_install_dirs() {
+  # Create directories if they don't exist
+  mkdir -p "$HOME/.local/bin" "$HOME/.local/share"
+  
   SHARE_CANDIDATES=("$HOME/.local/share" "$HOME/share" "/usr/local/share")
   BIN_CANDIDATES=("$HOME/.local/bin" "$HOME/bin" "/usr/local/bin")
 
   for dir in "${SHARE_CANDIDATES[@]}"; do
     if [ -d "$dir" ] && [ -w "$dir" ]; then
-      SHARE_DIR="$dir/predixus"
+      SHARE_DIR="$dir/orca"
       mkdir -p "$SHARE_DIR"
       break
     fi
