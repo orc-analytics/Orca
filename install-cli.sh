@@ -70,7 +70,7 @@ find_install_dirs() {
 
   for dir in "${SHARE_CANDIDATES[@]}"; do
     if [ -d "$dir" ] && [ -w "$dir" ]; then
-      SHARE_DIR="$dir/orca"
+      SHARE_DIR="$dir/orc_a"
       mkdir -p "$SHARE_DIR"
       break
     fi

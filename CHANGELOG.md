@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added check on processor registration whether the the registration introduces a circular dependancy
 
+### Fixed
+
+- Updated the install script to create common install dirs if they do not exist
+
 ## [v0.4.0] - 18-05-2025
 
 ### Modified
