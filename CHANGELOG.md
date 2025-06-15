@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [v0.5.0] - 15-06-2025
+
 ### Added
 
 - Added check on processor registration whether the the registration introduces a circular dependancy
