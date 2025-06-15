@@ -48,7 +48,7 @@ func main() {
 		err := waitForPgReady(ctx, pgContainerName, time.Millisecond*500)
 		if err != nil {
 			fmt.Println(
-				errorStyle.Render(
+				renderError(
 					fmt.Sprintf("Issue waiting for Postgres store to start: %v", err.Error()),
 				),
 			)
@@ -57,7 +57,7 @@ func main() {
 		startOrca(networkName)
 		fmt.Println()
 
-		fmt.Println(successStyle.Render("✅ Orca stack started successfully."))
+		fmt.Println(renderSuccess("✅ Orca stack started successfully."))
 		fmt.Println()
 
 	case "stop":
@@ -69,7 +69,7 @@ func main() {
 		stopContainers()
 
 		fmt.Println()
-		fmt.Println(successStyle.Render("✅ All containers stopped."))
+		fmt.Println(renderSuccess("✅ All containers stopped."))
 		fmt.Println()
 
 	case "status":
@@ -99,8 +99,8 @@ func main() {
 
 	default:
 		fmt.Println()
-		fmt.Println(errorStyle.Render(fmt.Sprintf("Unknown subcommand: %s", os.Args[1])))
-		fmt.Println(infoStyle.Render("Run 'help' for usage information."))
+		fmt.Println(renderError(fmt.Sprintf("Unknown subcommand: %s", os.Args[1])))
+		fmt.Println(renderInfo("Run 'help' for usage information."))
 		fmt.Println()
 		os.Exit(1)
 	}
