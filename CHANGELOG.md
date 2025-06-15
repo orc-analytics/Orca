@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Updated the install script to create common install dirs if they do not exist
+- Updated CLI to safe render colours given the term config. Avoids issues when using a terminal with poor X11 support
 
 ## [v0.4.0] - 18-05-2025
 
