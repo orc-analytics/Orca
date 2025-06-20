@@ -35,6 +35,8 @@ export CGO_ENABLED = 0
     --pyi_out=./python \
     --grpc_python_out=./python \
 	*.proto vendor/*.proto
+	cd core/protobufs && grpc_tools_node_protoc \
+		--js_out=import_style=commonjs,binary:./nodejs/ --grpc_out=grpc_js:./nodejs/ service.proto
 
 
 .datalayer:

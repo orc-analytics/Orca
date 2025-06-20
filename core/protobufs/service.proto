@@ -12,14 +12,19 @@ import "vendor/validate.proto";
 // - Tracks DAG dependencies and execution state
 // - Routes results between dependent algorithms
 service OrcaCore {
+  // Core operations
+
   // Register a processor node and its supported algorithms
   rpc RegisterProcessor(ProcessorRegistration) returns (Status);
 
   // Submit a window for processing
   rpc EmitWindow(Window) returns (WindowEmitStatus);
 
+  // Data operations
+  rpc ReadWindowTypes(WindowTypeRead) returns (WindowTypes);
 }
-
+// ---------------------------- Core Operations ----------------------------
+//
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:
 // - Execute individual algorithms
@@ -300,4 +305,12 @@ message ProcessorMetrics {
 
   // Time since processor started in seconds
   int64 uptime_seconds = 4;
+}
+
+// ---------------------------- Data Operations ----------------------------
+//
+message WindowTypeRead {}
+
+message WindowTypes {
+  repeated WindowType windows = 1; 
 }

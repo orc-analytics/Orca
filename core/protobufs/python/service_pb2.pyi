@@ -194,3 +194,13 @@ class ProcessorMetrics(_message.Message):
     cpu_percent: float
     uptime_seconds: int
     def __init__(self, active_tasks: _Optional[int] = ..., memory_bytes: _Optional[int] = ..., cpu_percent: _Optional[float] = ..., uptime_seconds: _Optional[int] = ...) -> None: ...
+
+class WindowTypeRead(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class WindowTypes(_message.Message):
+    __slots__ = ("windows",)
+    WINDOWS_FIELD_NUMBER: _ClassVar[int]
+    windows: _containers.RepeatedCompositeFieldContainer[WindowType]
+    def __init__(self, windows: _Optional[_Iterable[_Union[WindowType, _Mapping]]] = ...) -> None: ...
