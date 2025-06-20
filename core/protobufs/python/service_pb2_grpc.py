@@ -31,6 +31,7 @@ class OrcaCoreStub(object):
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
+    Core operations
     """
 
     def __init__(self, channel):
@@ -49,6 +50,11 @@ class OrcaCoreStub(object):
                 request_serializer=service__pb2.Window.SerializeToString,
                 response_deserializer=service__pb2.WindowEmitStatus.FromString,
                 _registered_method=True)
+        self.ReadWindowTypes = channel.unary_unary(
+                '/OrcaCore/ReadWindowTypes',
+                request_serializer=service__pb2.WindowTypeRead.SerializeToString,
+                response_deserializer=service__pb2.WindowTypes.FromString,
+                _registered_method=True)
 
 
 class OrcaCoreServicer(object):
@@ -57,6 +63,7 @@ class OrcaCoreServicer(object):
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
+    Core operations
     """
 
     def RegisterProcessor(self, request, context):
@@ -68,6 +75,13 @@ class OrcaCoreServicer(object):
 
     def EmitWindow(self, request, context):
         """Submit a window for processing
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReadWindowTypes(self, request, context):
+        """Data operations
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -86,6 +100,11 @@ def add_OrcaCoreServicer_to_server(servicer, server):
                     request_deserializer=service__pb2.Window.FromString,
                     response_serializer=service__pb2.WindowEmitStatus.SerializeToString,
             ),
+            'ReadWindowTypes': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReadWindowTypes,
+                    request_deserializer=service__pb2.WindowTypeRead.FromString,
+                    response_serializer=service__pb2.WindowTypes.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'OrcaCore', rpc_method_handlers)
@@ -100,6 +119,7 @@ class OrcaCore(object):
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
+    Core operations
     """
 
     @staticmethod
@@ -156,9 +176,38 @@ class OrcaCore(object):
             metadata,
             _registered_method=True)
 
+    @staticmethod
+    def ReadWindowTypes(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrcaCore/ReadWindowTypes',
+            service__pb2.WindowTypeRead.SerializeToString,
+            service__pb2.WindowTypes.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
 
 class OrcaProcessorStub(object):
-    """OrcaProcessor defines the interface that each processing node must implement.
+    """---------------------------- Core Operations ----------------------------
+
+    OrcaProcessor defines the interface that each processing node must implement.
     Processors are language-agnostic services that:
     - Execute individual algorithms
     - Handle their own internal state
@@ -185,7 +234,9 @@ class OrcaProcessorStub(object):
 
 
 class OrcaProcessorServicer(object):
-    """OrcaProcessor defines the interface that each processing node must implement.
+    """---------------------------- Core Operations ----------------------------
+
+    OrcaProcessor defines the interface that each processing node must implement.
     Processors are language-agnostic services that:
     - Execute individual algorithms
     - Handle their own internal state
@@ -230,7 +281,9 @@ def add_OrcaProcessorServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class OrcaProcessor(object):
-    """OrcaProcessor defines the interface that each processing node must implement.
+    """---------------------------- Core Operations ----------------------------
+
+    OrcaProcessor defines the interface that each processing node must implement.
     Processors are language-agnostic services that:
     - Execute individual algorithms
     - Handle their own internal state

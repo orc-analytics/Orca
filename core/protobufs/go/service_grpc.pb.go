@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	OrcaCore_RegisterProcessor_FullMethodName = "/OrcaCore/RegisterProcessor"
 	OrcaCore_EmitWindow_FullMethodName        = "/OrcaCore/EmitWindow"
+	OrcaCore_ReadWindowTypes_FullMethodName   = "/OrcaCore/ReadWindowTypes"
 )
 
 // OrcaCoreClient is the client API for OrcaCore service.
@@ -37,6 +38,8 @@ type OrcaCoreClient interface {
 	RegisterProcessor(ctx context.Context, in *ProcessorRegistration, opts ...grpc.CallOption) (*Status, error)
 	// Submit a window for processing
 	EmitWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*WindowEmitStatus, error)
+	// Data operations
+	ReadWindowTypes(ctx context.Context, in *WindowTypeRead, opts ...grpc.CallOption) (*WindowTypes, error)
 }
 
 type orcaCoreClient struct {
@@ -67,6 +70,16 @@ func (c *orcaCoreClient) EmitWindow(ctx context.Context, in *Window, opts ...grp
 	return out, nil
 }
 
+func (c *orcaCoreClient) ReadWindowTypes(ctx context.Context, in *WindowTypeRead, opts ...grpc.CallOption) (*WindowTypes, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WindowTypes)
+	err := c.cc.Invoke(ctx, OrcaCore_ReadWindowTypes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrcaCoreServer is the server API for OrcaCore service.
 // All implementations must embed UnimplementedOrcaCoreServer
 // for forward compatibility.
@@ -81,6 +94,8 @@ type OrcaCoreServer interface {
 	RegisterProcessor(context.Context, *ProcessorRegistration) (*Status, error)
 	// Submit a window for processing
 	EmitWindow(context.Context, *Window) (*WindowEmitStatus, error)
+	// Data operations
+	ReadWindowTypes(context.Context, *WindowTypeRead) (*WindowTypes, error)
 	mustEmbedUnimplementedOrcaCoreServer()
 }
 
@@ -96,6 +111,9 @@ func (UnimplementedOrcaCoreServer) RegisterProcessor(context.Context, *Processor
 }
 func (UnimplementedOrcaCoreServer) EmitWindow(context.Context, *Window) (*WindowEmitStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EmitWindow not implemented")
+}
+func (UnimplementedOrcaCoreServer) ReadWindowTypes(context.Context, *WindowTypeRead) (*WindowTypes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadWindowTypes not implemented")
 }
 func (UnimplementedOrcaCoreServer) mustEmbedUnimplementedOrcaCoreServer() {}
 func (UnimplementedOrcaCoreServer) testEmbeddedByValue()                  {}
@@ -154,6 +172,24 @@ func _OrcaCore_EmitWindow_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrcaCore_ReadWindowTypes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WindowTypeRead)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaCoreServer).ReadWindowTypes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaCore_ReadWindowTypes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaCoreServer).ReadWindowTypes(ctx, req.(*WindowTypeRead))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrcaCore_ServiceDesc is the grpc.ServiceDesc for OrcaCore service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -169,6 +205,10 @@ var OrcaCore_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "EmitWindow",
 			Handler:    _OrcaCore_EmitWindow_Handler,
 		},
+		{
+			MethodName: "ReadWindowTypes",
+			Handler:    _OrcaCore_ReadWindowTypes_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "service.proto",
@@ -182,6 +222,8 @@ const (
 // OrcaProcessorClient is the client API for OrcaProcessor service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// ---------------------------- Core Operations ----------------------------
 //
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:
@@ -237,6 +279,8 @@ func (c *orcaProcessorClient) HealthCheck(ctx context.Context, in *HealthCheckRe
 // OrcaProcessorServer is the server API for OrcaProcessor service.
 // All implementations must embed UnimplementedOrcaProcessorServer
 // for forward compatibility.
+//
+// ---------------------------- Core Operations ----------------------------
 //
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:

@@ -15,6 +15,7 @@ type (
 	}
 	Datalayer interface {
 		WithTx(ctx context.Context) (Tx, error)
+		// Core level operations
 		CreateProcessorAndPurgeAlgos(
 			ctx context.Context,
 			tx Tx,
@@ -34,6 +35,7 @@ type (
 			proc *pb.ProcessorRegistration,
 		) error
 		EmitWindow(ctx context.Context, window *pb.Window) (pb.WindowEmitStatus, error)
+		// CRUD level operations
 	}
 )
 
