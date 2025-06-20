@@ -24,17 +24,21 @@ export CGO_ENABLED = 0
 
 .proto:
 	cd core/protobufs && protoc \
-	--go_out=go \
-	--go_opt=paths=source_relative \
-	--go-grpc_out=go \
-	--go-grpc_opt=paths=source_relative \
-	*.proto vendor/*.proto
+		--go_out=go \
+		--go_opt=paths=source_relative \
+		--go-grpc_out=go \
+		--go-grpc_opt=paths=source_relative \
+		*.proto vendor/*.proto
 	cd core/protobufs && python -m grpc_tools.protoc \
     --proto_path=./ \
     --python_out=./python \
     --pyi_out=./python \
     --grpc_python_out=./python \
-	*.proto vendor/*.proto
+		*.proto vendor/*.proto
+	cd core/protobufs && grpc_tools_node_protoc \
+	  --js_out=import_style=commonjs,binary:./nodejs/ \
+		--grpc_out=grpc_js:./nodejs/ \
+		*.proto vendor/*.proto
 
 .datalayer:
 	sqlc vet -f core/internal/datalayers/postgresql/sqlc.yaml
