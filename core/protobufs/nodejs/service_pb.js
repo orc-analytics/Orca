@@ -13,13 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = (function() {
-  if (this) { return this; }
-  if (typeof window !== 'undefined') { return window; }
-  if (typeof global !== 'undefined') { return global; }
-  if (typeof self !== 'undefined') { return self; }
-  return Function('return this')();
-}.call(null));
+var global =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof global !== 'undefined' && global) ||
+    (typeof self !== 'undefined' && self) ||
+    (function () { return this; }).call(null) ||
+    Function('return this')();
 
 var google_protobuf_struct_pb = require('google-protobuf/google/protobuf/struct_pb.js');
 goog.object.extend(proto, google_protobuf_struct_pb);
@@ -457,11 +457,11 @@ proto.Window.prototype.toObject = function(opt_includeInstance) {
  */
 proto.Window.toObject = function(includeInstance, msg) {
   var f, obj = {
-    timeFrom: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    timeTo: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    windowTypeName: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    windowTypeVersion: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    origin: jspb.Message.getFieldWithDefault(msg, 5, "")
+timeFrom: jspb.Message.getFieldWithDefault(msg, 1, 0),
+timeTo: jspb.Message.getFieldWithDefault(msg, 2, 0),
+windowTypeName: jspb.Message.getFieldWithDefault(msg, 3, ""),
+windowTypeVersion: jspb.Message.getFieldWithDefault(msg, 4, ""),
+origin: jspb.Message.getFieldWithDefault(msg, 5, "")
   };
 
   if (includeInstance) {
@@ -707,8 +707,8 @@ proto.WindowType.prototype.toObject = function(opt_includeInstance) {
  */
 proto.WindowType.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    version: jspb.Message.getFieldWithDefault(msg, 2, "")
+name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+version: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -867,7 +867,7 @@ proto.WindowEmitStatus.prototype.toObject = function(opt_includeInstance) {
  */
 proto.WindowEmitStatus.toObject = function(includeInstance, msg) {
   var f, obj = {
-    status: jspb.Message.getFieldWithDefault(msg, 1, 0)
+status: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
   if (includeInstance) {
@@ -1006,10 +1006,10 @@ proto.AlgorithmDependency.prototype.toObject = function(opt_includeInstance) {
  */
 proto.AlgorithmDependency.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    version: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    processorName: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    processorRuntime: jspb.Message.getFieldWithDefault(msg, 4, "")
+name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+version: jspb.Message.getFieldWithDefault(msg, 2, ""),
+processorName: jspb.Message.getFieldWithDefault(msg, 3, ""),
+processorRuntime: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -1233,10 +1233,10 @@ proto.Algorithm.prototype.toObject = function(opt_includeInstance) {
  */
 proto.Algorithm.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    version: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    windowType: (f = msg.getWindowType()) && proto.WindowType.toObject(includeInstance, f),
-    dependenciesList: jspb.Message.toObjectList(msg.getDependenciesList(),
+name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+version: jspb.Message.getFieldWithDefault(msg, 2, ""),
+windowType: (f = msg.getWindowType()) && proto.WindowType.toObject(includeInstance, f),
+dependenciesList: jspb.Message.toObjectList(msg.getDependenciesList(),
     proto.AlgorithmDependency.toObject, includeInstance)
   };
 
@@ -1504,7 +1504,7 @@ proto.FloatArray.prototype.toObject = function(opt_includeInstance) {
  */
 proto.FloatArray.toObject = function(includeInstance, msg) {
   var f, obj = {
-    valuesList: (f = jspb.Message.getRepeatedFloatingPointField(msg, 1)) == null ? undefined : f
+valuesList: (f = jspb.Message.getRepeatedFloatingPointField(msg, 1)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -1682,11 +1682,11 @@ proto.Result.prototype.toObject = function(opt_includeInstance) {
  */
 proto.Result.toObject = function(includeInstance, msg) {
   var f, obj = {
-    status: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    singleValue: jspb.Message.getFloatingPointFieldWithDefault(msg, 2, 0.0),
-    floatValues: (f = msg.getFloatValues()) && proto.FloatArray.toObject(includeInstance, f),
-    structValue: (f = msg.getStructValue()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
-    timestamp: jspb.Message.getFieldWithDefault(msg, 5, 0)
+status: jspb.Message.getFieldWithDefault(msg, 1, 0),
+singleValue: (f = jspb.Message.getOptionalFloatingPointField(msg, 2)) == null ? undefined : f,
+floatValues: (f = msg.getFloatValues()) && proto.FloatArray.toObject(includeInstance, f),
+structValue: (f = msg.getStructValue()) && google_protobuf_struct_pb.Struct.toObject(includeInstance, f),
+timestamp: jspb.Message.getFieldWithDefault(msg, 5, 0)
   };
 
   if (includeInstance) {
@@ -1999,10 +1999,10 @@ proto.ProcessorRegistration.prototype.toObject = function(opt_includeInstance) {
  */
 proto.ProcessorRegistration.toObject = function(includeInstance, msg) {
   var f, obj = {
-    name: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    runtime: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    connectionStr: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    supportedAlgorithmsList: jspb.Message.toObjectList(msg.getSupportedAlgorithmsList(),
+name: jspb.Message.getFieldWithDefault(msg, 1, ""),
+runtime: jspb.Message.getFieldWithDefault(msg, 2, ""),
+connectionStr: jspb.Message.getFieldWithDefault(msg, 3, ""),
+supportedAlgorithmsList: jspb.Message.toObjectList(msg.getSupportedAlgorithmsList(),
     proto.Algorithm.toObject, includeInstance)
   };
 
@@ -2249,10 +2249,10 @@ proto.ProcessingTask.prototype.toObject = function(opt_includeInstance) {
  */
 proto.ProcessingTask.toObject = function(includeInstance, msg) {
   var f, obj = {
-    taskId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    algorithm: (f = msg.getAlgorithm()) && proto.Algorithm.toObject(includeInstance, f),
-    window: (f = msg.getWindow()) && proto.Window.toObject(includeInstance, f),
-    dependencyResultsList: jspb.Message.toObjectList(msg.getDependencyResultsList(),
+taskId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+algorithm: (f = msg.getAlgorithm()) && proto.Algorithm.toObject(includeInstance, f),
+window: (f = msg.getWindow()) && proto.Window.toObject(includeInstance, f),
+dependencyResultsList: jspb.Message.toObjectList(msg.getDependencyResultsList(),
     proto.Result.toObject, includeInstance)
   };
 
@@ -2541,11 +2541,11 @@ proto.ExecutionRequest.prototype.toObject = function(opt_includeInstance) {
  */
 proto.ExecutionRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    execId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    window: (f = msg.getWindow()) && proto.Window.toObject(includeInstance, f),
-    algorithmResultsList: jspb.Message.toObjectList(msg.getAlgorithmResultsList(),
+execId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+window: (f = msg.getWindow()) && proto.Window.toObject(includeInstance, f),
+algorithmResultsList: jspb.Message.toObjectList(msg.getAlgorithmResultsList(),
     proto.AlgorithmResult.toObject, includeInstance),
-    algorithmsList: jspb.Message.toObjectList(msg.getAlgorithmsList(),
+algorithmsList: jspb.Message.toObjectList(msg.getAlgorithmsList(),
     proto.Algorithm.toObject, includeInstance)
   };
 
@@ -2828,8 +2828,8 @@ proto.ExecutionResult.prototype.toObject = function(opt_includeInstance) {
  */
 proto.ExecutionResult.toObject = function(includeInstance, msg) {
   var f, obj = {
-    execId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    algorithmResult: (f = msg.getAlgorithmResult()) && proto.AlgorithmResult.toObject(includeInstance, f)
+execId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+algorithmResult: (f = msg.getAlgorithmResult()) && proto.AlgorithmResult.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3009,8 +3009,8 @@ proto.AlgorithmResult.prototype.toObject = function(opt_includeInstance) {
  */
 proto.AlgorithmResult.toObject = function(includeInstance, msg) {
   var f, obj = {
-    algorithm: (f = msg.getAlgorithm()) && proto.Algorithm.toObject(includeInstance, f),
-    result: (f = msg.getResult()) && proto.Result.toObject(includeInstance, f)
+algorithm: (f = msg.getAlgorithm()) && proto.Algorithm.toObject(includeInstance, f),
+result: (f = msg.getResult()) && proto.Result.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3211,8 +3211,8 @@ proto.Status.prototype.toObject = function(opt_includeInstance) {
  */
 proto.Status.toObject = function(includeInstance, msg) {
   var f, obj = {
-    received: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
-    message: jspb.Message.getFieldWithDefault(msg, 2, "")
+received: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
+message: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -3371,7 +3371,7 @@ proto.HealthCheckRequest.prototype.toObject = function(opt_includeInstance) {
  */
 proto.HealthCheckRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    timestamp: jspb.Message.getFieldWithDefault(msg, 1, 0)
+timestamp: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
   if (includeInstance) {
@@ -3501,9 +3501,9 @@ proto.HealthCheckResponse.prototype.toObject = function(opt_includeInstance) {
  */
 proto.HealthCheckResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    status: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    message: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    metrics: (f = msg.getMetrics()) && proto.ProcessorMetrics.toObject(includeInstance, f)
+status: jspb.Message.getFieldWithDefault(msg, 1, 0),
+message: jspb.Message.getFieldWithDefault(msg, 2, ""),
+metrics: (f = msg.getMetrics()) && proto.ProcessorMetrics.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -3722,10 +3722,10 @@ proto.ProcessorMetrics.prototype.toObject = function(opt_includeInstance) {
  */
 proto.ProcessorMetrics.toObject = function(includeInstance, msg) {
   var f, obj = {
-    activeTasks: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    memoryBytes: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    cpuPercent: jspb.Message.getFloatingPointFieldWithDefault(msg, 3, 0.0),
-    uptimeSeconds: jspb.Message.getFieldWithDefault(msg, 4, 0)
+activeTasks: jspb.Message.getFieldWithDefault(msg, 1, 0),
+memoryBytes: jspb.Message.getFieldWithDefault(msg, 2, 0),
+cpuPercent: jspb.Message.getFloatingPointFieldWithDefault(msg, 3, 0.0),
+uptimeSeconds: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -4050,7 +4050,7 @@ proto.WindowTypes.prototype.toObject = function(opt_includeInstance) {
  */
 proto.WindowTypes.toObject = function(includeInstance, msg) {
   var f, obj = {
-    windowsList: jspb.Message.toObjectList(msg.getWindowsList(),
+windowsList: jspb.Message.toObjectList(msg.getWindowsList(),
     proto.WindowType.toObject, includeInstance)
   };
 
