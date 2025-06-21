@@ -145,7 +145,6 @@ INSERT INTO windows (
   sqlc.arg('origin')
 ) RETURNING window_type_id, id;
 
-
 -- name: CreateResult :one
 INSERT INTO results (
   windows_id,
@@ -183,3 +182,12 @@ SELECT
 FROM processor
 WHERE id = ANY(sqlc.arg('processor_ids')::bigint[])
 ORDER BY name, runtime;
+
+-- name: ReadWindowTypes :many
+SELECT
+  id, 
+  version, 
+  name, 
+  created
+FROM window_type
+ORDER BY created DESC;

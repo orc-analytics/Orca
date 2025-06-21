@@ -7,13 +7,14 @@
 package _go
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (
@@ -1575,32 +1576,34 @@ func file_service_proto_rawDescGZIP() []byte {
 	return file_service_proto_rawDescData
 }
 
-var file_service_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
-var file_service_proto_goTypes = []any{
-	(ResultStatus)(0),                // 0: ResultStatus
-	(WindowEmitStatus_StatusEnum)(0), // 1: WindowEmitStatus.StatusEnum
-	(HealthCheckResponse_Status)(0),  // 2: HealthCheckResponse.Status
-	(*Window)(nil),                   // 3: Window
-	(*WindowType)(nil),               // 4: WindowType
-	(*WindowEmitStatus)(nil),         // 5: WindowEmitStatus
-	(*AlgorithmDependency)(nil),      // 6: AlgorithmDependency
-	(*Algorithm)(nil),                // 7: Algorithm
-	(*FloatArray)(nil),               // 8: FloatArray
-	(*Result)(nil),                   // 9: Result
-	(*ProcessorRegistration)(nil),    // 10: ProcessorRegistration
-	(*ProcessingTask)(nil),           // 11: ProcessingTask
-	(*ExecutionRequest)(nil),         // 12: ExecutionRequest
-	(*ExecutionResult)(nil),          // 13: ExecutionResult
-	(*AlgorithmResult)(nil),          // 14: AlgorithmResult
-	(*Status)(nil),                   // 15: Status
-	(*HealthCheckRequest)(nil),       // 16: HealthCheckRequest
-	(*HealthCheckResponse)(nil),      // 17: HealthCheckResponse
-	(*ProcessorMetrics)(nil),         // 18: ProcessorMetrics
-	(*WindowTypeRead)(nil),           // 19: WindowTypeRead
-	(*WindowTypes)(nil),              // 20: WindowTypes
-	(*structpb.Struct)(nil),          // 21: google.protobuf.Struct
-}
+var (
+	file_service_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+	file_service_proto_msgTypes  = make([]protoimpl.MessageInfo, 18)
+	file_service_proto_goTypes   = []any{
+		(ResultStatus)(0),                // 0: ResultStatus
+		(WindowEmitStatus_StatusEnum)(0), // 1: WindowEmitStatus.StatusEnum
+		(HealthCheckResponse_Status)(0),  // 2: HealthCheckResponse.Status
+		(*Window)(nil),                   // 3: Window
+		(*WindowType)(nil),               // 4: WindowType
+		(*WindowEmitStatus)(nil),         // 5: WindowEmitStatus
+		(*AlgorithmDependency)(nil),      // 6: AlgorithmDependency
+		(*Algorithm)(nil),                // 7: Algorithm
+		(*FloatArray)(nil),               // 8: FloatArray
+		(*Result)(nil),                   // 9: Result
+		(*ProcessorRegistration)(nil),    // 10: ProcessorRegistration
+		(*ProcessingTask)(nil),           // 11: ProcessingTask
+		(*ExecutionRequest)(nil),         // 12: ExecutionRequest
+		(*ExecutionResult)(nil),          // 13: ExecutionResult
+		(*AlgorithmResult)(nil),          // 14: AlgorithmResult
+		(*Status)(nil),                   // 15: Status
+		(*HealthCheckRequest)(nil),       // 16: HealthCheckRequest
+		(*HealthCheckResponse)(nil),      // 17: HealthCheckResponse
+		(*ProcessorMetrics)(nil),         // 18: ProcessorMetrics
+		(*WindowTypeRead)(nil),           // 19: WindowTypeRead
+		(*WindowTypes)(nil),              // 20: WindowTypes
+		(*structpb.Struct)(nil),          // 21: google.protobuf.Struct
+	}
+)
 var file_service_proto_depIdxs = []int32{
 	1,  // 0: WindowEmitStatus.status:type_name -> WindowEmitStatus.StatusEnum
 	4,  // 1: Algorithm.window_type:type_name -> WindowType

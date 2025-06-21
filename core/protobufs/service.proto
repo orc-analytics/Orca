@@ -307,7 +307,7 @@ message ProcessorMetrics {
   int64 uptime_seconds = 4;
 }
 
-// ---------------------------- Data Operations ----------------------------
+// ---------------------------- Data Messages ----------------------------
 //
 message WindowTypeRead {}
 

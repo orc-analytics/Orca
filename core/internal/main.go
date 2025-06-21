@@ -67,6 +67,7 @@ func validate[T proto.Message](msg T) error {
 	return nil
 }
 
+// --------------------------- gRPC Services ---------------------------
 // Register a processor with orca-core. Called when a processor startsup.
 func (o *OrcaCoreServer) RegisterProcessor(
 	ctx context.Context,
@@ -77,7 +78,7 @@ func (o *OrcaCoreServer) RegisterProcessor(
 		return nil, err
 	}
 	slog.Info("registering processor")
-	err = dlyr.RegisterProcessor(ctx, o.client, proc)
+	err = o.client.RegisterProcessor(ctx, proc)
 	if err != nil {
 		return nil, err
 	}
