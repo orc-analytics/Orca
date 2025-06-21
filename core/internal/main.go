@@ -101,3 +101,14 @@ func (o *OrcaCoreServer) EmitWindow(
 	windowEmitStatus, err := o.client.EmitWindow(ctx, window)
 	return &windowEmitStatus, err
 }
+
+func (o *OrcaCoreServer) ReadWindowTypes(
+	ctx context.Context,
+	windowTypeReadStub *pb.WindowTypeRead,
+) (*pb.WindowTypes, error) {
+	slog.Info("getting window types")
+
+	windowTypes, err := o.client.ReadWindowTypes(ctx)
+
+	return windowTypes, err
+}
