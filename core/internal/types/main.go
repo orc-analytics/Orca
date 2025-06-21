@@ -15,27 +15,13 @@ type (
 	}
 	Datalayer interface {
 		WithTx(ctx context.Context) (Tx, error)
+
 		// Core level operations
-		CreateProcessorAndPurgeAlgos(
-			ctx context.Context,
-			tx Tx,
-			proc *pb.ProcessorRegistration,
-		) error
-		CreateWindowType(ctx context.Context, qtx Tx, windowType *pb.WindowType) error
-		AddAlgorithm(
-			ctx context.Context,
-			tx Tx,
-			algo *pb.Algorithm,
-			proc *pb.ProcessorRegistration,
-		) error
-		AddOverwriteAlgorithmDependency(
-			ctx context.Context,
-			tx Tx,
-			algo *pb.Algorithm,
-			proc *pb.ProcessorRegistration,
-		) error
+		RegisterProcessor(ctx context.Context, proc *pb.ProcessorRegistration) error
 		EmitWindow(ctx context.Context, window *pb.Window) (pb.WindowEmitStatus, error)
-		// CRUD level operations
+
+		// Data level operations
+		ReadWindowTypes(ctx context.Context) (*pb.WindowTypes, error)
 	}
 )
 
