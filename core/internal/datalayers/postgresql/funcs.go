@@ -9,14 +9,15 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	types "github.com/predixus/orca/core/internal/types"
 	pb "github.com/predixus/orca/core/protobufs/go"
 )
 
 type Datalayer struct {
 	queries *Queries
-	conn    *pgx.Conn
-	closeFn func(context.Context) error
+	conn    *pgxpool.Pool
+	closeFn func()
 }
 
 type PgTx struct {
@@ -37,16 +38,16 @@ func NewClient(ctx context.Context, connStr string) (*Datalayer, error) {
 		return nil, errors.New("connection string empty")
 	}
 
-	conn, err := pgx.Connect(ctx, connStr)
+	connPool, err := pgxpool.New(ctx, connStr)
 	if err != nil {
 		slog.Error("Issue connecting to postgres", "error", err)
 		return nil, err
 	}
 
 	return &Datalayer{
-		queries: New(conn),
-		conn:    conn,
-		closeFn: conn.Close,
+		queries: New(connPool),
+		conn:    connPool,
+		closeFn: connPool.Close,
 	}, nil
 }
 

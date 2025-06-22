@@ -177,13 +177,12 @@ func (d *Datalayer) ReadWindowTypes(
 	ctx context.Context,
 ) (*pb.WindowTypes, error) {
 	tx, err := d.WithTx(ctx)
-
-	defer tx.Rollback(ctx)
-
 	if err != nil {
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
+
+	defer tx.Rollback(ctx)
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -211,13 +210,11 @@ func (d *Datalayer) ReadAlgorithms(
 	ctx context.Context,
 ) (*pb.Algorithms, error) {
 	tx, err := d.WithTx(ctx)
-
-	defer tx.Rollback(ctx)
-
 	if err != nil {
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
+	defer tx.Rollback(ctx)
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -248,13 +245,11 @@ func (d *Datalayer) ReadProcessors(
 	ctx context.Context,
 ) (*pb.Processors, error) {
 	tx, err := d.WithTx(ctx)
-
-	defer tx.Rollback(ctx)
-
 	if err != nil {
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
+	defer tx.Rollback(ctx)
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -281,13 +276,11 @@ func (d *Datalayer) ReadResultsStats(
 	ctx context.Context,
 ) (*pb.ResultsStats, error) {
 	tx, err := d.WithTx(ctx)
-
-	defer tx.Rollback(ctx)
-
 	if err != nil {
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
+	defer tx.Rollback(ctx)
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
