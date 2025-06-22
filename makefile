@@ -35,13 +35,11 @@ export CGO_ENABLED = 0
     --pyi_out=./python \
     --grpc_python_out=./python \
 		*.proto vendor/*.proto
-	cd core/protobufs *&& protoc \
-    --plugin=protoc-gen-ts=`which protoc-gen-ts` \
-    --plugin=protoc-gen-grpc=`which grpc_tools_node_protoc_plugin` \
-    --js_out="import_style=commonjs,binary:./nodejs/" \
-    --ts_out="service=grpc-node:./nodejs/" \
-    --grpc_out="./nodejs/" \
-    *.proto vendor/*.proto
+	cd core/protobufs && protoc \
+		--plugin=protoc-gen-ts=`which protoc-gen-ts_proto` \
+		--ts_proto_out=./nodejs \
+		*.proto vendor/*.proto
+
 
 .datalayer:
 	sqlc vet -f core/internal/datalayers/postgresql/sqlc.yaml
