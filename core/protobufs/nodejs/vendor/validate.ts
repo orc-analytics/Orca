@@ -328,7 +328,7 @@ export interface MessageConstraints {
    * }
    * ```
    */
-  cel: Constraint[];
+  cel?: Constraint[] | undefined;
 }
 
 /**
@@ -379,7 +379,9 @@ export interface FieldConstraints {
    * }
    * ```
    */
-  cel: Constraint[];
+  cel?:
+    | Constraint[]
+    | undefined;
   /**
    * If `required` is true, the field must be populated. A populated field can be
    * described as "serialized in the wire format," which includes:
@@ -417,37 +419,36 @@ export interface FieldConstraints {
    * }
    * ```
    */
-  ignore?:
-    | Ignore
+  ignore?: Ignore | undefined;
+  type?:
+    | //
+    /** Scalar Field Types */
+    { $case: "float"; value: FloatRules }
+    | { $case: "double"; value: DoubleRules }
+    | { $case: "int32"; value: Int32Rules }
+    | { $case: "int64"; value: Int64Rules }
+    | { $case: "uint32"; value: UInt32Rules }
+    | { $case: "uint64"; value: UInt64Rules }
+    | { $case: "sint32"; value: SInt32Rules }
+    | { $case: "sint64"; value: SInt64Rules }
+    | { $case: "fixed32"; value: Fixed32Rules }
+    | { $case: "fixed64"; value: Fixed64Rules }
+    | { $case: "sfixed32"; value: SFixed32Rules }
+    | { $case: "sfixed64"; value: SFixed64Rules }
+    | { $case: "bool"; value: BoolRules }
+    | { $case: "string"; value: StringRules }
+    | { $case: "bytes"; value: BytesRules }
+    | //
+    /** Complex Field Types */
+    { $case: "enum"; value: EnumRules }
+    | { $case: "repeated"; value: RepeatedRules }
+    | { $case: "map"; value: MapRules }
+    | //
+    /** Well-Known Field Types */
+    { $case: "any"; value: AnyRules }
+    | { $case: "duration"; value: DurationRules }
+    | { $case: "timestamp"; value: TimestampRules }
     | undefined;
-  /** Scalar Field Types */
-  float?: FloatRules | undefined;
-  double?: DoubleRules | undefined;
-  int32?: Int32Rules | undefined;
-  int64?: Int64Rules | undefined;
-  uint32?: UInt32Rules | undefined;
-  uint64?: UInt64Rules | undefined;
-  sint32?: SInt32Rules | undefined;
-  sint64?: SInt64Rules | undefined;
-  fixed32?: Fixed32Rules | undefined;
-  fixed64?: Fixed64Rules | undefined;
-  sfixed32?: SFixed32Rules | undefined;
-  sfixed64?: SFixed64Rules | undefined;
-  bool?: BoolRules | undefined;
-  string?: StringRules | undefined;
-  bytes?:
-    | BytesRules
-    | undefined;
-  /** Complex Field Types */
-  enum?: EnumRules | undefined;
-  repeated?: RepeatedRules | undefined;
-  map?:
-    | MapRules
-    | undefined;
-  /** Well-Known Field Types */
-  any?: AnyRules | undefined;
-  duration?: DurationRules | undefined;
-  timestamp?: TimestampRules | undefined;
 }
 
 /**
@@ -471,7 +472,7 @@ export interface PredefinedConstraints {
    * }
    * ```
    */
-  cel: Constraint[];
+  cel?: Constraint[] | undefined;
 }
 
 /**
@@ -490,84 +491,82 @@ export interface FloatRules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: number | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field <
+     * value). If the field value is equal to or greater than the specified value,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyFloat {
+     *   // value must be less than 10.0
+     *   float value = 1 [(buf.validate.field).float.lt = 10.0];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: number }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MyFloat {
+     *   // value must be less than or equal to 10.0
+     *   float value = 1 [(buf.validate.field).float.lte = 10.0];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: number }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field <
-   * value). If the field value is equal to or greater than the specified value,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyFloat {
-   *   // value must be less than 10.0
-   *   float value = 1 [(buf.validate.field).float.lt = 10.0];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MyFloat {
-   *   // value must be less than or equal to 10.0
-   *   float value = 1 [(buf.validate.field).float.lte = 10.0];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyFloat {
-   *   // value must be greater than 5.0 [float.gt]
-   *   float value = 1 [(buf.validate.field).float.gt = 5.0];
-   *
-   *   // value must be greater than 5 and less than 10.0 [float.gt_lt]
-   *   float other_value = 2 [(buf.validate.field).float = { gt: 5.0, lt: 10.0 }];
-   *
-   *   // value must be greater than 10 or less than 5.0 [float.gt_lt_exclusive]
-   *   float another_value = 3 [(buf.validate.field).float = { gt: 10.0, lt: 5.0 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyFloat {
-   *   // value must be greater than or equal to 5.0 [float.gte]
-   *   float value = 1 [(buf.validate.field).float.gte = 5.0];
-   *
-   *   // value must be greater than or equal to 5.0 and less than 10.0 [float.gte_lt]
-   *   float other_value = 2 [(buf.validate.field).float = { gte: 5.0, lt: 10.0 }];
-   *
-   *   // value must be greater than or equal to 10.0 or less than 5.0 [float.gte_lt_exclusive]
-   *   float another_value = 3 [(buf.validate.field).float = { gte: 10.0, lt: 5.0 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyFloat {
+     *   // value must be greater than 5.0 [float.gt]
+     *   float value = 1 [(buf.validate.field).float.gt = 5.0];
+     *
+     *   // value must be greater than 5 and less than 10.0 [float.gt_lt]
+     *   float other_value = 2 [(buf.validate.field).float = { gt: 5.0, lt: 10.0 }];
+     *
+     *   // value must be greater than 10 or less than 5.0 [float.gt_lt_exclusive]
+     *   float another_value = 3 [(buf.validate.field).float = { gt: 10.0, lt: 5.0 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: number }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyFloat {
+     *   // value must be greater than or equal to 5.0 [float.gte]
+     *   float value = 1 [(buf.validate.field).float.gte = 5.0];
+     *
+     *   // value must be greater than or equal to 5.0 and less than 10.0 [float.gte_lt]
+     *   float other_value = 2 [(buf.validate.field).float = { gte: 5.0, lt: 10.0 }];
+     *
+     *   // value must be greater than or equal to 10.0 or less than 5.0 [float.gte_lt_exclusive]
+     *   float another_value = 3 [(buf.validate.field).float = { gte: 10.0, lt: 5.0 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: number }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -581,7 +580,9 @@ export interface FloatRules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | number[]
+    | undefined;
   /**
    * `in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -594,7 +595,9 @@ export interface FloatRules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | number[]
+    | undefined;
   /**
    * `finite` requires the field value to be finite. If the field value is
    * infinite or NaN, an error message is generated.
@@ -616,7 +619,7 @@ export interface FloatRules {
    * }
    * ```
    */
-  example: number[];
+  example?: number[] | undefined;
 }
 
 /**
@@ -635,84 +638,82 @@ export interface DoubleRules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: number | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field <
+     * value). If the field value is equal to or greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MyDouble {
+     *   // value must be less than 10.0
+     *   double value = 1 [(buf.validate.field).double.lt = 10.0];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: number }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified value
+     * (field <= value). If the field value is greater than the specified value,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyDouble {
+     *   // value must be less than or equal to 10.0
+     *   double value = 1 [(buf.validate.field).double.lte = 10.0];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: number }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field <
-   * value). If the field value is equal to or greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MyDouble {
-   *   // value must be less than 10.0
-   *   double value = 1 [(buf.validate.field).double.lt = 10.0];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified value
-   * (field <= value). If the field value is greater than the specified value,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyDouble {
-   *   // value must be less than or equal to 10.0
-   *   double value = 1 [(buf.validate.field).double.lte = 10.0];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or `lte`,
-   * the range is reversed, and the field value must be outside the specified
-   * range. If the field value doesn't meet the required conditions, an error
-   * message is generated.
-   *
-   * ```proto
-   * message MyDouble {
-   *   // value must be greater than 5.0 [double.gt]
-   *   double value = 1 [(buf.validate.field).double.gt = 5.0];
-   *
-   *   // value must be greater than 5 and less than 10.0 [double.gt_lt]
-   *   double other_value = 2 [(buf.validate.field).double = { gt: 5.0, lt: 10.0 }];
-   *
-   *   // value must be greater than 10 or less than 5.0 [double.gt_lt_exclusive]
-   *   double another_value = 3 [(buf.validate.field).double = { gt: 10.0, lt: 5.0 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyDouble {
-   *   // value must be greater than or equal to 5.0 [double.gte]
-   *   double value = 1 [(buf.validate.field).double.gte = 5.0];
-   *
-   *   // value must be greater than or equal to 5.0 and less than 10.0 [double.gte_lt]
-   *   double other_value = 2 [(buf.validate.field).double = { gte: 5.0, lt: 10.0 }];
-   *
-   *   // value must be greater than or equal to 10.0 or less than 5.0 [double.gte_lt_exclusive]
-   *   double another_value = 3 [(buf.validate.field).double = { gte: 10.0, lt: 5.0 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or `lte`,
+     * the range is reversed, and the field value must be outside the specified
+     * range. If the field value doesn't meet the required conditions, an error
+     * message is generated.
+     *
+     * ```proto
+     * message MyDouble {
+     *   // value must be greater than 5.0 [double.gt]
+     *   double value = 1 [(buf.validate.field).double.gt = 5.0];
+     *
+     *   // value must be greater than 5 and less than 10.0 [double.gt_lt]
+     *   double other_value = 2 [(buf.validate.field).double = { gt: 5.0, lt: 10.0 }];
+     *
+     *   // value must be greater than 10 or less than 5.0 [double.gt_lt_exclusive]
+     *   double another_value = 3 [(buf.validate.field).double = { gt: 10.0, lt: 5.0 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: number }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyDouble {
+     *   // value must be greater than or equal to 5.0 [double.gte]
+     *   double value = 1 [(buf.validate.field).double.gte = 5.0];
+     *
+     *   // value must be greater than or equal to 5.0 and less than 10.0 [double.gte_lt]
+     *   double other_value = 2 [(buf.validate.field).double = { gte: 5.0, lt: 10.0 }];
+     *
+     *   // value must be greater than or equal to 10.0 or less than 5.0 [double.gte_lt_exclusive]
+     *   double another_value = 3 [(buf.validate.field).double = { gte: 10.0, lt: 5.0 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: number }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -726,7 +727,9 @@ export interface DoubleRules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | number[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -739,7 +742,9 @@ export interface DoubleRules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | number[]
+    | undefined;
   /**
    * `finite` requires the field value to be finite. If the field value is
    * infinite or NaN, an error message is generated.
@@ -761,7 +766,7 @@ export interface DoubleRules {
    * }
    * ```
    */
-  example: number[];
+  example?: number[] | undefined;
 }
 
 /**
@@ -780,84 +785,82 @@ export interface Int32Rules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: number | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field
+     * < value). If the field value is equal to or greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MyInt32 {
+     *   // value must be less than 10
+     *   int32 value = 1 [(buf.validate.field).int32.lt = 10];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: number }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MyInt32 {
+     *   // value must be less than or equal to 10
+     *   int32 value = 1 [(buf.validate.field).int32.lte = 10];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: number }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field
-   * < value). If the field value is equal to or greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MyInt32 {
-   *   // value must be less than 10
-   *   int32 value = 1 [(buf.validate.field).int32.lt = 10];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MyInt32 {
-   *   // value must be less than or equal to 10
-   *   int32 value = 1 [(buf.validate.field).int32.lte = 10];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyInt32 {
-   *   // value must be greater than 5 [int32.gt]
-   *   int32 value = 1 [(buf.validate.field).int32.gt = 5];
-   *
-   *   // value must be greater than 5 and less than 10 [int32.gt_lt]
-   *   int32 other_value = 2 [(buf.validate.field).int32 = { gt: 5, lt: 10 }];
-   *
-   *   // value must be greater than 10 or less than 5 [int32.gt_lt_exclusive]
-   *   int32 another_value = 3 [(buf.validate.field).int32 = { gt: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified value
-   * (exclusive). If the value of `gte` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyInt32 {
-   *   // value must be greater than or equal to 5 [int32.gte]
-   *   int32 value = 1 [(buf.validate.field).int32.gte = 5];
-   *
-   *   // value must be greater than or equal to 5 and less than 10 [int32.gte_lt]
-   *   int32 other_value = 2 [(buf.validate.field).int32 = { gte: 5, lt: 10 }];
-   *
-   *   // value must be greater than or equal to 10 or less than 5 [int32.gte_lt_exclusive]
-   *   int32 another_value = 3 [(buf.validate.field).int32 = { gte: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyInt32 {
+     *   // value must be greater than 5 [int32.gt]
+     *   int32 value = 1 [(buf.validate.field).int32.gt = 5];
+     *
+     *   // value must be greater than 5 and less than 10 [int32.gt_lt]
+     *   int32 other_value = 2 [(buf.validate.field).int32 = { gt: 5, lt: 10 }];
+     *
+     *   // value must be greater than 10 or less than 5 [int32.gt_lt_exclusive]
+     *   int32 another_value = 3 [(buf.validate.field).int32 = { gt: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: number }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified value
+     * (exclusive). If the value of `gte` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyInt32 {
+     *   // value must be greater than or equal to 5 [int32.gte]
+     *   int32 value = 1 [(buf.validate.field).int32.gte = 5];
+     *
+     *   // value must be greater than or equal to 5 and less than 10 [int32.gte_lt]
+     *   int32 other_value = 2 [(buf.validate.field).int32 = { gte: 5, lt: 10 }];
+     *
+     *   // value must be greater than or equal to 10 or less than 5 [int32.gte_lt_exclusive]
+     *   int32 another_value = 3 [(buf.validate.field).int32 = { gte: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: number }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -871,7 +874,9 @@ export interface Int32Rules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | number[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error message
@@ -884,7 +889,9 @@ export interface Int32Rules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | number[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -899,7 +906,7 @@ export interface Int32Rules {
    * }
    * ```
    */
-  example: number[];
+  example?: number[] | undefined;
 }
 
 /**
@@ -918,84 +925,82 @@ export interface Int64Rules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: string | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field <
+     * value). If the field value is equal to or greater than the specified value,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyInt64 {
+     *   // value must be less than 10
+     *   int64 value = 1 [(buf.validate.field).int64.lt = 10];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: string }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MyInt64 {
+     *   // value must be less than or equal to 10
+     *   int64 value = 1 [(buf.validate.field).int64.lte = 10];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: string }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field <
-   * value). If the field value is equal to or greater than the specified value,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyInt64 {
-   *   // value must be less than 10
-   *   int64 value = 1 [(buf.validate.field).int64.lt = 10];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MyInt64 {
-   *   // value must be less than or equal to 10
-   *   int64 value = 1 [(buf.validate.field).int64.lte = 10];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyInt64 {
-   *   // value must be greater than 5 [int64.gt]
-   *   int64 value = 1 [(buf.validate.field).int64.gt = 5];
-   *
-   *   // value must be greater than 5 and less than 10 [int64.gt_lt]
-   *   int64 other_value = 2 [(buf.validate.field).int64 = { gt: 5, lt: 10 }];
-   *
-   *   // value must be greater than 10 or less than 5 [int64.gt_lt_exclusive]
-   *   int64 another_value = 3 [(buf.validate.field).int64 = { gt: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyInt64 {
-   *   // value must be greater than or equal to 5 [int64.gte]
-   *   int64 value = 1 [(buf.validate.field).int64.gte = 5];
-   *
-   *   // value must be greater than or equal to 5 and less than 10 [int64.gte_lt]
-   *   int64 other_value = 2 [(buf.validate.field).int64 = { gte: 5, lt: 10 }];
-   *
-   *   // value must be greater than or equal to 10 or less than 5 [int64.gte_lt_exclusive]
-   *   int64 another_value = 3 [(buf.validate.field).int64 = { gte: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyInt64 {
+     *   // value must be greater than 5 [int64.gt]
+     *   int64 value = 1 [(buf.validate.field).int64.gt = 5];
+     *
+     *   // value must be greater than 5 and less than 10 [int64.gt_lt]
+     *   int64 other_value = 2 [(buf.validate.field).int64 = { gt: 5, lt: 10 }];
+     *
+     *   // value must be greater than 10 or less than 5 [int64.gt_lt_exclusive]
+     *   int64 another_value = 3 [(buf.validate.field).int64 = { gt: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: string }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyInt64 {
+     *   // value must be greater than or equal to 5 [int64.gte]
+     *   int64 value = 1 [(buf.validate.field).int64.gte = 5];
+     *
+     *   // value must be greater than or equal to 5 and less than 10 [int64.gte_lt]
+     *   int64 other_value = 2 [(buf.validate.field).int64 = { gte: 5, lt: 10 }];
+     *
+     *   // value must be greater than or equal to 10 or less than 5 [int64.gte_lt_exclusive]
+     *   int64 another_value = 3 [(buf.validate.field).int64 = { gte: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: string }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -1009,7 +1014,9 @@ export interface Int64Rules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | string[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -1022,7 +1029,9 @@ export interface Int64Rules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | string[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -1037,7 +1046,7 @@ export interface Int64Rules {
    * }
    * ```
    */
-  example: number[];
+  example?: string[] | undefined;
 }
 
 /**
@@ -1056,84 +1065,82 @@ export interface UInt32Rules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: number | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field <
+     * value). If the field value is equal to or greater than the specified value,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyUInt32 {
+     *   // value must be less than 10
+     *   uint32 value = 1 [(buf.validate.field).uint32.lt = 10];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: number }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MyUInt32 {
+     *   // value must be less than or equal to 10
+     *   uint32 value = 1 [(buf.validate.field).uint32.lte = 10];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: number }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field <
-   * value). If the field value is equal to or greater than the specified value,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyUInt32 {
-   *   // value must be less than 10
-   *   uint32 value = 1 [(buf.validate.field).uint32.lt = 10];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MyUInt32 {
-   *   // value must be less than or equal to 10
-   *   uint32 value = 1 [(buf.validate.field).uint32.lte = 10];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyUInt32 {
-   *   // value must be greater than 5 [uint32.gt]
-   *   uint32 value = 1 [(buf.validate.field).uint32.gt = 5];
-   *
-   *   // value must be greater than 5 and less than 10 [uint32.gt_lt]
-   *   uint32 other_value = 2 [(buf.validate.field).uint32 = { gt: 5, lt: 10 }];
-   *
-   *   // value must be greater than 10 or less than 5 [uint32.gt_lt_exclusive]
-   *   uint32 another_value = 3 [(buf.validate.field).uint32 = { gt: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyUInt32 {
-   *   // value must be greater than or equal to 5 [uint32.gte]
-   *   uint32 value = 1 [(buf.validate.field).uint32.gte = 5];
-   *
-   *   // value must be greater than or equal to 5 and less than 10 [uint32.gte_lt]
-   *   uint32 other_value = 2 [(buf.validate.field).uint32 = { gte: 5, lt: 10 }];
-   *
-   *   // value must be greater than or equal to 10 or less than 5 [uint32.gte_lt_exclusive]
-   *   uint32 another_value = 3 [(buf.validate.field).uint32 = { gte: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyUInt32 {
+     *   // value must be greater than 5 [uint32.gt]
+     *   uint32 value = 1 [(buf.validate.field).uint32.gt = 5];
+     *
+     *   // value must be greater than 5 and less than 10 [uint32.gt_lt]
+     *   uint32 other_value = 2 [(buf.validate.field).uint32 = { gt: 5, lt: 10 }];
+     *
+     *   // value must be greater than 10 or less than 5 [uint32.gt_lt_exclusive]
+     *   uint32 another_value = 3 [(buf.validate.field).uint32 = { gt: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: number }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyUInt32 {
+     *   // value must be greater than or equal to 5 [uint32.gte]
+     *   uint32 value = 1 [(buf.validate.field).uint32.gte = 5];
+     *
+     *   // value must be greater than or equal to 5 and less than 10 [uint32.gte_lt]
+     *   uint32 other_value = 2 [(buf.validate.field).uint32 = { gte: 5, lt: 10 }];
+     *
+     *   // value must be greater than or equal to 10 or less than 5 [uint32.gte_lt_exclusive]
+     *   uint32 another_value = 3 [(buf.validate.field).uint32 = { gte: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: number }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -1147,7 +1154,9 @@ export interface UInt32Rules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | number[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -1160,7 +1169,9 @@ export interface UInt32Rules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | number[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -1175,7 +1186,7 @@ export interface UInt32Rules {
    * }
    * ```
    */
-  example: number[];
+  example?: number[] | undefined;
 }
 
 /**
@@ -1194,84 +1205,82 @@ export interface UInt64Rules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: string | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field <
+     * value). If the field value is equal to or greater than the specified value,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyUInt64 {
+     *   // value must be less than 10
+     *   uint64 value = 1 [(buf.validate.field).uint64.lt = 10];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: string }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MyUInt64 {
+     *   // value must be less than or equal to 10
+     *   uint64 value = 1 [(buf.validate.field).uint64.lte = 10];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: string }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field <
-   * value). If the field value is equal to or greater than the specified value,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyUInt64 {
-   *   // value must be less than 10
-   *   uint64 value = 1 [(buf.validate.field).uint64.lt = 10];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MyUInt64 {
-   *   // value must be less than or equal to 10
-   *   uint64 value = 1 [(buf.validate.field).uint64.lte = 10];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyUInt64 {
-   *   // value must be greater than 5 [uint64.gt]
-   *   uint64 value = 1 [(buf.validate.field).uint64.gt = 5];
-   *
-   *   // value must be greater than 5 and less than 10 [uint64.gt_lt]
-   *   uint64 other_value = 2 [(buf.validate.field).uint64 = { gt: 5, lt: 10 }];
-   *
-   *   // value must be greater than 10 or less than 5 [uint64.gt_lt_exclusive]
-   *   uint64 another_value = 3 [(buf.validate.field).uint64 = { gt: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyUInt64 {
-   *   // value must be greater than or equal to 5 [uint64.gte]
-   *   uint64 value = 1 [(buf.validate.field).uint64.gte = 5];
-   *
-   *   // value must be greater than or equal to 5 and less than 10 [uint64.gte_lt]
-   *   uint64 other_value = 2 [(buf.validate.field).uint64 = { gte: 5, lt: 10 }];
-   *
-   *   // value must be greater than or equal to 10 or less than 5 [uint64.gte_lt_exclusive]
-   *   uint64 another_value = 3 [(buf.validate.field).uint64 = { gte: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyUInt64 {
+     *   // value must be greater than 5 [uint64.gt]
+     *   uint64 value = 1 [(buf.validate.field).uint64.gt = 5];
+     *
+     *   // value must be greater than 5 and less than 10 [uint64.gt_lt]
+     *   uint64 other_value = 2 [(buf.validate.field).uint64 = { gt: 5, lt: 10 }];
+     *
+     *   // value must be greater than 10 or less than 5 [uint64.gt_lt_exclusive]
+     *   uint64 another_value = 3 [(buf.validate.field).uint64 = { gt: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: string }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyUInt64 {
+     *   // value must be greater than or equal to 5 [uint64.gte]
+     *   uint64 value = 1 [(buf.validate.field).uint64.gte = 5];
+     *
+     *   // value must be greater than or equal to 5 and less than 10 [uint64.gte_lt]
+     *   uint64 other_value = 2 [(buf.validate.field).uint64 = { gte: 5, lt: 10 }];
+     *
+     *   // value must be greater than or equal to 10 or less than 5 [uint64.gte_lt_exclusive]
+     *   uint64 another_value = 3 [(buf.validate.field).uint64 = { gte: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: string }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -1285,7 +1294,9 @@ export interface UInt64Rules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | string[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -1298,7 +1309,9 @@ export interface UInt64Rules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | string[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -1313,7 +1326,7 @@ export interface UInt64Rules {
    * }
    * ```
    */
-  example: number[];
+  example?: string[] | undefined;
 }
 
 /** SInt32Rules describes the constraints applied to `sint32` values. */
@@ -1329,84 +1342,82 @@ export interface SInt32Rules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: number | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field
+     * < value). If the field value is equal to or greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MySInt32 {
+     *   // value must be less than 10
+     *   sint32 value = 1 [(buf.validate.field).sint32.lt = 10];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: number }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MySInt32 {
+     *   // value must be less than or equal to 10
+     *   sint32 value = 1 [(buf.validate.field).sint32.lte = 10];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: number }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field
-   * < value). If the field value is equal to or greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MySInt32 {
-   *   // value must be less than 10
-   *   sint32 value = 1 [(buf.validate.field).sint32.lt = 10];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MySInt32 {
-   *   // value must be less than or equal to 10
-   *   sint32 value = 1 [(buf.validate.field).sint32.lte = 10];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MySInt32 {
-   *   // value must be greater than 5 [sint32.gt]
-   *   sint32 value = 1 [(buf.validate.field).sint32.gt = 5];
-   *
-   *   // value must be greater than 5 and less than 10 [sint32.gt_lt]
-   *   sint32 other_value = 2 [(buf.validate.field).sint32 = { gt: 5, lt: 10 }];
-   *
-   *   // value must be greater than 10 or less than 5 [sint32.gt_lt_exclusive]
-   *   sint32 another_value = 3 [(buf.validate.field).sint32 = { gt: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MySInt32 {
-   *  // value must be greater than or equal to 5 [sint32.gte]
-   *  sint32 value = 1 [(buf.validate.field).sint32.gte = 5];
-   *
-   *  // value must be greater than or equal to 5 and less than 10 [sint32.gte_lt]
-   *  sint32 other_value = 2 [(buf.validate.field).sint32 = { gte: 5, lt: 10 }];
-   *
-   *  // value must be greater than or equal to 10 or less than 5 [sint32.gte_lt_exclusive]
-   *  sint32 another_value = 3 [(buf.validate.field).sint32 = { gte: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MySInt32 {
+     *   // value must be greater than 5 [sint32.gt]
+     *   sint32 value = 1 [(buf.validate.field).sint32.gt = 5];
+     *
+     *   // value must be greater than 5 and less than 10 [sint32.gt_lt]
+     *   sint32 other_value = 2 [(buf.validate.field).sint32 = { gt: 5, lt: 10 }];
+     *
+     *   // value must be greater than 10 or less than 5 [sint32.gt_lt_exclusive]
+     *   sint32 another_value = 3 [(buf.validate.field).sint32 = { gt: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: number }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MySInt32 {
+     *  // value must be greater than or equal to 5 [sint32.gte]
+     *  sint32 value = 1 [(buf.validate.field).sint32.gte = 5];
+     *
+     *  // value must be greater than or equal to 5 and less than 10 [sint32.gte_lt]
+     *  sint32 other_value = 2 [(buf.validate.field).sint32 = { gte: 5, lt: 10 }];
+     *
+     *  // value must be greater than or equal to 10 or less than 5 [sint32.gte_lt_exclusive]
+     *  sint32 another_value = 3 [(buf.validate.field).sint32 = { gte: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: number }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -1420,7 +1431,9 @@ export interface SInt32Rules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | number[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -1433,7 +1446,9 @@ export interface SInt32Rules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | number[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -1448,7 +1463,7 @@ export interface SInt32Rules {
    * }
    * ```
    */
-  example: number[];
+  example?: number[] | undefined;
 }
 
 /** SInt64Rules describes the constraints applied to `sint64` values. */
@@ -1464,84 +1479,82 @@ export interface SInt64Rules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: string | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field
+     * < value). If the field value is equal to or greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MySInt64 {
+     *   // value must be less than 10
+     *   sint64 value = 1 [(buf.validate.field).sint64.lt = 10];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: string }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MySInt64 {
+     *   // value must be less than or equal to 10
+     *   sint64 value = 1 [(buf.validate.field).sint64.lte = 10];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: string }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field
-   * < value). If the field value is equal to or greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MySInt64 {
-   *   // value must be less than 10
-   *   sint64 value = 1 [(buf.validate.field).sint64.lt = 10];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MySInt64 {
-   *   // value must be less than or equal to 10
-   *   sint64 value = 1 [(buf.validate.field).sint64.lte = 10];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MySInt64 {
-   *   // value must be greater than 5 [sint64.gt]
-   *   sint64 value = 1 [(buf.validate.field).sint64.gt = 5];
-   *
-   *   // value must be greater than 5 and less than 10 [sint64.gt_lt]
-   *   sint64 other_value = 2 [(buf.validate.field).sint64 = { gt: 5, lt: 10 }];
-   *
-   *   // value must be greater than 10 or less than 5 [sint64.gt_lt_exclusive]
-   *   sint64 another_value = 3 [(buf.validate.field).sint64 = { gt: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MySInt64 {
-   *   // value must be greater than or equal to 5 [sint64.gte]
-   *   sint64 value = 1 [(buf.validate.field).sint64.gte = 5];
-   *
-   *   // value must be greater than or equal to 5 and less than 10 [sint64.gte_lt]
-   *   sint64 other_value = 2 [(buf.validate.field).sint64 = { gte: 5, lt: 10 }];
-   *
-   *   // value must be greater than or equal to 10 or less than 5 [sint64.gte_lt_exclusive]
-   *   sint64 another_value = 3 [(buf.validate.field).sint64 = { gte: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MySInt64 {
+     *   // value must be greater than 5 [sint64.gt]
+     *   sint64 value = 1 [(buf.validate.field).sint64.gt = 5];
+     *
+     *   // value must be greater than 5 and less than 10 [sint64.gt_lt]
+     *   sint64 other_value = 2 [(buf.validate.field).sint64 = { gt: 5, lt: 10 }];
+     *
+     *   // value must be greater than 10 or less than 5 [sint64.gt_lt_exclusive]
+     *   sint64 another_value = 3 [(buf.validate.field).sint64 = { gt: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: string }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MySInt64 {
+     *   // value must be greater than or equal to 5 [sint64.gte]
+     *   sint64 value = 1 [(buf.validate.field).sint64.gte = 5];
+     *
+     *   // value must be greater than or equal to 5 and less than 10 [sint64.gte_lt]
+     *   sint64 other_value = 2 [(buf.validate.field).sint64 = { gte: 5, lt: 10 }];
+     *
+     *   // value must be greater than or equal to 10 or less than 5 [sint64.gte_lt_exclusive]
+     *   sint64 another_value = 3 [(buf.validate.field).sint64 = { gte: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: string }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -1555,7 +1568,9 @@ export interface SInt64Rules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | string[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -1568,7 +1583,9 @@ export interface SInt64Rules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | string[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -1583,7 +1600,7 @@ export interface SInt64Rules {
    * }
    * ```
    */
-  example: number[];
+  example?: string[] | undefined;
 }
 
 /** Fixed32Rules describes the constraints applied to `fixed32` values. */
@@ -1599,84 +1616,82 @@ export interface Fixed32Rules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: number | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field <
+     * value). If the field value is equal to or greater than the specified value,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyFixed32 {
+     *   // value must be less than 10
+     *   fixed32 value = 1 [(buf.validate.field).fixed32.lt = 10];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: number }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MyFixed32 {
+     *   // value must be less than or equal to 10
+     *   fixed32 value = 1 [(buf.validate.field).fixed32.lte = 10];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: number }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field <
-   * value). If the field value is equal to or greater than the specified value,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyFixed32 {
-   *   // value must be less than 10
-   *   fixed32 value = 1 [(buf.validate.field).fixed32.lt = 10];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MyFixed32 {
-   *   // value must be less than or equal to 10
-   *   fixed32 value = 1 [(buf.validate.field).fixed32.lte = 10];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyFixed32 {
-   *   // value must be greater than 5 [fixed32.gt]
-   *   fixed32 value = 1 [(buf.validate.field).fixed32.gt = 5];
-   *
-   *   // value must be greater than 5 and less than 10 [fixed32.gt_lt]
-   *   fixed32 other_value = 2 [(buf.validate.field).fixed32 = { gt: 5, lt: 10 }];
-   *
-   *   // value must be greater than 10 or less than 5 [fixed32.gt_lt_exclusive]
-   *   fixed32 another_value = 3 [(buf.validate.field).fixed32 = { gt: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyFixed32 {
-   *   // value must be greater than or equal to 5 [fixed32.gte]
-   *   fixed32 value = 1 [(buf.validate.field).fixed32.gte = 5];
-   *
-   *   // value must be greater than or equal to 5 and less than 10 [fixed32.gte_lt]
-   *   fixed32 other_value = 2 [(buf.validate.field).fixed32 = { gte: 5, lt: 10 }];
-   *
-   *   // value must be greater than or equal to 10 or less than 5 [fixed32.gte_lt_exclusive]
-   *   fixed32 another_value = 3 [(buf.validate.field).fixed32 = { gte: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyFixed32 {
+     *   // value must be greater than 5 [fixed32.gt]
+     *   fixed32 value = 1 [(buf.validate.field).fixed32.gt = 5];
+     *
+     *   // value must be greater than 5 and less than 10 [fixed32.gt_lt]
+     *   fixed32 other_value = 2 [(buf.validate.field).fixed32 = { gt: 5, lt: 10 }];
+     *
+     *   // value must be greater than 10 or less than 5 [fixed32.gt_lt_exclusive]
+     *   fixed32 another_value = 3 [(buf.validate.field).fixed32 = { gt: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: number }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyFixed32 {
+     *   // value must be greater than or equal to 5 [fixed32.gte]
+     *   fixed32 value = 1 [(buf.validate.field).fixed32.gte = 5];
+     *
+     *   // value must be greater than or equal to 5 and less than 10 [fixed32.gte_lt]
+     *   fixed32 other_value = 2 [(buf.validate.field).fixed32 = { gte: 5, lt: 10 }];
+     *
+     *   // value must be greater than or equal to 10 or less than 5 [fixed32.gte_lt_exclusive]
+     *   fixed32 another_value = 3 [(buf.validate.field).fixed32 = { gte: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: number }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -1690,7 +1705,9 @@ export interface Fixed32Rules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | number[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -1703,7 +1720,9 @@ export interface Fixed32Rules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | number[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -1718,7 +1737,7 @@ export interface Fixed32Rules {
    * }
    * ```
    */
-  example: number[];
+  example?: number[] | undefined;
 }
 
 /** Fixed64Rules describes the constraints applied to `fixed64` values. */
@@ -1734,84 +1753,82 @@ export interface Fixed64Rules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: string | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field <
+     * value). If the field value is equal to or greater than the specified value,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyFixed64 {
+     *   // value must be less than 10
+     *   fixed64 value = 1 [(buf.validate.field).fixed64.lt = 10];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: string }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MyFixed64 {
+     *   // value must be less than or equal to 10
+     *   fixed64 value = 1 [(buf.validate.field).fixed64.lte = 10];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: string }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field <
-   * value). If the field value is equal to or greater than the specified value,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyFixed64 {
-   *   // value must be less than 10
-   *   fixed64 value = 1 [(buf.validate.field).fixed64.lt = 10];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MyFixed64 {
-   *   // value must be less than or equal to 10
-   *   fixed64 value = 1 [(buf.validate.field).fixed64.lte = 10];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyFixed64 {
-   *   // value must be greater than 5 [fixed64.gt]
-   *   fixed64 value = 1 [(buf.validate.field).fixed64.gt = 5];
-   *
-   *   // value must be greater than 5 and less than 10 [fixed64.gt_lt]
-   *   fixed64 other_value = 2 [(buf.validate.field).fixed64 = { gt: 5, lt: 10 }];
-   *
-   *   // value must be greater than 10 or less than 5 [fixed64.gt_lt_exclusive]
-   *   fixed64 another_value = 3 [(buf.validate.field).fixed64 = { gt: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyFixed64 {
-   *   // value must be greater than or equal to 5 [fixed64.gte]
-   *   fixed64 value = 1 [(buf.validate.field).fixed64.gte = 5];
-   *
-   *   // value must be greater than or equal to 5 and less than 10 [fixed64.gte_lt]
-   *   fixed64 other_value = 2 [(buf.validate.field).fixed64 = { gte: 5, lt: 10 }];
-   *
-   *   // value must be greater than or equal to 10 or less than 5 [fixed64.gte_lt_exclusive]
-   *   fixed64 another_value = 3 [(buf.validate.field).fixed64 = { gte: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyFixed64 {
+     *   // value must be greater than 5 [fixed64.gt]
+     *   fixed64 value = 1 [(buf.validate.field).fixed64.gt = 5];
+     *
+     *   // value must be greater than 5 and less than 10 [fixed64.gt_lt]
+     *   fixed64 other_value = 2 [(buf.validate.field).fixed64 = { gt: 5, lt: 10 }];
+     *
+     *   // value must be greater than 10 or less than 5 [fixed64.gt_lt_exclusive]
+     *   fixed64 another_value = 3 [(buf.validate.field).fixed64 = { gt: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: string }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyFixed64 {
+     *   // value must be greater than or equal to 5 [fixed64.gte]
+     *   fixed64 value = 1 [(buf.validate.field).fixed64.gte = 5];
+     *
+     *   // value must be greater than or equal to 5 and less than 10 [fixed64.gte_lt]
+     *   fixed64 other_value = 2 [(buf.validate.field).fixed64 = { gte: 5, lt: 10 }];
+     *
+     *   // value must be greater than or equal to 10 or less than 5 [fixed64.gte_lt_exclusive]
+     *   fixed64 another_value = 3 [(buf.validate.field).fixed64 = { gte: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: string }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -1825,7 +1842,9 @@ export interface Fixed64Rules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | string[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -1838,7 +1857,9 @@ export interface Fixed64Rules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | string[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -1853,7 +1874,7 @@ export interface Fixed64Rules {
    * }
    * ```
    */
-  example: number[];
+  example?: string[] | undefined;
 }
 
 /** SFixed32Rules describes the constraints applied to `fixed32` values. */
@@ -1869,84 +1890,82 @@ export interface SFixed32Rules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: number | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field <
+     * value). If the field value is equal to or greater than the specified value,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MySFixed32 {
+     *   // value must be less than 10
+     *   sfixed32 value = 1 [(buf.validate.field).sfixed32.lt = 10];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: number }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MySFixed32 {
+     *   // value must be less than or equal to 10
+     *   sfixed32 value = 1 [(buf.validate.field).sfixed32.lte = 10];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: number }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field <
-   * value). If the field value is equal to or greater than the specified value,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MySFixed32 {
-   *   // value must be less than 10
-   *   sfixed32 value = 1 [(buf.validate.field).sfixed32.lt = 10];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MySFixed32 {
-   *   // value must be less than or equal to 10
-   *   sfixed32 value = 1 [(buf.validate.field).sfixed32.lte = 10];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MySFixed32 {
-   *   // value must be greater than 5 [sfixed32.gt]
-   *   sfixed32 value = 1 [(buf.validate.field).sfixed32.gt = 5];
-   *
-   *   // value must be greater than 5 and less than 10 [sfixed32.gt_lt]
-   *   sfixed32 other_value = 2 [(buf.validate.field).sfixed32 = { gt: 5, lt: 10 }];
-   *
-   *   // value must be greater than 10 or less than 5 [sfixed32.gt_lt_exclusive]
-   *   sfixed32 another_value = 3 [(buf.validate.field).sfixed32 = { gt: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MySFixed32 {
-   *   // value must be greater than or equal to 5 [sfixed32.gte]
-   *   sfixed32 value = 1 [(buf.validate.field).sfixed32.gte = 5];
-   *
-   *   // value must be greater than or equal to 5 and less than 10 [sfixed32.gte_lt]
-   *   sfixed32 other_value = 2 [(buf.validate.field).sfixed32 = { gte: 5, lt: 10 }];
-   *
-   *   // value must be greater than or equal to 10 or less than 5 [sfixed32.gte_lt_exclusive]
-   *   sfixed32 another_value = 3 [(buf.validate.field).sfixed32 = { gte: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MySFixed32 {
+     *   // value must be greater than 5 [sfixed32.gt]
+     *   sfixed32 value = 1 [(buf.validate.field).sfixed32.gt = 5];
+     *
+     *   // value must be greater than 5 and less than 10 [sfixed32.gt_lt]
+     *   sfixed32 other_value = 2 [(buf.validate.field).sfixed32 = { gt: 5, lt: 10 }];
+     *
+     *   // value must be greater than 10 or less than 5 [sfixed32.gt_lt_exclusive]
+     *   sfixed32 another_value = 3 [(buf.validate.field).sfixed32 = { gt: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: number }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MySFixed32 {
+     *   // value must be greater than or equal to 5 [sfixed32.gte]
+     *   sfixed32 value = 1 [(buf.validate.field).sfixed32.gte = 5];
+     *
+     *   // value must be greater than or equal to 5 and less than 10 [sfixed32.gte_lt]
+     *   sfixed32 other_value = 2 [(buf.validate.field).sfixed32 = { gte: 5, lt: 10 }];
+     *
+     *   // value must be greater than or equal to 10 or less than 5 [sfixed32.gte_lt_exclusive]
+     *   sfixed32 another_value = 3 [(buf.validate.field).sfixed32 = { gte: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: number }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -1960,7 +1979,9 @@ export interface SFixed32Rules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | number[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -1973,7 +1994,9 @@ export interface SFixed32Rules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | number[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -1988,7 +2011,7 @@ export interface SFixed32Rules {
    * }
    * ```
    */
-  example: number[];
+  example?: number[] | undefined;
 }
 
 /** SFixed64Rules describes the constraints applied to `fixed64` values. */
@@ -2004,84 +2027,82 @@ export interface SFixed64Rules {
    * }
    * ```
    */
-  const?:
-    | number
+  const?: string | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` requires the field value to be less than the specified value (field <
+     * value). If the field value is equal to or greater than the specified value,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MySFixed64 {
+     *   // value must be less than 10
+     *   sfixed64 value = 1 [(buf.validate.field).sfixed64.lt = 10];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: string }
+    | //
+    /**
+     * `lte` requires the field value to be less than or equal to the specified
+     * value (field <= value). If the field value is greater than the specified
+     * value, an error message is generated.
+     *
+     * ```proto
+     * message MySFixed64 {
+     *   // value must be less than or equal to 10
+     *   sfixed64 value = 1 [(buf.validate.field).sfixed64.lte = 10];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: string }
     | undefined;
-  /**
-   * `lt` requires the field value to be less than the specified value (field <
-   * value). If the field value is equal to or greater than the specified value,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MySFixed64 {
-   *   // value must be less than 10
-   *   sfixed64 value = 1 [(buf.validate.field).sfixed64.lt = 10];
-   * }
-   * ```
-   */
-  lt?:
-    | number
-    | undefined;
-  /**
-   * `lte` requires the field value to be less than or equal to the specified
-   * value (field <= value). If the field value is greater than the specified
-   * value, an error message is generated.
-   *
-   * ```proto
-   * message MySFixed64 {
-   *   // value must be less than or equal to 10
-   *   sfixed64 value = 1 [(buf.validate.field).sfixed64.lte = 10];
-   * }
-   * ```
-   */
-  lte?:
-    | number
-    | undefined;
-  /**
-   * `gt` requires the field value to be greater than the specified value
-   * (exclusive). If the value of `gt` is larger than a specified `lt` or
-   * `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MySFixed64 {
-   *   // value must be greater than 5 [sfixed64.gt]
-   *   sfixed64 value = 1 [(buf.validate.field).sfixed64.gt = 5];
-   *
-   *   // value must be greater than 5 and less than 10 [sfixed64.gt_lt]
-   *   sfixed64 other_value = 2 [(buf.validate.field).sfixed64 = { gt: 5, lt: 10 }];
-   *
-   *   // value must be greater than 10 or less than 5 [sfixed64.gt_lt_exclusive]
-   *   sfixed64 another_value = 3 [(buf.validate.field).sfixed64 = { gt: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gt?:
-    | number
-    | undefined;
-  /**
-   * `gte` requires the field value to be greater than or equal to the specified
-   * value (exclusive). If the value of `gte` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MySFixed64 {
-   *   // value must be greater than or equal to 5 [sfixed64.gte]
-   *   sfixed64 value = 1 [(buf.validate.field).sfixed64.gte = 5];
-   *
-   *   // value must be greater than or equal to 5 and less than 10 [sfixed64.gte_lt]
-   *   sfixed64 other_value = 2 [(buf.validate.field).sfixed64 = { gte: 5, lt: 10 }];
-   *
-   *   // value must be greater than or equal to 10 or less than 5 [sfixed64.gte_lt_exclusive]
-   *   sfixed64 another_value = 3 [(buf.validate.field).sfixed64 = { gte: 10, lt: 5 }];
-   * }
-   * ```
-   */
-  gte?:
-    | number
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the field value to be greater than the specified value
+     * (exclusive). If the value of `gt` is larger than a specified `lt` or
+     * `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MySFixed64 {
+     *   // value must be greater than 5 [sfixed64.gt]
+     *   sfixed64 value = 1 [(buf.validate.field).sfixed64.gt = 5];
+     *
+     *   // value must be greater than 5 and less than 10 [sfixed64.gt_lt]
+     *   sfixed64 other_value = 2 [(buf.validate.field).sfixed64 = { gt: 5, lt: 10 }];
+     *
+     *   // value must be greater than 10 or less than 5 [sfixed64.gt_lt_exclusive]
+     *   sfixed64 another_value = 3 [(buf.validate.field).sfixed64 = { gt: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: string }
+    | //
+    /**
+     * `gte` requires the field value to be greater than or equal to the specified
+     * value (exclusive). If the value of `gte` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MySFixed64 {
+     *   // value must be greater than or equal to 5 [sfixed64.gte]
+     *   sfixed64 value = 1 [(buf.validate.field).sfixed64.gte = 5];
+     *
+     *   // value must be greater than or equal to 5 and less than 10 [sfixed64.gte_lt]
+     *   sfixed64 other_value = 2 [(buf.validate.field).sfixed64 = { gte: 5, lt: 10 }];
+     *
+     *   // value must be greater than or equal to 10 or less than 5 [sfixed64.gte_lt_exclusive]
+     *   sfixed64 another_value = 3 [(buf.validate.field).sfixed64 = { gte: 10, lt: 5 }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: string }
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified values.
@@ -2095,7 +2116,9 @@ export interface SFixed64Rules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | string[]
+    | undefined;
   /**
    * `not_in` requires the field value to not be equal to any of the specified
    * values. If the field value is one of the specified values, an error
@@ -2108,7 +2131,9 @@ export interface SFixed64Rules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | string[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -2123,7 +2148,7 @@ export interface SFixed64Rules {
    * }
    * ```
    */
-  example: number[];
+  example?: string[] | undefined;
 }
 
 /**
@@ -2159,7 +2184,7 @@ export interface BoolRules {
    * }
    * ```
    */
-  example: boolean[];
+  example?: boolean[] | undefined;
 }
 
 /**
@@ -2195,7 +2220,7 @@ export interface StringRules {
    * ```
    */
   len?:
-    | number
+    | string
     | undefined;
   /**
    * `min_len` specifies that the field value must have at least the specified
@@ -2211,7 +2236,7 @@ export interface StringRules {
    * ```
    */
   minLen?:
-    | number
+    | string
     | undefined;
   /**
    * `max_len` specifies that the field value must have no more than the specified
@@ -2227,7 +2252,7 @@ export interface StringRules {
    * ```
    */
   maxLen?:
-    | number
+    | string
     | undefined;
   /**
    * `len_bytes` dictates that the field value must have the specified number of
@@ -2242,7 +2267,7 @@ export interface StringRules {
    * ```
    */
   lenBytes?:
-    | number
+    | string
     | undefined;
   /**
    * `min_bytes` specifies that the field value must have at least the specified
@@ -2258,7 +2283,7 @@ export interface StringRules {
    * ```
    */
   minBytes?:
-    | number
+    | string
     | undefined;
   /**
    * `max_bytes` specifies that the field value must have no more than the
@@ -2273,7 +2298,7 @@ export interface StringRules {
    * ```
    */
   maxBytes?:
-    | number
+    | string
     | undefined;
   /**
    * `pattern` specifies that the field value must match the specified
@@ -2364,7 +2389,9 @@ export interface StringRules {
    * }
    * ```
    */
-  in: string[];
+  in?:
+    | string[]
+    | undefined;
   /**
    * `not_in` specifies that the field value cannot be equal to any
    * of the specified values. If the field value is one of the specified values,
@@ -2376,296 +2403,286 @@ export interface StringRules {
    * }
    * ```
    */
-  notIn: string[];
-  /**
-   * `email` specifies that the field value must be a valid email address
-   * (addr-spec only) as defined by [RFC 5322](https://datatracker.ietf.org/doc/html/rfc5322#section-3.4.1).
-   * If the field value isn't a valid email address, an error message will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid email address
-   *   string value = 1 [(buf.validate.field).string.email = true];
-   * }
-   * ```
-   */
-  email?:
-    | boolean
+  notIn?:
+    | string[]
     | undefined;
   /**
-   * `hostname` specifies that the field value must be a valid
-   * hostname as defined by [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034#section-3.5). This constraint doesn't support
-   * internationalized domain names (IDNs). If the field value isn't a
-   * valid hostname, an error message will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid hostname
-   *   string value = 1 [(buf.validate.field).string.hostname = true];
-   * }
-   * ```
+   * `WellKnown` rules provide advanced constraints against common string
+   * patterns
    */
-  hostname?:
-    | boolean
-    | undefined;
-  /**
-   * `ip` specifies that the field value must be a valid IP
-   * (v4 or v6) address, without surrounding square brackets for IPv6 addresses.
-   * If the field value isn't a valid IP address, an error message will be
-   * generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid IP address
-   *   string value = 1 [(buf.validate.field).string.ip = true];
-   * }
-   * ```
-   */
-  ip?:
-    | boolean
-    | undefined;
-  /**
-   * `ipv4` specifies that the field value must be a valid IPv4
-   * address. If the field value isn't a valid IPv4 address, an error message
-   * will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid IPv4 address
-   *   string value = 1 [(buf.validate.field).string.ipv4 = true];
-   * }
-   * ```
-   */
-  ipv4?:
-    | boolean
-    | undefined;
-  /**
-   * `ipv6` specifies that the field value must be a valid
-   * IPv6 address, without surrounding square brackets. If the field value is
-   * not a valid IPv6 address, an error message will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid IPv6 address
-   *   string value = 1 [(buf.validate.field).string.ipv6 = true];
-   * }
-   * ```
-   */
-  ipv6?:
-    | boolean
-    | undefined;
-  /**
-   * `uri` specifies that the field value must be a valid URI as defined by
-   * [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3).
-   *
-   * If the field value isn't a valid URI, an error message will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid URI
-   *   string value = 1 [(buf.validate.field).string.uri = true];
-   * }
-   * ```
-   */
-  uri?:
-    | boolean
-    | undefined;
-  /**
-   * `uri_ref` specifies that the field value must be a valid URI Reference as
-   * defined by [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-4.1).
-   *
-   * A URI Reference is either a [URI](https://datatracker.ietf.org/doc/html/rfc3986#section-3),
-   * or a [Relative Reference](https://datatracker.ietf.org/doc/html/rfc3986#section-4.2).
-   *
-   * If the field value isn't a valid URI Reference, an error message will be
-   * generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid URI Reference
-   *   string value = 1 [(buf.validate.field).string.uri_ref = true];
-   * }
-   * ```
-   */
-  uriRef?:
-    | boolean
-    | undefined;
-  /**
-   * `address` specifies that the field value must be either a valid hostname
-   * as defined by [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034#section-3.5)
-   * (which doesn't support internationalized domain names or IDNs) or a valid
-   * IP (v4 or v6). If the field value isn't a valid hostname or IP, an error
-   * message will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid hostname, or ip address
-   *   string value = 1 [(buf.validate.field).string.address = true];
-   * }
-   * ```
-   */
-  address?:
-    | boolean
-    | undefined;
-  /**
-   * `uuid` specifies that the field value must be a valid UUID as defined by
-   * [RFC 4122](https://datatracker.ietf.org/doc/html/rfc4122#section-4.1.2). If the
-   * field value isn't a valid UUID, an error message will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid UUID
-   *   string value = 1 [(buf.validate.field).string.uuid = true];
-   * }
-   * ```
-   */
-  uuid?:
-    | boolean
-    | undefined;
-  /**
-   * `tuuid` (trimmed UUID) specifies that the field value must be a valid UUID as
-   * defined by [RFC 4122](https://datatracker.ietf.org/doc/html/rfc4122#section-4.1.2) with all dashes
-   * omitted. If the field value isn't a valid UUID without dashes, an error message
-   * will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid trimmed UUID
-   *   string value = 1 [(buf.validate.field).string.tuuid = true];
-   * }
-   * ```
-   */
-  tuuid?:
-    | boolean
-    | undefined;
-  /**
-   * `ip_with_prefixlen` specifies that the field value must be a valid IP (v4 or v6)
-   * address with prefix length. If the field value isn't a valid IP with prefix
-   * length, an error message will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid IP with prefix length
-   *    string value = 1 [(buf.validate.field).string.ip_with_prefixlen = true];
-   * }
-   * ```
-   */
-  ipWithPrefixlen?:
-    | boolean
-    | undefined;
-  /**
-   * `ipv4_with_prefixlen` specifies that the field value must be a valid
-   * IPv4 address with prefix.
-   * If the field value isn't a valid IPv4 address with prefix length,
-   * an error message will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid IPv4 address with prefix length
-   *    string value = 1 [(buf.validate.field).string.ipv4_with_prefixlen = true];
-   * }
-   * ```
-   */
-  ipv4WithPrefixlen?:
-    | boolean
-    | undefined;
-  /**
-   * `ipv6_with_prefixlen` specifies that the field value must be a valid
-   * IPv6 address with prefix length.
-   * If the field value is not a valid IPv6 address with prefix length,
-   * an error message will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid IPv6 address prefix length
-   *    string value = 1 [(buf.validate.field).string.ipv6_with_prefixlen = true];
-   * }
-   * ```
-   */
-  ipv6WithPrefixlen?:
-    | boolean
-    | undefined;
-  /**
-   * `ip_prefix` specifies that the field value must be a valid IP (v4 or v6) prefix.
-   * If the field value isn't a valid IP prefix, an error message will be
-   * generated. The prefix must have all zeros for the masked bits of the prefix (e.g.,
-   * `127.0.0.0/16`, not `127.0.0.1/16`).
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid IP prefix
-   *    string value = 1 [(buf.validate.field).string.ip_prefix = true];
-   * }
-   * ```
-   */
-  ipPrefix?:
-    | boolean
-    | undefined;
-  /**
-   * `ipv4_prefix` specifies that the field value must be a valid IPv4
-   * prefix. If the field value isn't a valid IPv4 prefix, an error message
-   * will be generated. The prefix must have all zeros for the masked bits of
-   * the prefix (e.g., `127.0.0.0/16`, not `127.0.0.1/16`).
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid IPv4 prefix
-   *    string value = 1 [(buf.validate.field).string.ipv4_prefix = true];
-   * }
-   * ```
-   */
-  ipv4Prefix?:
-    | boolean
-    | undefined;
-  /**
-   * `ipv6_prefix` specifies that the field value must be a valid IPv6 prefix.
-   * If the field value is not a valid IPv6 prefix, an error message will be
-   * generated. The prefix must have all zeros for the masked bits of the prefix
-   * (e.g., `2001:db8::/48`, not `2001:db8::1/48`).
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid IPv6 prefix
-   *    string value = 1 [(buf.validate.field).string.ipv6_prefix = true];
-   * }
-   * ```
-   */
-  ipv6Prefix?:
-    | boolean
-    | undefined;
-  /**
-   * `host_and_port` specifies the field value must be a valid host and port
-   * pair. The host must be a valid hostname or IP address while the port
-   * must be in the range of 0-65535, inclusive. IPv6 addresses must be delimited
-   * with square brackets (e.g., `[::1]:1234`).
-   */
-  hostAndPort?:
-    | boolean
-    | undefined;
-  /**
-   * `well_known_regex` specifies a common well-known pattern
-   * defined as a regex. If the field value doesn't match the well-known
-   * regex, an error message will be generated.
-   *
-   * ```proto
-   * message MyString {
-   *   // value must be a valid HTTP header value
-   *   string value = 1 [(buf.validate.field).string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_VALUE];
-   * }
-   * ```
-   *
-   * #### KnownRegex
-   *
-   * `well_known_regex` contains some well-known patterns.
-   *
-   * | Name                          | Number | Description                               |
-   * |-------------------------------|--------|-------------------------------------------|
-   * | KNOWN_REGEX_UNSPECIFIED       | 0      |                                           |
-   * | KNOWN_REGEX_HTTP_HEADER_NAME  | 1      | HTTP header name as defined by [RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230#section-3.2)  |
-   * | KNOWN_REGEX_HTTP_HEADER_VALUE | 2      | HTTP header value as defined by [RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.4) |
-   */
-  wellKnownRegex?:
-    | KnownRegex
+  wellKnown?:
+    | //
+    /**
+     * `email` specifies that the field value must be a valid email address
+     * (addr-spec only) as defined by [RFC 5322](https://datatracker.ietf.org/doc/html/rfc5322#section-3.4.1).
+     * If the field value isn't a valid email address, an error message will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid email address
+     *   string value = 1 [(buf.validate.field).string.email = true];
+     * }
+     * ```
+     */
+    { $case: "email"; value: boolean }
+    | //
+    /**
+     * `hostname` specifies that the field value must be a valid
+     * hostname as defined by [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034#section-3.5). This constraint doesn't support
+     * internationalized domain names (IDNs). If the field value isn't a
+     * valid hostname, an error message will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid hostname
+     *   string value = 1 [(buf.validate.field).string.hostname = true];
+     * }
+     * ```
+     */
+    { $case: "hostname"; value: boolean }
+    | //
+    /**
+     * `ip` specifies that the field value must be a valid IP
+     * (v4 or v6) address, without surrounding square brackets for IPv6 addresses.
+     * If the field value isn't a valid IP address, an error message will be
+     * generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid IP address
+     *   string value = 1 [(buf.validate.field).string.ip = true];
+     * }
+     * ```
+     */
+    { $case: "ip"; value: boolean }
+    | //
+    /**
+     * `ipv4` specifies that the field value must be a valid IPv4
+     * address. If the field value isn't a valid IPv4 address, an error message
+     * will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid IPv4 address
+     *   string value = 1 [(buf.validate.field).string.ipv4 = true];
+     * }
+     * ```
+     */
+    { $case: "ipv4"; value: boolean }
+    | //
+    /**
+     * `ipv6` specifies that the field value must be a valid
+     * IPv6 address, without surrounding square brackets. If the field value is
+     * not a valid IPv6 address, an error message will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid IPv6 address
+     *   string value = 1 [(buf.validate.field).string.ipv6 = true];
+     * }
+     * ```
+     */
+    { $case: "ipv6"; value: boolean }
+    | //
+    /**
+     * `uri` specifies that the field value must be a valid URI as defined by
+     * [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3).
+     *
+     * If the field value isn't a valid URI, an error message will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid URI
+     *   string value = 1 [(buf.validate.field).string.uri = true];
+     * }
+     * ```
+     */
+    { $case: "uri"; value: boolean }
+    | //
+    /**
+     * `uri_ref` specifies that the field value must be a valid URI Reference as
+     * defined by [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-4.1).
+     *
+     * A URI Reference is either a [URI](https://datatracker.ietf.org/doc/html/rfc3986#section-3),
+     * or a [Relative Reference](https://datatracker.ietf.org/doc/html/rfc3986#section-4.2).
+     *
+     * If the field value isn't a valid URI Reference, an error message will be
+     * generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid URI Reference
+     *   string value = 1 [(buf.validate.field).string.uri_ref = true];
+     * }
+     * ```
+     */
+    { $case: "uriRef"; value: boolean }
+    | //
+    /**
+     * `address` specifies that the field value must be either a valid hostname
+     * as defined by [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034#section-3.5)
+     * (which doesn't support internationalized domain names or IDNs) or a valid
+     * IP (v4 or v6). If the field value isn't a valid hostname or IP, an error
+     * message will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid hostname, or ip address
+     *   string value = 1 [(buf.validate.field).string.address = true];
+     * }
+     * ```
+     */
+    { $case: "address"; value: boolean }
+    | //
+    /**
+     * `uuid` specifies that the field value must be a valid UUID as defined by
+     * [RFC 4122](https://datatracker.ietf.org/doc/html/rfc4122#section-4.1.2). If the
+     * field value isn't a valid UUID, an error message will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid UUID
+     *   string value = 1 [(buf.validate.field).string.uuid = true];
+     * }
+     * ```
+     */
+    { $case: "uuid"; value: boolean }
+    | //
+    /**
+     * `tuuid` (trimmed UUID) specifies that the field value must be a valid UUID as
+     * defined by [RFC 4122](https://datatracker.ietf.org/doc/html/rfc4122#section-4.1.2) with all dashes
+     * omitted. If the field value isn't a valid UUID without dashes, an error message
+     * will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid trimmed UUID
+     *   string value = 1 [(buf.validate.field).string.tuuid = true];
+     * }
+     * ```
+     */
+    { $case: "tuuid"; value: boolean }
+    | //
+    /**
+     * `ip_with_prefixlen` specifies that the field value must be a valid IP (v4 or v6)
+     * address with prefix length. If the field value isn't a valid IP with prefix
+     * length, an error message will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid IP with prefix length
+     *    string value = 1 [(buf.validate.field).string.ip_with_prefixlen = true];
+     * }
+     * ```
+     */
+    { $case: "ipWithPrefixlen"; value: boolean }
+    | //
+    /**
+     * `ipv4_with_prefixlen` specifies that the field value must be a valid
+     * IPv4 address with prefix.
+     * If the field value isn't a valid IPv4 address with prefix length,
+     * an error message will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid IPv4 address with prefix length
+     *    string value = 1 [(buf.validate.field).string.ipv4_with_prefixlen = true];
+     * }
+     * ```
+     */
+    { $case: "ipv4WithPrefixlen"; value: boolean }
+    | //
+    /**
+     * `ipv6_with_prefixlen` specifies that the field value must be a valid
+     * IPv6 address with prefix length.
+     * If the field value is not a valid IPv6 address with prefix length,
+     * an error message will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid IPv6 address prefix length
+     *    string value = 1 [(buf.validate.field).string.ipv6_with_prefixlen = true];
+     * }
+     * ```
+     */
+    { $case: "ipv6WithPrefixlen"; value: boolean }
+    | //
+    /**
+     * `ip_prefix` specifies that the field value must be a valid IP (v4 or v6) prefix.
+     * If the field value isn't a valid IP prefix, an error message will be
+     * generated. The prefix must have all zeros for the masked bits of the prefix (e.g.,
+     * `127.0.0.0/16`, not `127.0.0.1/16`).
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid IP prefix
+     *    string value = 1 [(buf.validate.field).string.ip_prefix = true];
+     * }
+     * ```
+     */
+    { $case: "ipPrefix"; value: boolean }
+    | //
+    /**
+     * `ipv4_prefix` specifies that the field value must be a valid IPv4
+     * prefix. If the field value isn't a valid IPv4 prefix, an error message
+     * will be generated. The prefix must have all zeros for the masked bits of
+     * the prefix (e.g., `127.0.0.0/16`, not `127.0.0.1/16`).
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid IPv4 prefix
+     *    string value = 1 [(buf.validate.field).string.ipv4_prefix = true];
+     * }
+     * ```
+     */
+    { $case: "ipv4Prefix"; value: boolean }
+    | //
+    /**
+     * `ipv6_prefix` specifies that the field value must be a valid IPv6 prefix.
+     * If the field value is not a valid IPv6 prefix, an error message will be
+     * generated. The prefix must have all zeros for the masked bits of the prefix
+     * (e.g., `2001:db8::/48`, not `2001:db8::1/48`).
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid IPv6 prefix
+     *    string value = 1 [(buf.validate.field).string.ipv6_prefix = true];
+     * }
+     * ```
+     */
+    { $case: "ipv6Prefix"; value: boolean }
+    | //
+    /**
+     * `host_and_port` specifies the field value must be a valid host and port
+     * pair. The host must be a valid hostname or IP address while the port
+     * must be in the range of 0-65535, inclusive. IPv6 addresses must be delimited
+     * with square brackets (e.g., `[::1]:1234`).
+     */
+    { $case: "hostAndPort"; value: boolean }
+    | //
+    /**
+     * `well_known_regex` specifies a common well-known pattern
+     * defined as a regex. If the field value doesn't match the well-known
+     * regex, an error message will be generated.
+     *
+     * ```proto
+     * message MyString {
+     *   // value must be a valid HTTP header value
+     *   string value = 1 [(buf.validate.field).string.well_known_regex = KNOWN_REGEX_HTTP_HEADER_VALUE];
+     * }
+     * ```
+     *
+     * #### KnownRegex
+     *
+     * `well_known_regex` contains some well-known patterns.
+     *
+     * | Name                          | Number | Description                               |
+     * |-------------------------------|--------|-------------------------------------------|
+     * | KNOWN_REGEX_UNSPECIFIED       | 0      |                                           |
+     * | KNOWN_REGEX_HTTP_HEADER_NAME  | 1      | HTTP header name as defined by [RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230#section-3.2)  |
+     * | KNOWN_REGEX_HTTP_HEADER_VALUE | 2      | HTTP header value as defined by [RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.4) |
+     */
+    { $case: "wellKnownRegex"; value: KnownRegex }
     | undefined;
   /**
    * This applies to regexes `HTTP_HEADER_NAME` and `HTTP_HEADER_VALUE` to
@@ -2698,7 +2715,7 @@ export interface StringRules {
    * }
    * ```
    */
-  example: string[];
+  example?: string[] | undefined;
 }
 
 /**
@@ -2718,7 +2735,7 @@ export interface BytesRules {
    * ```
    */
   const?:
-    | Uint8Array
+    | Buffer
     | undefined;
   /**
    * `len` requires the field value to have the specified length in bytes.
@@ -2732,7 +2749,7 @@ export interface BytesRules {
    * ```
    */
   len?:
-    | number
+    | string
     | undefined;
   /**
    * `min_len` requires the field value to have at least the specified minimum
@@ -2747,7 +2764,7 @@ export interface BytesRules {
    * ```
    */
   minLen?:
-    | number
+    | string
     | undefined;
   /**
    * `max_len` requires the field value to have at most the specified maximum
@@ -2762,7 +2779,7 @@ export interface BytesRules {
    * ```
    */
   maxLen?:
-    | number
+    | string
     | undefined;
   /**
    * `pattern` requires the field value to match the specified regular
@@ -2794,7 +2811,7 @@ export interface BytesRules {
    * ```
    */
   prefix?:
-    | Uint8Array
+    | Buffer
     | undefined;
   /**
    * `suffix` requires the field value to have the specified bytes at the end
@@ -2809,7 +2826,7 @@ export interface BytesRules {
    * ```
    */
   suffix?:
-    | Uint8Array
+    | Buffer
     | undefined;
   /**
    * `contains` requires the field value to have the specified bytes anywhere in
@@ -2824,7 +2841,7 @@ export interface BytesRules {
    * ```
    */
   contains?:
-    | Uint8Array
+    | Buffer
     | undefined;
   /**
    * `in` requires the field value to be equal to one of the specified
@@ -2838,7 +2855,9 @@ export interface BytesRules {
    * }
    * ```
    */
-  in: Uint8Array[];
+  in?:
+    | Buffer[]
+    | undefined;
   /**
    * `not_in` requires the field value to be not equal to any of the specified
    * values.
@@ -2852,47 +2871,52 @@ export interface BytesRules {
    * }
    * ```
    */
-  notIn: Uint8Array[];
-  /**
-   * `ip` ensures that the field `value` is a valid IP address (v4 or v6) in byte format.
-   * If the field value doesn't meet this constraint, an error message is generated.
-   *
-   * ```proto
-   * message MyBytes {
-   *   // value must be a valid IP address
-   *   optional bytes value = 1 [(buf.validate.field).bytes.ip = true];
-   * }
-   * ```
-   */
-  ip?:
-    | boolean
+  notIn?:
+    | Buffer[]
     | undefined;
   /**
-   * `ipv4` ensures that the field `value` is a valid IPv4 address in byte format.
-   * If the field value doesn't meet this constraint, an error message is generated.
-   *
-   * ```proto
-   * message MyBytes {
-   *   // value must be a valid IPv4 address
-   *   optional bytes value = 1 [(buf.validate.field).bytes.ipv4 = true];
-   * }
-   * ```
+   * WellKnown rules provide advanced constraints against common byte
+   * patterns
    */
-  ipv4?:
-    | boolean
-    | undefined;
-  /**
-   * `ipv6` ensures that the field `value` is a valid IPv6 address in byte format.
-   * If the field value doesn't meet this constraint, an error message is generated.
-   * ```proto
-   * message MyBytes {
-   *   // value must be a valid IPv6 address
-   *   optional bytes value = 1 [(buf.validate.field).bytes.ipv6 = true];
-   * }
-   * ```
-   */
-  ipv6?:
-    | boolean
+  wellKnown?:
+    | //
+    /**
+     * `ip` ensures that the field `value` is a valid IP address (v4 or v6) in byte format.
+     * If the field value doesn't meet this constraint, an error message is generated.
+     *
+     * ```proto
+     * message MyBytes {
+     *   // value must be a valid IP address
+     *   optional bytes value = 1 [(buf.validate.field).bytes.ip = true];
+     * }
+     * ```
+     */
+    { $case: "ip"; value: boolean }
+    | //
+    /**
+     * `ipv4` ensures that the field `value` is a valid IPv4 address in byte format.
+     * If the field value doesn't meet this constraint, an error message is generated.
+     *
+     * ```proto
+     * message MyBytes {
+     *   // value must be a valid IPv4 address
+     *   optional bytes value = 1 [(buf.validate.field).bytes.ipv4 = true];
+     * }
+     * ```
+     */
+    { $case: "ipv4"; value: boolean }
+    | //
+    /**
+     * `ipv6` ensures that the field `value` is a valid IPv6 address in byte format.
+     * If the field value doesn't meet this constraint, an error message is generated.
+     * ```proto
+     * message MyBytes {
+     *   // value must be a valid IPv6 address
+     *   optional bytes value = 1 [(buf.validate.field).bytes.ipv6 = true];
+     * }
+     * ```
+     */
+    { $case: "ipv6"; value: boolean }
     | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
@@ -2908,7 +2932,7 @@ export interface BytesRules {
    * }
    * ```
    */
-  example: Uint8Array[];
+  example?: Buffer[] | undefined;
 }
 
 /** EnumRules describe the constraints applied to `enum` values. */
@@ -2971,7 +2995,9 @@ export interface EnumRules {
    * }
    * ```
    */
-  in: number[];
+  in?:
+    | number[]
+    | undefined;
   /**
    * `not_in` requires the field value to be not equal to any of the
    * specified enum values. If the field value matches one of the specified
@@ -2990,7 +3016,9 @@ export interface EnumRules {
    * }
    * ```
    */
-  notIn: number[];
+  notIn?:
+    | number[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -3009,7 +3037,7 @@ export interface EnumRules {
    * }
    * ```
    */
-  example: number[];
+  example?: number[] | undefined;
 }
 
 /** RepeatedRules describe the constraints applied to `repeated` values. */
@@ -3028,7 +3056,7 @@ export interface RepeatedRules {
    * ```
    */
   minItems?:
-    | number
+    | string
     | undefined;
   /**
    * `max_items` denotes that this field must not exceed a
@@ -3044,7 +3072,7 @@ export interface RepeatedRules {
    * ```
    */
   maxItems?:
-    | number
+    | string
     | undefined;
   /**
    * `unique` indicates that all elements in this field must
@@ -3095,7 +3123,7 @@ export interface MapRules {
    * ```
    */
   minPairs?:
-    | number
+    | string
     | undefined;
   /**
    * Specifies the maximum number of key-value pairs allowed. If the field has
@@ -3109,7 +3137,7 @@ export interface MapRules {
    * ```
    */
   maxPairs?:
-    | number
+    | string
     | undefined;
   /**
    * Specifies the constraints to be applied to each key in the field.
@@ -3163,7 +3191,9 @@ export interface AnyRules {
    * }
    * ```
    */
-  in: string[];
+  in?:
+    | string[]
+    | undefined;
   /**
    * requires the field's type_url to be not equal to any of the specified values. If it matches any of the specified values, an error message is generated.
    *
@@ -3174,7 +3204,7 @@ export interface AnyRules {
    * }
    * ```
    */
-  notIn: string[];
+  notIn?: string[] | undefined;
 }
 
 /** DurationRules describe the constraints applied exclusively to the `google.protobuf.Duration` well-known type. */
@@ -3191,84 +3221,82 @@ export interface DurationRules {
    * }
    * ```
    */
-  const?:
-    | Duration
+  const?: Duration | undefined;
+  lessThan?:
+    | //
+    /**
+     * `lt` stipulates that the field must be less than the specified value of the `google.protobuf.Duration` type,
+     * exclusive. If the field's value is greater than or equal to the specified
+     * value, an error message will be generated.
+     *
+     * ```proto
+     * message MyDuration {
+     *   // value must be less than 5s
+     *   google.protobuf.Duration value = 1 [(buf.validate.field).duration.lt = "5s"];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: Duration }
+    | //
+    /**
+     * `lte` indicates that the field must be less than or equal to the specified
+     * value of the `google.protobuf.Duration` type, inclusive. If the field's value is greater than the specified value,
+     * an error message will be generated.
+     *
+     * ```proto
+     * message MyDuration {
+     *   // value must be less than or equal to 10s
+     *   google.protobuf.Duration value = 1 [(buf.validate.field).duration.lte = "10s"];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: Duration }
     | undefined;
-  /**
-   * `lt` stipulates that the field must be less than the specified value of the `google.protobuf.Duration` type,
-   * exclusive. If the field's value is greater than or equal to the specified
-   * value, an error message will be generated.
-   *
-   * ```proto
-   * message MyDuration {
-   *   // value must be less than 5s
-   *   google.protobuf.Duration value = 1 [(buf.validate.field).duration.lt = "5s"];
-   * }
-   * ```
-   */
-  lt?:
-    | Duration
-    | undefined;
-  /**
-   * `lte` indicates that the field must be less than or equal to the specified
-   * value of the `google.protobuf.Duration` type, inclusive. If the field's value is greater than the specified value,
-   * an error message will be generated.
-   *
-   * ```proto
-   * message MyDuration {
-   *   // value must be less than or equal to 10s
-   *   google.protobuf.Duration value = 1 [(buf.validate.field).duration.lte = "10s"];
-   * }
-   * ```
-   */
-  lte?:
-    | Duration
-    | undefined;
-  /**
-   * `gt` requires the duration field value to be greater than the specified
-   * value (exclusive). If the value of `gt` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyDuration {
-   *   // duration must be greater than 5s [duration.gt]
-   *   google.protobuf.Duration value = 1 [(buf.validate.field).duration.gt = { seconds: 5 }];
-   *
-   *   // duration must be greater than 5s and less than 10s [duration.gt_lt]
-   *   google.protobuf.Duration another_value = 2 [(buf.validate.field).duration = { gt: { seconds: 5 }, lt: { seconds: 10 } }];
-   *
-   *   // duration must be greater than 10s or less than 5s [duration.gt_lt_exclusive]
-   *   google.protobuf.Duration other_value = 3 [(buf.validate.field).duration = { gt: { seconds: 10 }, lt: { seconds: 5 } }];
-   * }
-   * ```
-   */
-  gt?:
-    | Duration
-    | undefined;
-  /**
-   * `gte` requires the duration field value to be greater than or equal to the
-   * specified value (exclusive). If the value of `gte` is larger than a
-   * specified `lt` or `lte`, the range is reversed, and the field value must
-   * be outside the specified range. If the field value doesn't meet the
-   * required conditions, an error message is generated.
-   *
-   * ```proto
-   * message MyDuration {
-   *  // duration must be greater than or equal to 5s [duration.gte]
-   *  google.protobuf.Duration value = 1 [(buf.validate.field).duration.gte = { seconds: 5 }];
-   *
-   *  // duration must be greater than or equal to 5s and less than 10s [duration.gte_lt]
-   *  google.protobuf.Duration another_value = 2 [(buf.validate.field).duration = { gte: { seconds: 5 }, lt: { seconds: 10 } }];
-   *
-   *  // duration must be greater than or equal to 10s or less than 5s [duration.gte_lt_exclusive]
-   *  google.protobuf.Duration other_value = 3 [(buf.validate.field).duration = { gte: { seconds: 10 }, lt: { seconds: 5 } }];
-   * }
-   * ```
-   */
-  gte?:
-    | Duration
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the duration field value to be greater than the specified
+     * value (exclusive). If the value of `gt` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyDuration {
+     *   // duration must be greater than 5s [duration.gt]
+     *   google.protobuf.Duration value = 1 [(buf.validate.field).duration.gt = { seconds: 5 }];
+     *
+     *   // duration must be greater than 5s and less than 10s [duration.gt_lt]
+     *   google.protobuf.Duration another_value = 2 [(buf.validate.field).duration = { gt: { seconds: 5 }, lt: { seconds: 10 } }];
+     *
+     *   // duration must be greater than 10s or less than 5s [duration.gt_lt_exclusive]
+     *   google.protobuf.Duration other_value = 3 [(buf.validate.field).duration = { gt: { seconds: 10 }, lt: { seconds: 5 } }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: Duration }
+    | //
+    /**
+     * `gte` requires the duration field value to be greater than or equal to the
+     * specified value (exclusive). If the value of `gte` is larger than a
+     * specified `lt` or `lte`, the range is reversed, and the field value must
+     * be outside the specified range. If the field value doesn't meet the
+     * required conditions, an error message is generated.
+     *
+     * ```proto
+     * message MyDuration {
+     *  // duration must be greater than or equal to 5s [duration.gte]
+     *  google.protobuf.Duration value = 1 [(buf.validate.field).duration.gte = { seconds: 5 }];
+     *
+     *  // duration must be greater than or equal to 5s and less than 10s [duration.gte_lt]
+     *  google.protobuf.Duration another_value = 2 [(buf.validate.field).duration = { gte: { seconds: 5 }, lt: { seconds: 10 } }];
+     *
+     *  // duration must be greater than or equal to 10s or less than 5s [duration.gte_lt_exclusive]
+     *  google.protobuf.Duration other_value = 3 [(buf.validate.field).duration = { gte: { seconds: 10 }, lt: { seconds: 5 } }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: Duration }
     | undefined;
   /**
    * `in` asserts that the field must be equal to one of the specified values of the `google.protobuf.Duration` type.
@@ -3282,7 +3310,9 @@ export interface DurationRules {
    * }
    * ```
    */
-  in: Duration[];
+  in?:
+    | Duration[]
+    | undefined;
   /**
    * `not_in` denotes that the field must not be equal to
    * any of the specified values of the `google.protobuf.Duration` type.
@@ -3296,7 +3326,9 @@ export interface DurationRules {
    * }
    * ```
    */
-  notIn: Duration[];
+  notIn?:
+    | Duration[]
+    | undefined;
   /**
    * `example` specifies values that the field may have. These values SHOULD
    * conform to other constraints. `example` values will not impact validation
@@ -3311,7 +3343,7 @@ export interface DurationRules {
    * }
    * ```
    */
-  example: Duration[];
+  example?: Duration[] | undefined;
 }
 
 /** TimestampRules describe the constraints applied exclusively to the `google.protobuf.Timestamp` well-known type. */
@@ -3326,106 +3358,102 @@ export interface TimestampRules {
    * }
    * ```
    */
-  const?:
-    | Date
+  const?: Date | undefined;
+  lessThan?:
+    | //
+    /**
+     * requires the duration field value to be less than the specified value (field < value). If the field value doesn't meet the required conditions, an error message is generated.
+     *
+     * ```proto
+     * message MyDuration {
+     *   // duration must be less than 'P3D' [duration.lt]
+     *   google.protobuf.Duration value = 1 [(buf.validate.field).duration.lt = { seconds: 259200 }];
+     * }
+     * ```
+     */
+    { $case: "lt"; value: Date }
+    | //
+    /**
+     * requires the timestamp field value to be less than or equal to the specified value (field <= value). If the field value doesn't meet the required conditions, an error message is generated.
+     *
+     * ```proto
+     * message MyTimestamp {
+     *   // timestamp must be less than or equal to '2023-05-14T00:00:00Z' [timestamp.lte]
+     *   google.protobuf.Timestamp value = 1 [(buf.validate.field).timestamp.lte = { seconds: 1678867200 }];
+     * }
+     * ```
+     */
+    { $case: "lte"; value: Date }
+    | //
+    /**
+     * `lt_now` specifies that this field, of the `google.protobuf.Timestamp` type, must be less than the current time. `lt_now` can only be used with the `within` rule.
+     *
+     * ```proto
+     * message MyTimestamp {
+     *  // value must be less than now
+     *   google.protobuf.Timestamp created_at = 1 [(buf.validate.field).timestamp.lt_now = true];
+     * }
+     * ```
+     */
+    { $case: "ltNow"; value: boolean }
     | undefined;
-  /**
-   * requires the duration field value to be less than the specified value (field < value). If the field value doesn't meet the required conditions, an error message is generated.
-   *
-   * ```proto
-   * message MyDuration {
-   *   // duration must be less than 'P3D' [duration.lt]
-   *   google.protobuf.Duration value = 1 [(buf.validate.field).duration.lt = { seconds: 259200 }];
-   * }
-   * ```
-   */
-  lt?:
-    | Date
-    | undefined;
-  /**
-   * requires the timestamp field value to be less than or equal to the specified value (field <= value). If the field value doesn't meet the required conditions, an error message is generated.
-   *
-   * ```proto
-   * message MyTimestamp {
-   *   // timestamp must be less than or equal to '2023-05-14T00:00:00Z' [timestamp.lte]
-   *   google.protobuf.Timestamp value = 1 [(buf.validate.field).timestamp.lte = { seconds: 1678867200 }];
-   * }
-   * ```
-   */
-  lte?:
-    | Date
-    | undefined;
-  /**
-   * `lt_now` specifies that this field, of the `google.protobuf.Timestamp` type, must be less than the current time. `lt_now` can only be used with the `within` rule.
-   *
-   * ```proto
-   * message MyTimestamp {
-   *  // value must be less than now
-   *   google.protobuf.Timestamp created_at = 1 [(buf.validate.field).timestamp.lt_now = true];
-   * }
-   * ```
-   */
-  ltNow?:
-    | boolean
-    | undefined;
-  /**
-   * `gt` requires the timestamp field value to be greater than the specified
-   * value (exclusive). If the value of `gt` is larger than a specified `lt`
-   * or `lte`, the range is reversed, and the field value must be outside the
-   * specified range. If the field value doesn't meet the required conditions,
-   * an error message is generated.
-   *
-   * ```proto
-   * message MyTimestamp {
-   *   // timestamp must be greater than '2023-01-01T00:00:00Z' [timestamp.gt]
-   *   google.protobuf.Timestamp value = 1 [(buf.validate.field).timestamp.gt = { seconds: 1672444800 }];
-   *
-   *   // timestamp must be greater than '2023-01-01T00:00:00Z' and less than '2023-01-02T00:00:00Z' [timestamp.gt_lt]
-   *   google.protobuf.Timestamp another_value = 2 [(buf.validate.field).timestamp = { gt: { seconds: 1672444800 }, lt: { seconds: 1672531200 } }];
-   *
-   *   // timestamp must be greater than '2023-01-02T00:00:00Z' or less than '2023-01-01T00:00:00Z' [timestamp.gt_lt_exclusive]
-   *   google.protobuf.Timestamp other_value = 3 [(buf.validate.field).timestamp = { gt: { seconds: 1672531200 }, lt: { seconds: 1672444800 } }];
-   * }
-   * ```
-   */
-  gt?:
-    | Date
-    | undefined;
-  /**
-   * `gte` requires the timestamp field value to be greater than or equal to the
-   * specified value (exclusive). If the value of `gte` is larger than a
-   * specified `lt` or `lte`, the range is reversed, and the field value
-   * must be outside the specified range. If the field value doesn't meet
-   * the required conditions, an error message is generated.
-   *
-   * ```proto
-   * message MyTimestamp {
-   *   // timestamp must be greater than or equal to '2023-01-01T00:00:00Z' [timestamp.gte]
-   *   google.protobuf.Timestamp value = 1 [(buf.validate.field).timestamp.gte = { seconds: 1672444800 }];
-   *
-   *   // timestamp must be greater than or equal to '2023-01-01T00:00:00Z' and less than '2023-01-02T00:00:00Z' [timestamp.gte_lt]
-   *   google.protobuf.Timestamp another_value = 2 [(buf.validate.field).timestamp = { gte: { seconds: 1672444800 }, lt: { seconds: 1672531200 } }];
-   *
-   *   // timestamp must be greater than or equal to '2023-01-02T00:00:00Z' or less than '2023-01-01T00:00:00Z' [timestamp.gte_lt_exclusive]
-   *   google.protobuf.Timestamp other_value = 3 [(buf.validate.field).timestamp = { gte: { seconds: 1672531200 }, lt: { seconds: 1672444800 } }];
-   * }
-   * ```
-   */
-  gte?:
-    | Date
-    | undefined;
-  /**
-   * `gt_now` specifies that this field, of the `google.protobuf.Timestamp` type, must be greater than the current time. `gt_now` can only be used with the `within` rule.
-   *
-   * ```proto
-   * message MyTimestamp {
-   *   // value must be greater than now
-   *   google.protobuf.Timestamp created_at = 1 [(buf.validate.field).timestamp.gt_now = true];
-   * }
-   * ```
-   */
-  gtNow?:
-    | boolean
+  greaterThan?:
+    | //
+    /**
+     * `gt` requires the timestamp field value to be greater than the specified
+     * value (exclusive). If the value of `gt` is larger than a specified `lt`
+     * or `lte`, the range is reversed, and the field value must be outside the
+     * specified range. If the field value doesn't meet the required conditions,
+     * an error message is generated.
+     *
+     * ```proto
+     * message MyTimestamp {
+     *   // timestamp must be greater than '2023-01-01T00:00:00Z' [timestamp.gt]
+     *   google.protobuf.Timestamp value = 1 [(buf.validate.field).timestamp.gt = { seconds: 1672444800 }];
+     *
+     *   // timestamp must be greater than '2023-01-01T00:00:00Z' and less than '2023-01-02T00:00:00Z' [timestamp.gt_lt]
+     *   google.protobuf.Timestamp another_value = 2 [(buf.validate.field).timestamp = { gt: { seconds: 1672444800 }, lt: { seconds: 1672531200 } }];
+     *
+     *   // timestamp must be greater than '2023-01-02T00:00:00Z' or less than '2023-01-01T00:00:00Z' [timestamp.gt_lt_exclusive]
+     *   google.protobuf.Timestamp other_value = 3 [(buf.validate.field).timestamp = { gt: { seconds: 1672531200 }, lt: { seconds: 1672444800 } }];
+     * }
+     * ```
+     */
+    { $case: "gt"; value: Date }
+    | //
+    /**
+     * `gte` requires the timestamp field value to be greater than or equal to the
+     * specified value (exclusive). If the value of `gte` is larger than a
+     * specified `lt` or `lte`, the range is reversed, and the field value
+     * must be outside the specified range. If the field value doesn't meet
+     * the required conditions, an error message is generated.
+     *
+     * ```proto
+     * message MyTimestamp {
+     *   // timestamp must be greater than or equal to '2023-01-01T00:00:00Z' [timestamp.gte]
+     *   google.protobuf.Timestamp value = 1 [(buf.validate.field).timestamp.gte = { seconds: 1672444800 }];
+     *
+     *   // timestamp must be greater than or equal to '2023-01-01T00:00:00Z' and less than '2023-01-02T00:00:00Z' [timestamp.gte_lt]
+     *   google.protobuf.Timestamp another_value = 2 [(buf.validate.field).timestamp = { gte: { seconds: 1672444800 }, lt: { seconds: 1672531200 } }];
+     *
+     *   // timestamp must be greater than or equal to '2023-01-02T00:00:00Z' or less than '2023-01-01T00:00:00Z' [timestamp.gte_lt_exclusive]
+     *   google.protobuf.Timestamp other_value = 3 [(buf.validate.field).timestamp = { gte: { seconds: 1672531200 }, lt: { seconds: 1672444800 } }];
+     * }
+     * ```
+     */
+    { $case: "gte"; value: Date }
+    | //
+    /**
+     * `gt_now` specifies that this field, of the `google.protobuf.Timestamp` type, must be greater than the current time. `gt_now` can only be used with the `within` rule.
+     *
+     * ```proto
+     * message MyTimestamp {
+     *   // value must be greater than now
+     *   google.protobuf.Timestamp created_at = 1 [(buf.validate.field).timestamp.gt_now = true];
+     * }
+     * ```
+     */
+    { $case: "gtNow"; value: boolean }
     | undefined;
   /**
    * `within` specifies that this field, of the `google.protobuf.Timestamp` type, must be within the specified duration of the current time. If the field value isn't within the duration, an error message is generated.
@@ -3438,7 +3466,7 @@ export interface TimestampRules {
    * ```
    */
   within?: Duration | undefined;
-  example: Date[];
+  example?: Date[] | undefined;
 }
 
 /**
@@ -3448,7 +3476,7 @@ export interface TimestampRules {
  */
 export interface Violations {
   /** `violations` is a repeated field that contains all the `Violation` messages corresponding to the violations detected. */
-  violations: Violation[];
+  violations?: Violation[] | undefined;
 }
 
 /**
@@ -3549,7 +3577,7 @@ export interface Violation {
  */
 export interface FieldPath {
   /** `elements` contains each element of the path, starting from the root and recursing downward. */
-  elements: FieldPathElement[];
+  elements?: FieldPathElement[] | undefined;
 }
 
 /**
@@ -3601,24 +3629,24 @@ export interface FieldPathElement {
   valueType?:
     | FieldDescriptorProto_Type
     | undefined;
-  /** `index` specifies a 0-based index into a repeated field. */
-  index?:
-    | number
+  /** `subscript` contains a repeated index or map key, if this path element nests into a repeated or map field. */
+  subscript?:
+    | //
+    /** `index` specifies a 0-based index into a repeated field. */
+    { $case: "index"; value: string }
+    | //
+    /** `bool_key` specifies a map key of type bool. */
+    { $case: "boolKey"; value: boolean }
+    | //
+    /** `int_key` specifies a map key of type int32, int64, sint32, sint64, sfixed32 or sfixed64. */
+    { $case: "intKey"; value: string }
+    | //
+    /** `uint_key` specifies a map key of type uint32, uint64, fixed32 or fixed64. */
+    { $case: "uintKey"; value: string }
+    | //
+    /** `string_key` specifies a map key of type string. */
+    { $case: "stringKey"; value: string }
     | undefined;
-  /** `bool_key` specifies a map key of type bool. */
-  boolKey?:
-    | boolean
-    | undefined;
-  /** `int_key` specifies a map key of type int32, int64, sint32, sint64, sfixed32 or sfixed64. */
-  intKey?:
-    | number
-    | undefined;
-  /** `uint_key` specifies a map key of type uint32, uint64, fixed32 or fixed64. */
-  uintKey?:
-    | number
-    | undefined;
-  /** `string_key` specifies a map key of type string. */
-  stringKey?: string | undefined;
 }
 
 function createBaseConstraint(): Constraint {
@@ -3722,8 +3750,10 @@ export const MessageConstraints: MessageFns<MessageConstraints> = {
     if (message.disabled !== undefined && message.disabled !== false) {
       writer.uint32(8).bool(message.disabled);
     }
-    for (const v of message.cel) {
-      Constraint.encode(v!, writer.uint32(26).fork()).join();
+    if (message.cel !== undefined && message.cel.length !== 0) {
+      for (const v of message.cel) {
+        Constraint.encode(v!, writer.uint32(26).fork()).join();
+      }
     }
     return writer;
   },
@@ -3748,7 +3778,10 @@ export const MessageConstraints: MessageFns<MessageConstraints> = {
             break;
           }
 
-          message.cel.push(Constraint.decode(reader, reader.uint32()));
+          const el = Constraint.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.cel!.push(el);
+          }
           continue;
         }
       }
@@ -3848,38 +3881,15 @@ export const OneofConstraints: MessageFns<OneofConstraints> = {
 };
 
 function createBaseFieldConstraints(): FieldConstraints {
-  return {
-    cel: [],
-    required: false,
-    ignore: 0,
-    float: undefined,
-    double: undefined,
-    int32: undefined,
-    int64: undefined,
-    uint32: undefined,
-    uint64: undefined,
-    sint32: undefined,
-    sint64: undefined,
-    fixed32: undefined,
-    fixed64: undefined,
-    sfixed32: undefined,
-    sfixed64: undefined,
-    bool: undefined,
-    string: undefined,
-    bytes: undefined,
-    enum: undefined,
-    repeated: undefined,
-    map: undefined,
-    any: undefined,
-    duration: undefined,
-    timestamp: undefined,
-  };
+  return { cel: [], required: false, ignore: 0, type: undefined };
 }
 
 export const FieldConstraints: MessageFns<FieldConstraints> = {
   encode(message: FieldConstraints, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    for (const v of message.cel) {
-      Constraint.encode(v!, writer.uint32(186).fork()).join();
+    if (message.cel !== undefined && message.cel.length !== 0) {
+      for (const v of message.cel) {
+        Constraint.encode(v!, writer.uint32(186).fork()).join();
+      }
     }
     if (message.required !== undefined && message.required !== false) {
       writer.uint32(200).bool(message.required);
@@ -3887,68 +3897,70 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
     if (message.ignore !== undefined && message.ignore !== 0) {
       writer.uint32(216).int32(message.ignore);
     }
-    if (message.float !== undefined) {
-      FloatRules.encode(message.float, writer.uint32(10).fork()).join();
-    }
-    if (message.double !== undefined) {
-      DoubleRules.encode(message.double, writer.uint32(18).fork()).join();
-    }
-    if (message.int32 !== undefined) {
-      Int32Rules.encode(message.int32, writer.uint32(26).fork()).join();
-    }
-    if (message.int64 !== undefined) {
-      Int64Rules.encode(message.int64, writer.uint32(34).fork()).join();
-    }
-    if (message.uint32 !== undefined) {
-      UInt32Rules.encode(message.uint32, writer.uint32(42).fork()).join();
-    }
-    if (message.uint64 !== undefined) {
-      UInt64Rules.encode(message.uint64, writer.uint32(50).fork()).join();
-    }
-    if (message.sint32 !== undefined) {
-      SInt32Rules.encode(message.sint32, writer.uint32(58).fork()).join();
-    }
-    if (message.sint64 !== undefined) {
-      SInt64Rules.encode(message.sint64, writer.uint32(66).fork()).join();
-    }
-    if (message.fixed32 !== undefined) {
-      Fixed32Rules.encode(message.fixed32, writer.uint32(74).fork()).join();
-    }
-    if (message.fixed64 !== undefined) {
-      Fixed64Rules.encode(message.fixed64, writer.uint32(82).fork()).join();
-    }
-    if (message.sfixed32 !== undefined) {
-      SFixed32Rules.encode(message.sfixed32, writer.uint32(90).fork()).join();
-    }
-    if (message.sfixed64 !== undefined) {
-      SFixed64Rules.encode(message.sfixed64, writer.uint32(98).fork()).join();
-    }
-    if (message.bool !== undefined) {
-      BoolRules.encode(message.bool, writer.uint32(106).fork()).join();
-    }
-    if (message.string !== undefined) {
-      StringRules.encode(message.string, writer.uint32(114).fork()).join();
-    }
-    if (message.bytes !== undefined) {
-      BytesRules.encode(message.bytes, writer.uint32(122).fork()).join();
-    }
-    if (message.enum !== undefined) {
-      EnumRules.encode(message.enum, writer.uint32(130).fork()).join();
-    }
-    if (message.repeated !== undefined) {
-      RepeatedRules.encode(message.repeated, writer.uint32(146).fork()).join();
-    }
-    if (message.map !== undefined) {
-      MapRules.encode(message.map, writer.uint32(154).fork()).join();
-    }
-    if (message.any !== undefined) {
-      AnyRules.encode(message.any, writer.uint32(162).fork()).join();
-    }
-    if (message.duration !== undefined) {
-      DurationRules.encode(message.duration, writer.uint32(170).fork()).join();
-    }
-    if (message.timestamp !== undefined) {
-      TimestampRules.encode(message.timestamp, writer.uint32(178).fork()).join();
+    switch (message.type?.$case) {
+      case "float":
+        FloatRules.encode(message.type.value, writer.uint32(10).fork()).join();
+        break;
+      case "double":
+        DoubleRules.encode(message.type.value, writer.uint32(18).fork()).join();
+        break;
+      case "int32":
+        Int32Rules.encode(message.type.value, writer.uint32(26).fork()).join();
+        break;
+      case "int64":
+        Int64Rules.encode(message.type.value, writer.uint32(34).fork()).join();
+        break;
+      case "uint32":
+        UInt32Rules.encode(message.type.value, writer.uint32(42).fork()).join();
+        break;
+      case "uint64":
+        UInt64Rules.encode(message.type.value, writer.uint32(50).fork()).join();
+        break;
+      case "sint32":
+        SInt32Rules.encode(message.type.value, writer.uint32(58).fork()).join();
+        break;
+      case "sint64":
+        SInt64Rules.encode(message.type.value, writer.uint32(66).fork()).join();
+        break;
+      case "fixed32":
+        Fixed32Rules.encode(message.type.value, writer.uint32(74).fork()).join();
+        break;
+      case "fixed64":
+        Fixed64Rules.encode(message.type.value, writer.uint32(82).fork()).join();
+        break;
+      case "sfixed32":
+        SFixed32Rules.encode(message.type.value, writer.uint32(90).fork()).join();
+        break;
+      case "sfixed64":
+        SFixed64Rules.encode(message.type.value, writer.uint32(98).fork()).join();
+        break;
+      case "bool":
+        BoolRules.encode(message.type.value, writer.uint32(106).fork()).join();
+        break;
+      case "string":
+        StringRules.encode(message.type.value, writer.uint32(114).fork()).join();
+        break;
+      case "bytes":
+        BytesRules.encode(message.type.value, writer.uint32(122).fork()).join();
+        break;
+      case "enum":
+        EnumRules.encode(message.type.value, writer.uint32(130).fork()).join();
+        break;
+      case "repeated":
+        RepeatedRules.encode(message.type.value, writer.uint32(146).fork()).join();
+        break;
+      case "map":
+        MapRules.encode(message.type.value, writer.uint32(154).fork()).join();
+        break;
+      case "any":
+        AnyRules.encode(message.type.value, writer.uint32(162).fork()).join();
+        break;
+      case "duration":
+        DurationRules.encode(message.type.value, writer.uint32(170).fork()).join();
+        break;
+      case "timestamp":
+        TimestampRules.encode(message.type.value, writer.uint32(178).fork()).join();
+        break;
     }
     return writer;
   },
@@ -3965,7 +3977,10 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.cel.push(Constraint.decode(reader, reader.uint32()));
+          const el = Constraint.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.cel!.push(el);
+          }
           continue;
         }
         case 25: {
@@ -3989,7 +4004,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.float = FloatRules.decode(reader, reader.uint32());
+          message.type = { $case: "float", value: FloatRules.decode(reader, reader.uint32()) };
           continue;
         }
         case 2: {
@@ -3997,7 +4012,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.double = DoubleRules.decode(reader, reader.uint32());
+          message.type = { $case: "double", value: DoubleRules.decode(reader, reader.uint32()) };
           continue;
         }
         case 3: {
@@ -4005,7 +4020,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.int32 = Int32Rules.decode(reader, reader.uint32());
+          message.type = { $case: "int32", value: Int32Rules.decode(reader, reader.uint32()) };
           continue;
         }
         case 4: {
@@ -4013,7 +4028,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.int64 = Int64Rules.decode(reader, reader.uint32());
+          message.type = { $case: "int64", value: Int64Rules.decode(reader, reader.uint32()) };
           continue;
         }
         case 5: {
@@ -4021,7 +4036,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.uint32 = UInt32Rules.decode(reader, reader.uint32());
+          message.type = { $case: "uint32", value: UInt32Rules.decode(reader, reader.uint32()) };
           continue;
         }
         case 6: {
@@ -4029,7 +4044,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.uint64 = UInt64Rules.decode(reader, reader.uint32());
+          message.type = { $case: "uint64", value: UInt64Rules.decode(reader, reader.uint32()) };
           continue;
         }
         case 7: {
@@ -4037,7 +4052,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.sint32 = SInt32Rules.decode(reader, reader.uint32());
+          message.type = { $case: "sint32", value: SInt32Rules.decode(reader, reader.uint32()) };
           continue;
         }
         case 8: {
@@ -4045,7 +4060,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.sint64 = SInt64Rules.decode(reader, reader.uint32());
+          message.type = { $case: "sint64", value: SInt64Rules.decode(reader, reader.uint32()) };
           continue;
         }
         case 9: {
@@ -4053,7 +4068,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.fixed32 = Fixed32Rules.decode(reader, reader.uint32());
+          message.type = { $case: "fixed32", value: Fixed32Rules.decode(reader, reader.uint32()) };
           continue;
         }
         case 10: {
@@ -4061,7 +4076,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.fixed64 = Fixed64Rules.decode(reader, reader.uint32());
+          message.type = { $case: "fixed64", value: Fixed64Rules.decode(reader, reader.uint32()) };
           continue;
         }
         case 11: {
@@ -4069,7 +4084,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.sfixed32 = SFixed32Rules.decode(reader, reader.uint32());
+          message.type = { $case: "sfixed32", value: SFixed32Rules.decode(reader, reader.uint32()) };
           continue;
         }
         case 12: {
@@ -4077,7 +4092,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.sfixed64 = SFixed64Rules.decode(reader, reader.uint32());
+          message.type = { $case: "sfixed64", value: SFixed64Rules.decode(reader, reader.uint32()) };
           continue;
         }
         case 13: {
@@ -4085,7 +4100,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.bool = BoolRules.decode(reader, reader.uint32());
+          message.type = { $case: "bool", value: BoolRules.decode(reader, reader.uint32()) };
           continue;
         }
         case 14: {
@@ -4093,7 +4108,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.string = StringRules.decode(reader, reader.uint32());
+          message.type = { $case: "string", value: StringRules.decode(reader, reader.uint32()) };
           continue;
         }
         case 15: {
@@ -4101,7 +4116,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.bytes = BytesRules.decode(reader, reader.uint32());
+          message.type = { $case: "bytes", value: BytesRules.decode(reader, reader.uint32()) };
           continue;
         }
         case 16: {
@@ -4109,7 +4124,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.enum = EnumRules.decode(reader, reader.uint32());
+          message.type = { $case: "enum", value: EnumRules.decode(reader, reader.uint32()) };
           continue;
         }
         case 18: {
@@ -4117,7 +4132,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.repeated = RepeatedRules.decode(reader, reader.uint32());
+          message.type = { $case: "repeated", value: RepeatedRules.decode(reader, reader.uint32()) };
           continue;
         }
         case 19: {
@@ -4125,7 +4140,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.map = MapRules.decode(reader, reader.uint32());
+          message.type = { $case: "map", value: MapRules.decode(reader, reader.uint32()) };
           continue;
         }
         case 20: {
@@ -4133,7 +4148,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.any = AnyRules.decode(reader, reader.uint32());
+          message.type = { $case: "any", value: AnyRules.decode(reader, reader.uint32()) };
           continue;
         }
         case 21: {
@@ -4141,7 +4156,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.duration = DurationRules.decode(reader, reader.uint32());
+          message.type = { $case: "duration", value: DurationRules.decode(reader, reader.uint32()) };
           continue;
         }
         case 22: {
@@ -4149,7 +4164,7 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
             break;
           }
 
-          message.timestamp = TimestampRules.decode(reader, reader.uint32());
+          message.type = { $case: "timestamp", value: TimestampRules.decode(reader, reader.uint32()) };
           continue;
         }
       }
@@ -4166,27 +4181,49 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
       cel: globalThis.Array.isArray(object?.cel) ? object.cel.map((e: any) => Constraint.fromJSON(e)) : [],
       required: isSet(object.required) ? globalThis.Boolean(object.required) : false,
       ignore: isSet(object.ignore) ? ignoreFromJSON(object.ignore) : 0,
-      float: isSet(object.float) ? FloatRules.fromJSON(object.float) : undefined,
-      double: isSet(object.double) ? DoubleRules.fromJSON(object.double) : undefined,
-      int32: isSet(object.int32) ? Int32Rules.fromJSON(object.int32) : undefined,
-      int64: isSet(object.int64) ? Int64Rules.fromJSON(object.int64) : undefined,
-      uint32: isSet(object.uint32) ? UInt32Rules.fromJSON(object.uint32) : undefined,
-      uint64: isSet(object.uint64) ? UInt64Rules.fromJSON(object.uint64) : undefined,
-      sint32: isSet(object.sint32) ? SInt32Rules.fromJSON(object.sint32) : undefined,
-      sint64: isSet(object.sint64) ? SInt64Rules.fromJSON(object.sint64) : undefined,
-      fixed32: isSet(object.fixed32) ? Fixed32Rules.fromJSON(object.fixed32) : undefined,
-      fixed64: isSet(object.fixed64) ? Fixed64Rules.fromJSON(object.fixed64) : undefined,
-      sfixed32: isSet(object.sfixed32) ? SFixed32Rules.fromJSON(object.sfixed32) : undefined,
-      sfixed64: isSet(object.sfixed64) ? SFixed64Rules.fromJSON(object.sfixed64) : undefined,
-      bool: isSet(object.bool) ? BoolRules.fromJSON(object.bool) : undefined,
-      string: isSet(object.string) ? StringRules.fromJSON(object.string) : undefined,
-      bytes: isSet(object.bytes) ? BytesRules.fromJSON(object.bytes) : undefined,
-      enum: isSet(object.enum) ? EnumRules.fromJSON(object.enum) : undefined,
-      repeated: isSet(object.repeated) ? RepeatedRules.fromJSON(object.repeated) : undefined,
-      map: isSet(object.map) ? MapRules.fromJSON(object.map) : undefined,
-      any: isSet(object.any) ? AnyRules.fromJSON(object.any) : undefined,
-      duration: isSet(object.duration) ? DurationRules.fromJSON(object.duration) : undefined,
-      timestamp: isSet(object.timestamp) ? TimestampRules.fromJSON(object.timestamp) : undefined,
+      type: isSet(object.float)
+        ? { $case: "float", value: FloatRules.fromJSON(object.float) }
+        : isSet(object.double)
+        ? { $case: "double", value: DoubleRules.fromJSON(object.double) }
+        : isSet(object.int32)
+        ? { $case: "int32", value: Int32Rules.fromJSON(object.int32) }
+        : isSet(object.int64)
+        ? { $case: "int64", value: Int64Rules.fromJSON(object.int64) }
+        : isSet(object.uint32)
+        ? { $case: "uint32", value: UInt32Rules.fromJSON(object.uint32) }
+        : isSet(object.uint64)
+        ? { $case: "uint64", value: UInt64Rules.fromJSON(object.uint64) }
+        : isSet(object.sint32)
+        ? { $case: "sint32", value: SInt32Rules.fromJSON(object.sint32) }
+        : isSet(object.sint64)
+        ? { $case: "sint64", value: SInt64Rules.fromJSON(object.sint64) }
+        : isSet(object.fixed32)
+        ? { $case: "fixed32", value: Fixed32Rules.fromJSON(object.fixed32) }
+        : isSet(object.fixed64)
+        ? { $case: "fixed64", value: Fixed64Rules.fromJSON(object.fixed64) }
+        : isSet(object.sfixed32)
+        ? { $case: "sfixed32", value: SFixed32Rules.fromJSON(object.sfixed32) }
+        : isSet(object.sfixed64)
+        ? { $case: "sfixed64", value: SFixed64Rules.fromJSON(object.sfixed64) }
+        : isSet(object.bool)
+        ? { $case: "bool", value: BoolRules.fromJSON(object.bool) }
+        : isSet(object.string)
+        ? { $case: "string", value: StringRules.fromJSON(object.string) }
+        : isSet(object.bytes)
+        ? { $case: "bytes", value: BytesRules.fromJSON(object.bytes) }
+        : isSet(object.enum)
+        ? { $case: "enum", value: EnumRules.fromJSON(object.enum) }
+        : isSet(object.repeated)
+        ? { $case: "repeated", value: RepeatedRules.fromJSON(object.repeated) }
+        : isSet(object.map)
+        ? { $case: "map", value: MapRules.fromJSON(object.map) }
+        : isSet(object.any)
+        ? { $case: "any", value: AnyRules.fromJSON(object.any) }
+        : isSet(object.duration)
+        ? { $case: "duration", value: DurationRules.fromJSON(object.duration) }
+        : isSet(object.timestamp)
+        ? { $case: "timestamp", value: TimestampRules.fromJSON(object.timestamp) }
+        : undefined,
     };
   },
 
@@ -4201,68 +4238,48 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
     if (message.ignore !== undefined && message.ignore !== 0) {
       obj.ignore = ignoreToJSON(message.ignore);
     }
-    if (message.float !== undefined) {
-      obj.float = FloatRules.toJSON(message.float);
-    }
-    if (message.double !== undefined) {
-      obj.double = DoubleRules.toJSON(message.double);
-    }
-    if (message.int32 !== undefined) {
-      obj.int32 = Int32Rules.toJSON(message.int32);
-    }
-    if (message.int64 !== undefined) {
-      obj.int64 = Int64Rules.toJSON(message.int64);
-    }
-    if (message.uint32 !== undefined) {
-      obj.uint32 = UInt32Rules.toJSON(message.uint32);
-    }
-    if (message.uint64 !== undefined) {
-      obj.uint64 = UInt64Rules.toJSON(message.uint64);
-    }
-    if (message.sint32 !== undefined) {
-      obj.sint32 = SInt32Rules.toJSON(message.sint32);
-    }
-    if (message.sint64 !== undefined) {
-      obj.sint64 = SInt64Rules.toJSON(message.sint64);
-    }
-    if (message.fixed32 !== undefined) {
-      obj.fixed32 = Fixed32Rules.toJSON(message.fixed32);
-    }
-    if (message.fixed64 !== undefined) {
-      obj.fixed64 = Fixed64Rules.toJSON(message.fixed64);
-    }
-    if (message.sfixed32 !== undefined) {
-      obj.sfixed32 = SFixed32Rules.toJSON(message.sfixed32);
-    }
-    if (message.sfixed64 !== undefined) {
-      obj.sfixed64 = SFixed64Rules.toJSON(message.sfixed64);
-    }
-    if (message.bool !== undefined) {
-      obj.bool = BoolRules.toJSON(message.bool);
-    }
-    if (message.string !== undefined) {
-      obj.string = StringRules.toJSON(message.string);
-    }
-    if (message.bytes !== undefined) {
-      obj.bytes = BytesRules.toJSON(message.bytes);
-    }
-    if (message.enum !== undefined) {
-      obj.enum = EnumRules.toJSON(message.enum);
-    }
-    if (message.repeated !== undefined) {
-      obj.repeated = RepeatedRules.toJSON(message.repeated);
-    }
-    if (message.map !== undefined) {
-      obj.map = MapRules.toJSON(message.map);
-    }
-    if (message.any !== undefined) {
-      obj.any = AnyRules.toJSON(message.any);
-    }
-    if (message.duration !== undefined) {
-      obj.duration = DurationRules.toJSON(message.duration);
-    }
-    if (message.timestamp !== undefined) {
-      obj.timestamp = TimestampRules.toJSON(message.timestamp);
+    if (message.type?.$case === "float") {
+      obj.float = FloatRules.toJSON(message.type.value);
+    } else if (message.type?.$case === "double") {
+      obj.double = DoubleRules.toJSON(message.type.value);
+    } else if (message.type?.$case === "int32") {
+      obj.int32 = Int32Rules.toJSON(message.type.value);
+    } else if (message.type?.$case === "int64") {
+      obj.int64 = Int64Rules.toJSON(message.type.value);
+    } else if (message.type?.$case === "uint32") {
+      obj.uint32 = UInt32Rules.toJSON(message.type.value);
+    } else if (message.type?.$case === "uint64") {
+      obj.uint64 = UInt64Rules.toJSON(message.type.value);
+    } else if (message.type?.$case === "sint32") {
+      obj.sint32 = SInt32Rules.toJSON(message.type.value);
+    } else if (message.type?.$case === "sint64") {
+      obj.sint64 = SInt64Rules.toJSON(message.type.value);
+    } else if (message.type?.$case === "fixed32") {
+      obj.fixed32 = Fixed32Rules.toJSON(message.type.value);
+    } else if (message.type?.$case === "fixed64") {
+      obj.fixed64 = Fixed64Rules.toJSON(message.type.value);
+    } else if (message.type?.$case === "sfixed32") {
+      obj.sfixed32 = SFixed32Rules.toJSON(message.type.value);
+    } else if (message.type?.$case === "sfixed64") {
+      obj.sfixed64 = SFixed64Rules.toJSON(message.type.value);
+    } else if (message.type?.$case === "bool") {
+      obj.bool = BoolRules.toJSON(message.type.value);
+    } else if (message.type?.$case === "string") {
+      obj.string = StringRules.toJSON(message.type.value);
+    } else if (message.type?.$case === "bytes") {
+      obj.bytes = BytesRules.toJSON(message.type.value);
+    } else if (message.type?.$case === "enum") {
+      obj.enum = EnumRules.toJSON(message.type.value);
+    } else if (message.type?.$case === "repeated") {
+      obj.repeated = RepeatedRules.toJSON(message.type.value);
+    } else if (message.type?.$case === "map") {
+      obj.map = MapRules.toJSON(message.type.value);
+    } else if (message.type?.$case === "any") {
+      obj.any = AnyRules.toJSON(message.type.value);
+    } else if (message.type?.$case === "duration") {
+      obj.duration = DurationRules.toJSON(message.type.value);
+    } else if (message.type?.$case === "timestamp") {
+      obj.timestamp = TimestampRules.toJSON(message.type.value);
     }
     return obj;
   },
@@ -4275,61 +4292,134 @@ export const FieldConstraints: MessageFns<FieldConstraints> = {
     message.cel = object.cel?.map((e) => Constraint.fromPartial(e)) || [];
     message.required = object.required ?? false;
     message.ignore = object.ignore ?? 0;
-    message.float = (object.float !== undefined && object.float !== null)
-      ? FloatRules.fromPartial(object.float)
-      : undefined;
-    message.double = (object.double !== undefined && object.double !== null)
-      ? DoubleRules.fromPartial(object.double)
-      : undefined;
-    message.int32 = (object.int32 !== undefined && object.int32 !== null)
-      ? Int32Rules.fromPartial(object.int32)
-      : undefined;
-    message.int64 = (object.int64 !== undefined && object.int64 !== null)
-      ? Int64Rules.fromPartial(object.int64)
-      : undefined;
-    message.uint32 = (object.uint32 !== undefined && object.uint32 !== null)
-      ? UInt32Rules.fromPartial(object.uint32)
-      : undefined;
-    message.uint64 = (object.uint64 !== undefined && object.uint64 !== null)
-      ? UInt64Rules.fromPartial(object.uint64)
-      : undefined;
-    message.sint32 = (object.sint32 !== undefined && object.sint32 !== null)
-      ? SInt32Rules.fromPartial(object.sint32)
-      : undefined;
-    message.sint64 = (object.sint64 !== undefined && object.sint64 !== null)
-      ? SInt64Rules.fromPartial(object.sint64)
-      : undefined;
-    message.fixed32 = (object.fixed32 !== undefined && object.fixed32 !== null)
-      ? Fixed32Rules.fromPartial(object.fixed32)
-      : undefined;
-    message.fixed64 = (object.fixed64 !== undefined && object.fixed64 !== null)
-      ? Fixed64Rules.fromPartial(object.fixed64)
-      : undefined;
-    message.sfixed32 = (object.sfixed32 !== undefined && object.sfixed32 !== null)
-      ? SFixed32Rules.fromPartial(object.sfixed32)
-      : undefined;
-    message.sfixed64 = (object.sfixed64 !== undefined && object.sfixed64 !== null)
-      ? SFixed64Rules.fromPartial(object.sfixed64)
-      : undefined;
-    message.bool = (object.bool !== undefined && object.bool !== null) ? BoolRules.fromPartial(object.bool) : undefined;
-    message.string = (object.string !== undefined && object.string !== null)
-      ? StringRules.fromPartial(object.string)
-      : undefined;
-    message.bytes = (object.bytes !== undefined && object.bytes !== null)
-      ? BytesRules.fromPartial(object.bytes)
-      : undefined;
-    message.enum = (object.enum !== undefined && object.enum !== null) ? EnumRules.fromPartial(object.enum) : undefined;
-    message.repeated = (object.repeated !== undefined && object.repeated !== null)
-      ? RepeatedRules.fromPartial(object.repeated)
-      : undefined;
-    message.map = (object.map !== undefined && object.map !== null) ? MapRules.fromPartial(object.map) : undefined;
-    message.any = (object.any !== undefined && object.any !== null) ? AnyRules.fromPartial(object.any) : undefined;
-    message.duration = (object.duration !== undefined && object.duration !== null)
-      ? DurationRules.fromPartial(object.duration)
-      : undefined;
-    message.timestamp = (object.timestamp !== undefined && object.timestamp !== null)
-      ? TimestampRules.fromPartial(object.timestamp)
-      : undefined;
+    switch (object.type?.$case) {
+      case "float": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "float", value: FloatRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "double": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "double", value: DoubleRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "int32": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "int32", value: Int32Rules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "int64": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "int64", value: Int64Rules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "uint32": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "uint32", value: UInt32Rules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "uint64": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "uint64", value: UInt64Rules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "sint32": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "sint32", value: SInt32Rules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "sint64": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "sint64", value: SInt64Rules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "fixed32": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "fixed32", value: Fixed32Rules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "fixed64": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "fixed64", value: Fixed64Rules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "sfixed32": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "sfixed32", value: SFixed32Rules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "sfixed64": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "sfixed64", value: SFixed64Rules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "bool": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "bool", value: BoolRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "string": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "string", value: StringRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "bytes": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "bytes", value: BytesRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "enum": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "enum", value: EnumRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "repeated": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "repeated", value: RepeatedRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "map": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "map", value: MapRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "any": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "any", value: AnyRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "duration": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "duration", value: DurationRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+      case "timestamp": {
+        if (object.type?.value !== undefined && object.type?.value !== null) {
+          message.type = { $case: "timestamp", value: TimestampRules.fromPartial(object.type.value) };
+        }
+        break;
+      }
+    }
     return message;
   },
 };
@@ -4340,8 +4430,10 @@ function createBasePredefinedConstraints(): PredefinedConstraints {
 
 export const PredefinedConstraints: MessageFns<PredefinedConstraints> = {
   encode(message: PredefinedConstraints, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    for (const v of message.cel) {
-      Constraint.encode(v!, writer.uint32(10).fork()).join();
+    if (message.cel !== undefined && message.cel.length !== 0) {
+      for (const v of message.cel) {
+        Constraint.encode(v!, writer.uint32(10).fork()).join();
+      }
     }
     return writer;
   },
@@ -4358,7 +4450,10 @@ export const PredefinedConstraints: MessageFns<PredefinedConstraints> = {
             break;
           }
 
-          message.cel.push(Constraint.decode(reader, reader.uint32()));
+          const el = Constraint.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.cel!.push(el);
+          }
           continue;
         }
       }
@@ -4393,17 +4488,7 @@ export const PredefinedConstraints: MessageFns<PredefinedConstraints> = {
 };
 
 function createBaseFloatRules(): FloatRules {
-  return {
-    const: 0,
-    lt: undefined,
-    lte: undefined,
-    gt: undefined,
-    gte: undefined,
-    in: [],
-    notIn: [],
-    finite: false,
-    example: [],
-  };
+  return { const: 0, lessThan: undefined, greaterThan: undefined, in: [], notIn: [], finite: false, example: [] };
 }
 
 export const FloatRules: MessageFns<FloatRules> = {
@@ -4411,36 +4496,46 @@ export const FloatRules: MessageFns<FloatRules> = {
     if (message.const !== undefined && message.const !== 0) {
       writer.uint32(13).float(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(21).float(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(21).float(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(29).float(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(29).float(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(37).float(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(45).float(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(37).float(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.float(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(45).float(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.float(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.float(v);
-    }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.float(v);
-    }
-    writer.join();
     if (message.finite !== undefined && message.finite !== false) {
       writer.uint32(64).bool(message.finite);
     }
-    writer.uint32(74).fork();
-    for (const v of message.example) {
-      writer.float(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(74).fork();
+      for (const v of message.example) {
+        writer.float(v);
+      }
+      writer.join();
     }
-    writer.join();
     return writer;
   },
 
@@ -4464,7 +4559,7 @@ export const FloatRules: MessageFns<FloatRules> = {
             break;
           }
 
-          message.lt = reader.float();
+          message.lessThan = { $case: "lt", value: reader.float() };
           continue;
         }
         case 3: {
@@ -4472,7 +4567,7 @@ export const FloatRules: MessageFns<FloatRules> = {
             break;
           }
 
-          message.lte = reader.float();
+          message.lessThan = { $case: "lte", value: reader.float() };
           continue;
         }
         case 4: {
@@ -4480,7 +4575,7 @@ export const FloatRules: MessageFns<FloatRules> = {
             break;
           }
 
-          message.gt = reader.float();
+          message.greaterThan = { $case: "gt", value: reader.float() };
           continue;
         }
         case 5: {
@@ -4488,12 +4583,12 @@ export const FloatRules: MessageFns<FloatRules> = {
             break;
           }
 
-          message.gte = reader.float();
+          message.greaterThan = { $case: "gte", value: reader.float() };
           continue;
         }
         case 6: {
           if (tag === 53) {
-            message.in.push(reader.float());
+            message.in!.push(reader.float());
 
             continue;
           }
@@ -4501,7 +4596,7 @@ export const FloatRules: MessageFns<FloatRules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(reader.float());
+              message.in!.push(reader.float());
             }
 
             continue;
@@ -4511,7 +4606,7 @@ export const FloatRules: MessageFns<FloatRules> = {
         }
         case 7: {
           if (tag === 61) {
-            message.notIn.push(reader.float());
+            message.notIn!.push(reader.float());
 
             continue;
           }
@@ -4519,7 +4614,7 @@ export const FloatRules: MessageFns<FloatRules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(reader.float());
+              message.notIn!.push(reader.float());
             }
 
             continue;
@@ -4537,7 +4632,7 @@ export const FloatRules: MessageFns<FloatRules> = {
         }
         case 9: {
           if (tag === 77) {
-            message.example.push(reader.float());
+            message.example!.push(reader.float());
 
             continue;
           }
@@ -4545,7 +4640,7 @@ export const FloatRules: MessageFns<FloatRules> = {
           if (tag === 74) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(reader.float());
+              message.example!.push(reader.float());
             }
 
             continue;
@@ -4565,10 +4660,16 @@ export const FloatRules: MessageFns<FloatRules> = {
   fromJSON(object: any): FloatRules {
     return {
       const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.Number(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.Number(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.Number(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.Number(object.gte) }
+        : undefined,
       in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
       notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
       finite: isSet(object.finite) ? globalThis.Boolean(object.finite) : false,
@@ -4581,17 +4682,15 @@ export const FloatRules: MessageFns<FloatRules> = {
     if (message.const !== undefined && message.const !== 0) {
       obj.const = message.const;
     }
-    if (message.lt !== undefined) {
-      obj.lt = message.lt;
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = message.lessThan.value;
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = message.lessThan.value;
     }
-    if (message.lte !== undefined) {
-      obj.lte = message.lte;
-    }
-    if (message.gt !== undefined) {
-      obj.gt = message.gt;
-    }
-    if (message.gte !== undefined) {
-      obj.gte = message.gte;
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = message.greaterThan.value;
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = message.greaterThan.value;
     }
     if (message.in?.length) {
       obj.in = message.in;
@@ -4614,10 +4713,34 @@ export const FloatRules: MessageFns<FloatRules> = {
   fromPartial<I extends Exact<DeepPartial<FloatRules>, I>>(object: I): FloatRules {
     const message = createBaseFloatRules();
     message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.finite = object.finite ?? false;
@@ -4627,17 +4750,7 @@ export const FloatRules: MessageFns<FloatRules> = {
 };
 
 function createBaseDoubleRules(): DoubleRules {
-  return {
-    const: 0,
-    lt: undefined,
-    lte: undefined,
-    gt: undefined,
-    gte: undefined,
-    in: [],
-    notIn: [],
-    finite: false,
-    example: [],
-  };
+  return { const: 0, lessThan: undefined, greaterThan: undefined, in: [], notIn: [], finite: false, example: [] };
 }
 
 export const DoubleRules: MessageFns<DoubleRules> = {
@@ -4645,36 +4758,46 @@ export const DoubleRules: MessageFns<DoubleRules> = {
     if (message.const !== undefined && message.const !== 0) {
       writer.uint32(9).double(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(17).double(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(17).double(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(25).double(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(25).double(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(33).double(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(41).double(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(33).double(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.double(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(41).double(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.double(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.double(v);
-    }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.double(v);
-    }
-    writer.join();
     if (message.finite !== undefined && message.finite !== false) {
       writer.uint32(64).bool(message.finite);
     }
-    writer.uint32(74).fork();
-    for (const v of message.example) {
-      writer.double(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(74).fork();
+      for (const v of message.example) {
+        writer.double(v);
+      }
+      writer.join();
     }
-    writer.join();
     return writer;
   },
 
@@ -4698,7 +4821,7 @@ export const DoubleRules: MessageFns<DoubleRules> = {
             break;
           }
 
-          message.lt = reader.double();
+          message.lessThan = { $case: "lt", value: reader.double() };
           continue;
         }
         case 3: {
@@ -4706,7 +4829,7 @@ export const DoubleRules: MessageFns<DoubleRules> = {
             break;
           }
 
-          message.lte = reader.double();
+          message.lessThan = { $case: "lte", value: reader.double() };
           continue;
         }
         case 4: {
@@ -4714,7 +4837,7 @@ export const DoubleRules: MessageFns<DoubleRules> = {
             break;
           }
 
-          message.gt = reader.double();
+          message.greaterThan = { $case: "gt", value: reader.double() };
           continue;
         }
         case 5: {
@@ -4722,12 +4845,12 @@ export const DoubleRules: MessageFns<DoubleRules> = {
             break;
           }
 
-          message.gte = reader.double();
+          message.greaterThan = { $case: "gte", value: reader.double() };
           continue;
         }
         case 6: {
           if (tag === 49) {
-            message.in.push(reader.double());
+            message.in!.push(reader.double());
 
             continue;
           }
@@ -4735,7 +4858,7 @@ export const DoubleRules: MessageFns<DoubleRules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(reader.double());
+              message.in!.push(reader.double());
             }
 
             continue;
@@ -4745,7 +4868,7 @@ export const DoubleRules: MessageFns<DoubleRules> = {
         }
         case 7: {
           if (tag === 57) {
-            message.notIn.push(reader.double());
+            message.notIn!.push(reader.double());
 
             continue;
           }
@@ -4753,7 +4876,7 @@ export const DoubleRules: MessageFns<DoubleRules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(reader.double());
+              message.notIn!.push(reader.double());
             }
 
             continue;
@@ -4771,7 +4894,7 @@ export const DoubleRules: MessageFns<DoubleRules> = {
         }
         case 9: {
           if (tag === 73) {
-            message.example.push(reader.double());
+            message.example!.push(reader.double());
 
             continue;
           }
@@ -4779,7 +4902,7 @@ export const DoubleRules: MessageFns<DoubleRules> = {
           if (tag === 74) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(reader.double());
+              message.example!.push(reader.double());
             }
 
             continue;
@@ -4799,10 +4922,16 @@ export const DoubleRules: MessageFns<DoubleRules> = {
   fromJSON(object: any): DoubleRules {
     return {
       const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.Number(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.Number(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.Number(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.Number(object.gte) }
+        : undefined,
       in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
       notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
       finite: isSet(object.finite) ? globalThis.Boolean(object.finite) : false,
@@ -4815,17 +4944,15 @@ export const DoubleRules: MessageFns<DoubleRules> = {
     if (message.const !== undefined && message.const !== 0) {
       obj.const = message.const;
     }
-    if (message.lt !== undefined) {
-      obj.lt = message.lt;
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = message.lessThan.value;
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = message.lessThan.value;
     }
-    if (message.lte !== undefined) {
-      obj.lte = message.lte;
-    }
-    if (message.gt !== undefined) {
-      obj.gt = message.gt;
-    }
-    if (message.gte !== undefined) {
-      obj.gte = message.gte;
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = message.greaterThan.value;
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = message.greaterThan.value;
     }
     if (message.in?.length) {
       obj.in = message.in;
@@ -4848,10 +4975,34 @@ export const DoubleRules: MessageFns<DoubleRules> = {
   fromPartial<I extends Exact<DeepPartial<DoubleRules>, I>>(object: I): DoubleRules {
     const message = createBaseDoubleRules();
     message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.finite = object.finite ?? false;
@@ -4861,7 +5012,7 @@ export const DoubleRules: MessageFns<DoubleRules> = {
 };
 
 function createBaseInt32Rules(): Int32Rules {
-  return { const: 0, lt: undefined, lte: undefined, gt: undefined, gte: undefined, in: [], notIn: [], example: [] };
+  return { const: 0, lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const Int32Rules: MessageFns<Int32Rules> = {
@@ -4869,33 +5020,43 @@ export const Int32Rules: MessageFns<Int32Rules> = {
     if (message.const !== undefined && message.const !== 0) {
       writer.uint32(8).int32(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(16).int32(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(16).int32(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(24).int32(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(24).int32(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(32).int32(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(40).int32(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(32).int32(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.int32(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(40).int32(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.int32(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.int32(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(66).fork();
+      for (const v of message.example) {
+        writer.int32(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.int32(v);
-    }
-    writer.join();
-    writer.uint32(66).fork();
-    for (const v of message.example) {
-      writer.int32(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -4919,7 +5080,7 @@ export const Int32Rules: MessageFns<Int32Rules> = {
             break;
           }
 
-          message.lt = reader.int32();
+          message.lessThan = { $case: "lt", value: reader.int32() };
           continue;
         }
         case 3: {
@@ -4927,7 +5088,7 @@ export const Int32Rules: MessageFns<Int32Rules> = {
             break;
           }
 
-          message.lte = reader.int32();
+          message.lessThan = { $case: "lte", value: reader.int32() };
           continue;
         }
         case 4: {
@@ -4935,7 +5096,7 @@ export const Int32Rules: MessageFns<Int32Rules> = {
             break;
           }
 
-          message.gt = reader.int32();
+          message.greaterThan = { $case: "gt", value: reader.int32() };
           continue;
         }
         case 5: {
@@ -4943,12 +5104,12 @@ export const Int32Rules: MessageFns<Int32Rules> = {
             break;
           }
 
-          message.gte = reader.int32();
+          message.greaterThan = { $case: "gte", value: reader.int32() };
           continue;
         }
         case 6: {
           if (tag === 48) {
-            message.in.push(reader.int32());
+            message.in!.push(reader.int32());
 
             continue;
           }
@@ -4956,7 +5117,7 @@ export const Int32Rules: MessageFns<Int32Rules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(reader.int32());
+              message.in!.push(reader.int32());
             }
 
             continue;
@@ -4966,7 +5127,7 @@ export const Int32Rules: MessageFns<Int32Rules> = {
         }
         case 7: {
           if (tag === 56) {
-            message.notIn.push(reader.int32());
+            message.notIn!.push(reader.int32());
 
             continue;
           }
@@ -4974,7 +5135,7 @@ export const Int32Rules: MessageFns<Int32Rules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(reader.int32());
+              message.notIn!.push(reader.int32());
             }
 
             continue;
@@ -4984,7 +5145,7 @@ export const Int32Rules: MessageFns<Int32Rules> = {
         }
         case 8: {
           if (tag === 64) {
-            message.example.push(reader.int32());
+            message.example!.push(reader.int32());
 
             continue;
           }
@@ -4992,7 +5153,7 @@ export const Int32Rules: MessageFns<Int32Rules> = {
           if (tag === 66) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(reader.int32());
+              message.example!.push(reader.int32());
             }
 
             continue;
@@ -5012,10 +5173,16 @@ export const Int32Rules: MessageFns<Int32Rules> = {
   fromJSON(object: any): Int32Rules {
     return {
       const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.Number(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.Number(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.Number(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.Number(object.gte) }
+        : undefined,
       in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
       notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
       example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.Number(e)) : [],
@@ -5027,17 +5194,15 @@ export const Int32Rules: MessageFns<Int32Rules> = {
     if (message.const !== undefined && message.const !== 0) {
       obj.const = Math.round(message.const);
     }
-    if (message.lt !== undefined) {
-      obj.lt = Math.round(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = Math.round(message.lessThan.value);
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = Math.round(message.lessThan.value);
     }
-    if (message.lte !== undefined) {
-      obj.lte = Math.round(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Math.round(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Math.round(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = Math.round(message.greaterThan.value);
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = Math.round(message.greaterThan.value);
     }
     if (message.in?.length) {
       obj.in = message.in.map((e) => Math.round(e));
@@ -5057,10 +5222,34 @@ export const Int32Rules: MessageFns<Int32Rules> = {
   fromPartial<I extends Exact<DeepPartial<Int32Rules>, I>>(object: I): Int32Rules {
     const message = createBaseInt32Rules();
     message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.example = object.example?.map((e) => e) || [];
@@ -5069,41 +5258,51 @@ export const Int32Rules: MessageFns<Int32Rules> = {
 };
 
 function createBaseInt64Rules(): Int64Rules {
-  return { const: 0, lt: undefined, lte: undefined, gt: undefined, gte: undefined, in: [], notIn: [], example: [] };
+  return { const: "0", lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const Int64Rules: MessageFns<Int64Rules> = {
   encode(message: Int64Rules, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.const !== undefined && message.const !== 0) {
+    if (message.const !== undefined && message.const !== "0") {
       writer.uint32(8).int64(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(16).int64(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(16).int64(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(24).int64(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(24).int64(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(32).int64(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(40).int64(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(32).int64(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.int64(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(40).int64(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.int64(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.int64(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(74).fork();
+      for (const v of message.example) {
+        writer.int64(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.int64(v);
-    }
-    writer.join();
-    writer.uint32(74).fork();
-    for (const v of message.example) {
-      writer.int64(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -5119,7 +5318,7 @@ export const Int64Rules: MessageFns<Int64Rules> = {
             break;
           }
 
-          message.const = longToNumber(reader.int64());
+          message.const = reader.int64().toString();
           continue;
         }
         case 2: {
@@ -5127,7 +5326,7 @@ export const Int64Rules: MessageFns<Int64Rules> = {
             break;
           }
 
-          message.lt = longToNumber(reader.int64());
+          message.lessThan = { $case: "lt", value: reader.int64().toString() };
           continue;
         }
         case 3: {
@@ -5135,7 +5334,7 @@ export const Int64Rules: MessageFns<Int64Rules> = {
             break;
           }
 
-          message.lte = longToNumber(reader.int64());
+          message.lessThan = { $case: "lte", value: reader.int64().toString() };
           continue;
         }
         case 4: {
@@ -5143,7 +5342,7 @@ export const Int64Rules: MessageFns<Int64Rules> = {
             break;
           }
 
-          message.gt = longToNumber(reader.int64());
+          message.greaterThan = { $case: "gt", value: reader.int64().toString() };
           continue;
         }
         case 5: {
@@ -5151,12 +5350,12 @@ export const Int64Rules: MessageFns<Int64Rules> = {
             break;
           }
 
-          message.gte = longToNumber(reader.int64());
+          message.greaterThan = { $case: "gte", value: reader.int64().toString() };
           continue;
         }
         case 6: {
           if (tag === 48) {
-            message.in.push(longToNumber(reader.int64()));
+            message.in!.push(reader.int64().toString());
 
             continue;
           }
@@ -5164,7 +5363,7 @@ export const Int64Rules: MessageFns<Int64Rules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(longToNumber(reader.int64()));
+              message.in!.push(reader.int64().toString());
             }
 
             continue;
@@ -5174,7 +5373,7 @@ export const Int64Rules: MessageFns<Int64Rules> = {
         }
         case 7: {
           if (tag === 56) {
-            message.notIn.push(longToNumber(reader.int64()));
+            message.notIn!.push(reader.int64().toString());
 
             continue;
           }
@@ -5182,7 +5381,7 @@ export const Int64Rules: MessageFns<Int64Rules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(longToNumber(reader.int64()));
+              message.notIn!.push(reader.int64().toString());
             }
 
             continue;
@@ -5192,7 +5391,7 @@ export const Int64Rules: MessageFns<Int64Rules> = {
         }
         case 9: {
           if (tag === 72) {
-            message.example.push(longToNumber(reader.int64()));
+            message.example!.push(reader.int64().toString());
 
             continue;
           }
@@ -5200,7 +5399,7 @@ export const Int64Rules: MessageFns<Int64Rules> = {
           if (tag === 74) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(longToNumber(reader.int64()));
+              message.example!.push(reader.int64().toString());
             }
 
             continue;
@@ -5219,42 +5418,46 @@ export const Int64Rules: MessageFns<Int64Rules> = {
 
   fromJSON(object: any): Int64Rules {
     return {
-      const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
-      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
-      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
-      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.Number(e)) : [],
+      const: isSet(object.const) ? globalThis.String(object.const) : "0",
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.String(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.String(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.String(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.String(object.gte) }
+        : undefined,
+      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.String(e)) : [],
+      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.String(e)) : [],
+      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
   toJSON(message: Int64Rules): unknown {
     const obj: any = {};
-    if (message.const !== undefined && message.const !== 0) {
-      obj.const = Math.round(message.const);
+    if (message.const !== undefined && message.const !== "0") {
+      obj.const = message.const;
     }
-    if (message.lt !== undefined) {
-      obj.lt = Math.round(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = message.lessThan.value;
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = message.lessThan.value;
     }
-    if (message.lte !== undefined) {
-      obj.lte = Math.round(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Math.round(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Math.round(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = message.greaterThan.value;
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = message.greaterThan.value;
     }
     if (message.in?.length) {
-      obj.in = message.in.map((e) => Math.round(e));
+      obj.in = message.in;
     }
     if (message.notIn?.length) {
-      obj.notIn = message.notIn.map((e) => Math.round(e));
+      obj.notIn = message.notIn;
     }
     if (message.example?.length) {
-      obj.example = message.example.map((e) => Math.round(e));
+      obj.example = message.example;
     }
     return obj;
   },
@@ -5264,11 +5467,35 @@ export const Int64Rules: MessageFns<Int64Rules> = {
   },
   fromPartial<I extends Exact<DeepPartial<Int64Rules>, I>>(object: I): Int64Rules {
     const message = createBaseInt64Rules();
-    message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    message.const = object.const ?? "0";
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.example = object.example?.map((e) => e) || [];
@@ -5277,7 +5504,7 @@ export const Int64Rules: MessageFns<Int64Rules> = {
 };
 
 function createBaseUInt32Rules(): UInt32Rules {
-  return { const: 0, lt: undefined, lte: undefined, gt: undefined, gte: undefined, in: [], notIn: [], example: [] };
+  return { const: 0, lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const UInt32Rules: MessageFns<UInt32Rules> = {
@@ -5285,33 +5512,43 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
     if (message.const !== undefined && message.const !== 0) {
       writer.uint32(8).uint32(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(16).uint32(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(16).uint32(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(24).uint32(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(24).uint32(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(32).uint32(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(40).uint32(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(32).uint32(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.uint32(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(40).uint32(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.uint32(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.uint32(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(66).fork();
+      for (const v of message.example) {
+        writer.uint32(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.uint32(v);
-    }
-    writer.join();
-    writer.uint32(66).fork();
-    for (const v of message.example) {
-      writer.uint32(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -5335,7 +5572,7 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
             break;
           }
 
-          message.lt = reader.uint32();
+          message.lessThan = { $case: "lt", value: reader.uint32() };
           continue;
         }
         case 3: {
@@ -5343,7 +5580,7 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
             break;
           }
 
-          message.lte = reader.uint32();
+          message.lessThan = { $case: "lte", value: reader.uint32() };
           continue;
         }
         case 4: {
@@ -5351,7 +5588,7 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
             break;
           }
 
-          message.gt = reader.uint32();
+          message.greaterThan = { $case: "gt", value: reader.uint32() };
           continue;
         }
         case 5: {
@@ -5359,12 +5596,12 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
             break;
           }
 
-          message.gte = reader.uint32();
+          message.greaterThan = { $case: "gte", value: reader.uint32() };
           continue;
         }
         case 6: {
           if (tag === 48) {
-            message.in.push(reader.uint32());
+            message.in!.push(reader.uint32());
 
             continue;
           }
@@ -5372,7 +5609,7 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(reader.uint32());
+              message.in!.push(reader.uint32());
             }
 
             continue;
@@ -5382,7 +5619,7 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
         }
         case 7: {
           if (tag === 56) {
-            message.notIn.push(reader.uint32());
+            message.notIn!.push(reader.uint32());
 
             continue;
           }
@@ -5390,7 +5627,7 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(reader.uint32());
+              message.notIn!.push(reader.uint32());
             }
 
             continue;
@@ -5400,7 +5637,7 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
         }
         case 8: {
           if (tag === 64) {
-            message.example.push(reader.uint32());
+            message.example!.push(reader.uint32());
 
             continue;
           }
@@ -5408,7 +5645,7 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
           if (tag === 66) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(reader.uint32());
+              message.example!.push(reader.uint32());
             }
 
             continue;
@@ -5428,10 +5665,16 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
   fromJSON(object: any): UInt32Rules {
     return {
       const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.Number(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.Number(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.Number(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.Number(object.gte) }
+        : undefined,
       in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
       notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
       example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.Number(e)) : [],
@@ -5443,17 +5686,15 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
     if (message.const !== undefined && message.const !== 0) {
       obj.const = Math.round(message.const);
     }
-    if (message.lt !== undefined) {
-      obj.lt = Math.round(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = Math.round(message.lessThan.value);
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = Math.round(message.lessThan.value);
     }
-    if (message.lte !== undefined) {
-      obj.lte = Math.round(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Math.round(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Math.round(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = Math.round(message.greaterThan.value);
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = Math.round(message.greaterThan.value);
     }
     if (message.in?.length) {
       obj.in = message.in.map((e) => Math.round(e));
@@ -5473,10 +5714,34 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
   fromPartial<I extends Exact<DeepPartial<UInt32Rules>, I>>(object: I): UInt32Rules {
     const message = createBaseUInt32Rules();
     message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.example = object.example?.map((e) => e) || [];
@@ -5485,41 +5750,51 @@ export const UInt32Rules: MessageFns<UInt32Rules> = {
 };
 
 function createBaseUInt64Rules(): UInt64Rules {
-  return { const: 0, lt: undefined, lte: undefined, gt: undefined, gte: undefined, in: [], notIn: [], example: [] };
+  return { const: "0", lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const UInt64Rules: MessageFns<UInt64Rules> = {
   encode(message: UInt64Rules, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.const !== undefined && message.const !== 0) {
+    if (message.const !== undefined && message.const !== "0") {
       writer.uint32(8).uint64(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(16).uint64(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(16).uint64(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(24).uint64(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(24).uint64(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(32).uint64(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(40).uint64(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(32).uint64(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.uint64(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(40).uint64(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.uint64(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.uint64(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(66).fork();
+      for (const v of message.example) {
+        writer.uint64(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.uint64(v);
-    }
-    writer.join();
-    writer.uint32(66).fork();
-    for (const v of message.example) {
-      writer.uint64(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -5535,7 +5810,7 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
             break;
           }
 
-          message.const = longToNumber(reader.uint64());
+          message.const = reader.uint64().toString();
           continue;
         }
         case 2: {
@@ -5543,7 +5818,7 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
             break;
           }
 
-          message.lt = longToNumber(reader.uint64());
+          message.lessThan = { $case: "lt", value: reader.uint64().toString() };
           continue;
         }
         case 3: {
@@ -5551,7 +5826,7 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
             break;
           }
 
-          message.lte = longToNumber(reader.uint64());
+          message.lessThan = { $case: "lte", value: reader.uint64().toString() };
           continue;
         }
         case 4: {
@@ -5559,7 +5834,7 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
             break;
           }
 
-          message.gt = longToNumber(reader.uint64());
+          message.greaterThan = { $case: "gt", value: reader.uint64().toString() };
           continue;
         }
         case 5: {
@@ -5567,12 +5842,12 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
             break;
           }
 
-          message.gte = longToNumber(reader.uint64());
+          message.greaterThan = { $case: "gte", value: reader.uint64().toString() };
           continue;
         }
         case 6: {
           if (tag === 48) {
-            message.in.push(longToNumber(reader.uint64()));
+            message.in!.push(reader.uint64().toString());
 
             continue;
           }
@@ -5580,7 +5855,7 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(longToNumber(reader.uint64()));
+              message.in!.push(reader.uint64().toString());
             }
 
             continue;
@@ -5590,7 +5865,7 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
         }
         case 7: {
           if (tag === 56) {
-            message.notIn.push(longToNumber(reader.uint64()));
+            message.notIn!.push(reader.uint64().toString());
 
             continue;
           }
@@ -5598,7 +5873,7 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(longToNumber(reader.uint64()));
+              message.notIn!.push(reader.uint64().toString());
             }
 
             continue;
@@ -5608,7 +5883,7 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
         }
         case 8: {
           if (tag === 64) {
-            message.example.push(longToNumber(reader.uint64()));
+            message.example!.push(reader.uint64().toString());
 
             continue;
           }
@@ -5616,7 +5891,7 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
           if (tag === 66) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(longToNumber(reader.uint64()));
+              message.example!.push(reader.uint64().toString());
             }
 
             continue;
@@ -5635,42 +5910,46 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
 
   fromJSON(object: any): UInt64Rules {
     return {
-      const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
-      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
-      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
-      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.Number(e)) : [],
+      const: isSet(object.const) ? globalThis.String(object.const) : "0",
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.String(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.String(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.String(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.String(object.gte) }
+        : undefined,
+      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.String(e)) : [],
+      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.String(e)) : [],
+      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
   toJSON(message: UInt64Rules): unknown {
     const obj: any = {};
-    if (message.const !== undefined && message.const !== 0) {
-      obj.const = Math.round(message.const);
+    if (message.const !== undefined && message.const !== "0") {
+      obj.const = message.const;
     }
-    if (message.lt !== undefined) {
-      obj.lt = Math.round(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = message.lessThan.value;
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = message.lessThan.value;
     }
-    if (message.lte !== undefined) {
-      obj.lte = Math.round(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Math.round(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Math.round(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = message.greaterThan.value;
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = message.greaterThan.value;
     }
     if (message.in?.length) {
-      obj.in = message.in.map((e) => Math.round(e));
+      obj.in = message.in;
     }
     if (message.notIn?.length) {
-      obj.notIn = message.notIn.map((e) => Math.round(e));
+      obj.notIn = message.notIn;
     }
     if (message.example?.length) {
-      obj.example = message.example.map((e) => Math.round(e));
+      obj.example = message.example;
     }
     return obj;
   },
@@ -5680,11 +5959,35 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
   },
   fromPartial<I extends Exact<DeepPartial<UInt64Rules>, I>>(object: I): UInt64Rules {
     const message = createBaseUInt64Rules();
-    message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    message.const = object.const ?? "0";
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.example = object.example?.map((e) => e) || [];
@@ -5693,7 +5996,7 @@ export const UInt64Rules: MessageFns<UInt64Rules> = {
 };
 
 function createBaseSInt32Rules(): SInt32Rules {
-  return { const: 0, lt: undefined, lte: undefined, gt: undefined, gte: undefined, in: [], notIn: [], example: [] };
+  return { const: 0, lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const SInt32Rules: MessageFns<SInt32Rules> = {
@@ -5701,33 +6004,43 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
     if (message.const !== undefined && message.const !== 0) {
       writer.uint32(8).sint32(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(16).sint32(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(16).sint32(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(24).sint32(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(24).sint32(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(32).sint32(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(40).sint32(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(32).sint32(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.sint32(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(40).sint32(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.sint32(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.sint32(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(66).fork();
+      for (const v of message.example) {
+        writer.sint32(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.sint32(v);
-    }
-    writer.join();
-    writer.uint32(66).fork();
-    for (const v of message.example) {
-      writer.sint32(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -5751,7 +6064,7 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
             break;
           }
 
-          message.lt = reader.sint32();
+          message.lessThan = { $case: "lt", value: reader.sint32() };
           continue;
         }
         case 3: {
@@ -5759,7 +6072,7 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
             break;
           }
 
-          message.lte = reader.sint32();
+          message.lessThan = { $case: "lte", value: reader.sint32() };
           continue;
         }
         case 4: {
@@ -5767,7 +6080,7 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
             break;
           }
 
-          message.gt = reader.sint32();
+          message.greaterThan = { $case: "gt", value: reader.sint32() };
           continue;
         }
         case 5: {
@@ -5775,12 +6088,12 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
             break;
           }
 
-          message.gte = reader.sint32();
+          message.greaterThan = { $case: "gte", value: reader.sint32() };
           continue;
         }
         case 6: {
           if (tag === 48) {
-            message.in.push(reader.sint32());
+            message.in!.push(reader.sint32());
 
             continue;
           }
@@ -5788,7 +6101,7 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(reader.sint32());
+              message.in!.push(reader.sint32());
             }
 
             continue;
@@ -5798,7 +6111,7 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
         }
         case 7: {
           if (tag === 56) {
-            message.notIn.push(reader.sint32());
+            message.notIn!.push(reader.sint32());
 
             continue;
           }
@@ -5806,7 +6119,7 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(reader.sint32());
+              message.notIn!.push(reader.sint32());
             }
 
             continue;
@@ -5816,7 +6129,7 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
         }
         case 8: {
           if (tag === 64) {
-            message.example.push(reader.sint32());
+            message.example!.push(reader.sint32());
 
             continue;
           }
@@ -5824,7 +6137,7 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
           if (tag === 66) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(reader.sint32());
+              message.example!.push(reader.sint32());
             }
 
             continue;
@@ -5844,10 +6157,16 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
   fromJSON(object: any): SInt32Rules {
     return {
       const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.Number(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.Number(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.Number(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.Number(object.gte) }
+        : undefined,
       in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
       notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
       example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.Number(e)) : [],
@@ -5859,17 +6178,15 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
     if (message.const !== undefined && message.const !== 0) {
       obj.const = Math.round(message.const);
     }
-    if (message.lt !== undefined) {
-      obj.lt = Math.round(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = Math.round(message.lessThan.value);
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = Math.round(message.lessThan.value);
     }
-    if (message.lte !== undefined) {
-      obj.lte = Math.round(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Math.round(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Math.round(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = Math.round(message.greaterThan.value);
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = Math.round(message.greaterThan.value);
     }
     if (message.in?.length) {
       obj.in = message.in.map((e) => Math.round(e));
@@ -5889,10 +6206,34 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
   fromPartial<I extends Exact<DeepPartial<SInt32Rules>, I>>(object: I): SInt32Rules {
     const message = createBaseSInt32Rules();
     message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.example = object.example?.map((e) => e) || [];
@@ -5901,41 +6242,51 @@ export const SInt32Rules: MessageFns<SInt32Rules> = {
 };
 
 function createBaseSInt64Rules(): SInt64Rules {
-  return { const: 0, lt: undefined, lte: undefined, gt: undefined, gte: undefined, in: [], notIn: [], example: [] };
+  return { const: "0", lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const SInt64Rules: MessageFns<SInt64Rules> = {
   encode(message: SInt64Rules, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.const !== undefined && message.const !== 0) {
+    if (message.const !== undefined && message.const !== "0") {
       writer.uint32(8).sint64(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(16).sint64(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(16).sint64(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(24).sint64(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(24).sint64(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(32).sint64(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(40).sint64(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(32).sint64(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.sint64(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(40).sint64(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.sint64(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.sint64(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(66).fork();
+      for (const v of message.example) {
+        writer.sint64(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.sint64(v);
-    }
-    writer.join();
-    writer.uint32(66).fork();
-    for (const v of message.example) {
-      writer.sint64(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -5951,7 +6302,7 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
             break;
           }
 
-          message.const = longToNumber(reader.sint64());
+          message.const = reader.sint64().toString();
           continue;
         }
         case 2: {
@@ -5959,7 +6310,7 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
             break;
           }
 
-          message.lt = longToNumber(reader.sint64());
+          message.lessThan = { $case: "lt", value: reader.sint64().toString() };
           continue;
         }
         case 3: {
@@ -5967,7 +6318,7 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
             break;
           }
 
-          message.lte = longToNumber(reader.sint64());
+          message.lessThan = { $case: "lte", value: reader.sint64().toString() };
           continue;
         }
         case 4: {
@@ -5975,7 +6326,7 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
             break;
           }
 
-          message.gt = longToNumber(reader.sint64());
+          message.greaterThan = { $case: "gt", value: reader.sint64().toString() };
           continue;
         }
         case 5: {
@@ -5983,12 +6334,12 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
             break;
           }
 
-          message.gte = longToNumber(reader.sint64());
+          message.greaterThan = { $case: "gte", value: reader.sint64().toString() };
           continue;
         }
         case 6: {
           if (tag === 48) {
-            message.in.push(longToNumber(reader.sint64()));
+            message.in!.push(reader.sint64().toString());
 
             continue;
           }
@@ -5996,7 +6347,7 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(longToNumber(reader.sint64()));
+              message.in!.push(reader.sint64().toString());
             }
 
             continue;
@@ -6006,7 +6357,7 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
         }
         case 7: {
           if (tag === 56) {
-            message.notIn.push(longToNumber(reader.sint64()));
+            message.notIn!.push(reader.sint64().toString());
 
             continue;
           }
@@ -6014,7 +6365,7 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(longToNumber(reader.sint64()));
+              message.notIn!.push(reader.sint64().toString());
             }
 
             continue;
@@ -6024,7 +6375,7 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
         }
         case 8: {
           if (tag === 64) {
-            message.example.push(longToNumber(reader.sint64()));
+            message.example!.push(reader.sint64().toString());
 
             continue;
           }
@@ -6032,7 +6383,7 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
           if (tag === 66) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(longToNumber(reader.sint64()));
+              message.example!.push(reader.sint64().toString());
             }
 
             continue;
@@ -6051,42 +6402,46 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
 
   fromJSON(object: any): SInt64Rules {
     return {
-      const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
-      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
-      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
-      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.Number(e)) : [],
+      const: isSet(object.const) ? globalThis.String(object.const) : "0",
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.String(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.String(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.String(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.String(object.gte) }
+        : undefined,
+      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.String(e)) : [],
+      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.String(e)) : [],
+      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
   toJSON(message: SInt64Rules): unknown {
     const obj: any = {};
-    if (message.const !== undefined && message.const !== 0) {
-      obj.const = Math.round(message.const);
+    if (message.const !== undefined && message.const !== "0") {
+      obj.const = message.const;
     }
-    if (message.lt !== undefined) {
-      obj.lt = Math.round(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = message.lessThan.value;
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = message.lessThan.value;
     }
-    if (message.lte !== undefined) {
-      obj.lte = Math.round(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Math.round(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Math.round(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = message.greaterThan.value;
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = message.greaterThan.value;
     }
     if (message.in?.length) {
-      obj.in = message.in.map((e) => Math.round(e));
+      obj.in = message.in;
     }
     if (message.notIn?.length) {
-      obj.notIn = message.notIn.map((e) => Math.round(e));
+      obj.notIn = message.notIn;
     }
     if (message.example?.length) {
-      obj.example = message.example.map((e) => Math.round(e));
+      obj.example = message.example;
     }
     return obj;
   },
@@ -6096,11 +6451,35 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
   },
   fromPartial<I extends Exact<DeepPartial<SInt64Rules>, I>>(object: I): SInt64Rules {
     const message = createBaseSInt64Rules();
-    message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    message.const = object.const ?? "0";
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.example = object.example?.map((e) => e) || [];
@@ -6109,7 +6488,7 @@ export const SInt64Rules: MessageFns<SInt64Rules> = {
 };
 
 function createBaseFixed32Rules(): Fixed32Rules {
-  return { const: 0, lt: undefined, lte: undefined, gt: undefined, gte: undefined, in: [], notIn: [], example: [] };
+  return { const: 0, lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const Fixed32Rules: MessageFns<Fixed32Rules> = {
@@ -6117,33 +6496,43 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
     if (message.const !== undefined && message.const !== 0) {
       writer.uint32(13).fixed32(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(21).fixed32(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(21).fixed32(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(29).fixed32(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(29).fixed32(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(37).fixed32(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(45).fixed32(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(37).fixed32(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.fixed32(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(45).fixed32(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.fixed32(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.fixed32(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(66).fork();
+      for (const v of message.example) {
+        writer.fixed32(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.fixed32(v);
-    }
-    writer.join();
-    writer.uint32(66).fork();
-    for (const v of message.example) {
-      writer.fixed32(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -6167,7 +6556,7 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
             break;
           }
 
-          message.lt = reader.fixed32();
+          message.lessThan = { $case: "lt", value: reader.fixed32() };
           continue;
         }
         case 3: {
@@ -6175,7 +6564,7 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
             break;
           }
 
-          message.lte = reader.fixed32();
+          message.lessThan = { $case: "lte", value: reader.fixed32() };
           continue;
         }
         case 4: {
@@ -6183,7 +6572,7 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
             break;
           }
 
-          message.gt = reader.fixed32();
+          message.greaterThan = { $case: "gt", value: reader.fixed32() };
           continue;
         }
         case 5: {
@@ -6191,12 +6580,12 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
             break;
           }
 
-          message.gte = reader.fixed32();
+          message.greaterThan = { $case: "gte", value: reader.fixed32() };
           continue;
         }
         case 6: {
           if (tag === 53) {
-            message.in.push(reader.fixed32());
+            message.in!.push(reader.fixed32());
 
             continue;
           }
@@ -6204,7 +6593,7 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(reader.fixed32());
+              message.in!.push(reader.fixed32());
             }
 
             continue;
@@ -6214,7 +6603,7 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
         }
         case 7: {
           if (tag === 61) {
-            message.notIn.push(reader.fixed32());
+            message.notIn!.push(reader.fixed32());
 
             continue;
           }
@@ -6222,7 +6611,7 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(reader.fixed32());
+              message.notIn!.push(reader.fixed32());
             }
 
             continue;
@@ -6232,7 +6621,7 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
         }
         case 8: {
           if (tag === 69) {
-            message.example.push(reader.fixed32());
+            message.example!.push(reader.fixed32());
 
             continue;
           }
@@ -6240,7 +6629,7 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
           if (tag === 66) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(reader.fixed32());
+              message.example!.push(reader.fixed32());
             }
 
             continue;
@@ -6260,10 +6649,16 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
   fromJSON(object: any): Fixed32Rules {
     return {
       const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.Number(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.Number(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.Number(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.Number(object.gte) }
+        : undefined,
       in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
       notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
       example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.Number(e)) : [],
@@ -6275,17 +6670,15 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
     if (message.const !== undefined && message.const !== 0) {
       obj.const = Math.round(message.const);
     }
-    if (message.lt !== undefined) {
-      obj.lt = Math.round(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = Math.round(message.lessThan.value);
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = Math.round(message.lessThan.value);
     }
-    if (message.lte !== undefined) {
-      obj.lte = Math.round(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Math.round(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Math.round(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = Math.round(message.greaterThan.value);
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = Math.round(message.greaterThan.value);
     }
     if (message.in?.length) {
       obj.in = message.in.map((e) => Math.round(e));
@@ -6305,10 +6698,34 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
   fromPartial<I extends Exact<DeepPartial<Fixed32Rules>, I>>(object: I): Fixed32Rules {
     const message = createBaseFixed32Rules();
     message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.example = object.example?.map((e) => e) || [];
@@ -6317,41 +6734,51 @@ export const Fixed32Rules: MessageFns<Fixed32Rules> = {
 };
 
 function createBaseFixed64Rules(): Fixed64Rules {
-  return { const: 0, lt: undefined, lte: undefined, gt: undefined, gte: undefined, in: [], notIn: [], example: [] };
+  return { const: "0", lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const Fixed64Rules: MessageFns<Fixed64Rules> = {
   encode(message: Fixed64Rules, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.const !== undefined && message.const !== 0) {
+    if (message.const !== undefined && message.const !== "0") {
       writer.uint32(9).fixed64(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(17).fixed64(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(17).fixed64(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(25).fixed64(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(25).fixed64(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(33).fixed64(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(41).fixed64(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(33).fixed64(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.fixed64(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(41).fixed64(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.fixed64(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.fixed64(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(66).fork();
+      for (const v of message.example) {
+        writer.fixed64(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.fixed64(v);
-    }
-    writer.join();
-    writer.uint32(66).fork();
-    for (const v of message.example) {
-      writer.fixed64(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -6367,7 +6794,7 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
             break;
           }
 
-          message.const = longToNumber(reader.fixed64());
+          message.const = reader.fixed64().toString();
           continue;
         }
         case 2: {
@@ -6375,7 +6802,7 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
             break;
           }
 
-          message.lt = longToNumber(reader.fixed64());
+          message.lessThan = { $case: "lt", value: reader.fixed64().toString() };
           continue;
         }
         case 3: {
@@ -6383,7 +6810,7 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
             break;
           }
 
-          message.lte = longToNumber(reader.fixed64());
+          message.lessThan = { $case: "lte", value: reader.fixed64().toString() };
           continue;
         }
         case 4: {
@@ -6391,7 +6818,7 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
             break;
           }
 
-          message.gt = longToNumber(reader.fixed64());
+          message.greaterThan = { $case: "gt", value: reader.fixed64().toString() };
           continue;
         }
         case 5: {
@@ -6399,12 +6826,12 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
             break;
           }
 
-          message.gte = longToNumber(reader.fixed64());
+          message.greaterThan = { $case: "gte", value: reader.fixed64().toString() };
           continue;
         }
         case 6: {
           if (tag === 49) {
-            message.in.push(longToNumber(reader.fixed64()));
+            message.in!.push(reader.fixed64().toString());
 
             continue;
           }
@@ -6412,7 +6839,7 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(longToNumber(reader.fixed64()));
+              message.in!.push(reader.fixed64().toString());
             }
 
             continue;
@@ -6422,7 +6849,7 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
         }
         case 7: {
           if (tag === 57) {
-            message.notIn.push(longToNumber(reader.fixed64()));
+            message.notIn!.push(reader.fixed64().toString());
 
             continue;
           }
@@ -6430,7 +6857,7 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(longToNumber(reader.fixed64()));
+              message.notIn!.push(reader.fixed64().toString());
             }
 
             continue;
@@ -6440,7 +6867,7 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
         }
         case 8: {
           if (tag === 65) {
-            message.example.push(longToNumber(reader.fixed64()));
+            message.example!.push(reader.fixed64().toString());
 
             continue;
           }
@@ -6448,7 +6875,7 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
           if (tag === 66) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(longToNumber(reader.fixed64()));
+              message.example!.push(reader.fixed64().toString());
             }
 
             continue;
@@ -6467,42 +6894,46 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
 
   fromJSON(object: any): Fixed64Rules {
     return {
-      const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
-      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
-      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
-      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.Number(e)) : [],
+      const: isSet(object.const) ? globalThis.String(object.const) : "0",
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.String(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.String(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.String(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.String(object.gte) }
+        : undefined,
+      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.String(e)) : [],
+      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.String(e)) : [],
+      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
   toJSON(message: Fixed64Rules): unknown {
     const obj: any = {};
-    if (message.const !== undefined && message.const !== 0) {
-      obj.const = Math.round(message.const);
+    if (message.const !== undefined && message.const !== "0") {
+      obj.const = message.const;
     }
-    if (message.lt !== undefined) {
-      obj.lt = Math.round(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = message.lessThan.value;
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = message.lessThan.value;
     }
-    if (message.lte !== undefined) {
-      obj.lte = Math.round(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Math.round(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Math.round(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = message.greaterThan.value;
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = message.greaterThan.value;
     }
     if (message.in?.length) {
-      obj.in = message.in.map((e) => Math.round(e));
+      obj.in = message.in;
     }
     if (message.notIn?.length) {
-      obj.notIn = message.notIn.map((e) => Math.round(e));
+      obj.notIn = message.notIn;
     }
     if (message.example?.length) {
-      obj.example = message.example.map((e) => Math.round(e));
+      obj.example = message.example;
     }
     return obj;
   },
@@ -6512,11 +6943,35 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
   },
   fromPartial<I extends Exact<DeepPartial<Fixed64Rules>, I>>(object: I): Fixed64Rules {
     const message = createBaseFixed64Rules();
-    message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    message.const = object.const ?? "0";
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.example = object.example?.map((e) => e) || [];
@@ -6525,7 +6980,7 @@ export const Fixed64Rules: MessageFns<Fixed64Rules> = {
 };
 
 function createBaseSFixed32Rules(): SFixed32Rules {
-  return { const: 0, lt: undefined, lte: undefined, gt: undefined, gte: undefined, in: [], notIn: [], example: [] };
+  return { const: 0, lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const SFixed32Rules: MessageFns<SFixed32Rules> = {
@@ -6533,33 +6988,43 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
     if (message.const !== undefined && message.const !== 0) {
       writer.uint32(13).sfixed32(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(21).sfixed32(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(21).sfixed32(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(29).sfixed32(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(29).sfixed32(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(37).sfixed32(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(45).sfixed32(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(37).sfixed32(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.sfixed32(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(45).sfixed32(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.sfixed32(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.sfixed32(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(66).fork();
+      for (const v of message.example) {
+        writer.sfixed32(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.sfixed32(v);
-    }
-    writer.join();
-    writer.uint32(66).fork();
-    for (const v of message.example) {
-      writer.sfixed32(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -6583,7 +7048,7 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
             break;
           }
 
-          message.lt = reader.sfixed32();
+          message.lessThan = { $case: "lt", value: reader.sfixed32() };
           continue;
         }
         case 3: {
@@ -6591,7 +7056,7 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
             break;
           }
 
-          message.lte = reader.sfixed32();
+          message.lessThan = { $case: "lte", value: reader.sfixed32() };
           continue;
         }
         case 4: {
@@ -6599,7 +7064,7 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
             break;
           }
 
-          message.gt = reader.sfixed32();
+          message.greaterThan = { $case: "gt", value: reader.sfixed32() };
           continue;
         }
         case 5: {
@@ -6607,12 +7072,12 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
             break;
           }
 
-          message.gte = reader.sfixed32();
+          message.greaterThan = { $case: "gte", value: reader.sfixed32() };
           continue;
         }
         case 6: {
           if (tag === 53) {
-            message.in.push(reader.sfixed32());
+            message.in!.push(reader.sfixed32());
 
             continue;
           }
@@ -6620,7 +7085,7 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(reader.sfixed32());
+              message.in!.push(reader.sfixed32());
             }
 
             continue;
@@ -6630,7 +7095,7 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
         }
         case 7: {
           if (tag === 61) {
-            message.notIn.push(reader.sfixed32());
+            message.notIn!.push(reader.sfixed32());
 
             continue;
           }
@@ -6638,7 +7103,7 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(reader.sfixed32());
+              message.notIn!.push(reader.sfixed32());
             }
 
             continue;
@@ -6648,7 +7113,7 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
         }
         case 8: {
           if (tag === 69) {
-            message.example.push(reader.sfixed32());
+            message.example!.push(reader.sfixed32());
 
             continue;
           }
@@ -6656,7 +7121,7 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
           if (tag === 66) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(reader.sfixed32());
+              message.example!.push(reader.sfixed32());
             }
 
             continue;
@@ -6676,10 +7141,16 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
   fromJSON(object: any): SFixed32Rules {
     return {
       const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.Number(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.Number(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.Number(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.Number(object.gte) }
+        : undefined,
       in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
       notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
       example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.Number(e)) : [],
@@ -6691,17 +7162,15 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
     if (message.const !== undefined && message.const !== 0) {
       obj.const = Math.round(message.const);
     }
-    if (message.lt !== undefined) {
-      obj.lt = Math.round(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = Math.round(message.lessThan.value);
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = Math.round(message.lessThan.value);
     }
-    if (message.lte !== undefined) {
-      obj.lte = Math.round(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Math.round(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Math.round(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = Math.round(message.greaterThan.value);
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = Math.round(message.greaterThan.value);
     }
     if (message.in?.length) {
       obj.in = message.in.map((e) => Math.round(e));
@@ -6721,10 +7190,34 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
   fromPartial<I extends Exact<DeepPartial<SFixed32Rules>, I>>(object: I): SFixed32Rules {
     const message = createBaseSFixed32Rules();
     message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.example = object.example?.map((e) => e) || [];
@@ -6733,41 +7226,51 @@ export const SFixed32Rules: MessageFns<SFixed32Rules> = {
 };
 
 function createBaseSFixed64Rules(): SFixed64Rules {
-  return { const: 0, lt: undefined, lte: undefined, gt: undefined, gte: undefined, in: [], notIn: [], example: [] };
+  return { const: "0", lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const SFixed64Rules: MessageFns<SFixed64Rules> = {
   encode(message: SFixed64Rules, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.const !== undefined && message.const !== 0) {
+    if (message.const !== undefined && message.const !== "0") {
       writer.uint32(9).sfixed64(message.const);
     }
-    if (message.lt !== undefined) {
-      writer.uint32(17).sfixed64(message.lt);
+    switch (message.lessThan?.$case) {
+      case "lt":
+        writer.uint32(17).sfixed64(message.lessThan.value);
+        break;
+      case "lte":
+        writer.uint32(25).sfixed64(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      writer.uint32(25).sfixed64(message.lte);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        writer.uint32(33).sfixed64(message.greaterThan.value);
+        break;
+      case "gte":
+        writer.uint32(41).sfixed64(message.greaterThan.value);
+        break;
     }
-    if (message.gt !== undefined) {
-      writer.uint32(33).sfixed64(message.gt);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(50).fork();
+      for (const v of message.in) {
+        writer.sfixed64(v);
+      }
+      writer.join();
     }
-    if (message.gte !== undefined) {
-      writer.uint32(41).sfixed64(message.gte);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(58).fork();
+      for (const v of message.notIn) {
+        writer.sfixed64(v);
+      }
+      writer.join();
     }
-    writer.uint32(50).fork();
-    for (const v of message.in) {
-      writer.sfixed64(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(66).fork();
+      for (const v of message.example) {
+        writer.sfixed64(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(58).fork();
-    for (const v of message.notIn) {
-      writer.sfixed64(v);
-    }
-    writer.join();
-    writer.uint32(66).fork();
-    for (const v of message.example) {
-      writer.sfixed64(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -6783,7 +7286,7 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
             break;
           }
 
-          message.const = longToNumber(reader.sfixed64());
+          message.const = reader.sfixed64().toString();
           continue;
         }
         case 2: {
@@ -6791,7 +7294,7 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
             break;
           }
 
-          message.lt = longToNumber(reader.sfixed64());
+          message.lessThan = { $case: "lt", value: reader.sfixed64().toString() };
           continue;
         }
         case 3: {
@@ -6799,7 +7302,7 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
             break;
           }
 
-          message.lte = longToNumber(reader.sfixed64());
+          message.lessThan = { $case: "lte", value: reader.sfixed64().toString() };
           continue;
         }
         case 4: {
@@ -6807,7 +7310,7 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
             break;
           }
 
-          message.gt = longToNumber(reader.sfixed64());
+          message.greaterThan = { $case: "gt", value: reader.sfixed64().toString() };
           continue;
         }
         case 5: {
@@ -6815,12 +7318,12 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
             break;
           }
 
-          message.gte = longToNumber(reader.sfixed64());
+          message.greaterThan = { $case: "gte", value: reader.sfixed64().toString() };
           continue;
         }
         case 6: {
           if (tag === 49) {
-            message.in.push(longToNumber(reader.sfixed64()));
+            message.in!.push(reader.sfixed64().toString());
 
             continue;
           }
@@ -6828,7 +7331,7 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(longToNumber(reader.sfixed64()));
+              message.in!.push(reader.sfixed64().toString());
             }
 
             continue;
@@ -6838,7 +7341,7 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
         }
         case 7: {
           if (tag === 57) {
-            message.notIn.push(longToNumber(reader.sfixed64()));
+            message.notIn!.push(reader.sfixed64().toString());
 
             continue;
           }
@@ -6846,7 +7349,7 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(longToNumber(reader.sfixed64()));
+              message.notIn!.push(reader.sfixed64().toString());
             }
 
             continue;
@@ -6856,7 +7359,7 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
         }
         case 8: {
           if (tag === 65) {
-            message.example.push(longToNumber(reader.sfixed64()));
+            message.example!.push(reader.sfixed64().toString());
 
             continue;
           }
@@ -6864,7 +7367,7 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
           if (tag === 66) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(longToNumber(reader.sfixed64()));
+              message.example!.push(reader.sfixed64().toString());
             }
 
             continue;
@@ -6883,42 +7386,46 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
 
   fromJSON(object: any): SFixed64Rules {
     return {
-      const: isSet(object.const) ? globalThis.Number(object.const) : 0,
-      lt: isSet(object.lt) ? globalThis.Number(object.lt) : undefined,
-      lte: isSet(object.lte) ? globalThis.Number(object.lte) : undefined,
-      gt: isSet(object.gt) ? globalThis.Number(object.gt) : undefined,
-      gte: isSet(object.gte) ? globalThis.Number(object.gte) : undefined,
-      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.Number(e)) : [],
-      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.Number(e)) : [],
-      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.Number(e)) : [],
+      const: isSet(object.const) ? globalThis.String(object.const) : "0",
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: globalThis.String(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: globalThis.String(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: globalThis.String(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: globalThis.String(object.gte) }
+        : undefined,
+      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.String(e)) : [],
+      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.String(e)) : [],
+      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
   toJSON(message: SFixed64Rules): unknown {
     const obj: any = {};
-    if (message.const !== undefined && message.const !== 0) {
-      obj.const = Math.round(message.const);
+    if (message.const !== undefined && message.const !== "0") {
+      obj.const = message.const;
     }
-    if (message.lt !== undefined) {
-      obj.lt = Math.round(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = message.lessThan.value;
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = message.lessThan.value;
     }
-    if (message.lte !== undefined) {
-      obj.lte = Math.round(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Math.round(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Math.round(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = message.greaterThan.value;
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = message.greaterThan.value;
     }
     if (message.in?.length) {
-      obj.in = message.in.map((e) => Math.round(e));
+      obj.in = message.in;
     }
     if (message.notIn?.length) {
-      obj.notIn = message.notIn.map((e) => Math.round(e));
+      obj.notIn = message.notIn;
     }
     if (message.example?.length) {
-      obj.example = message.example.map((e) => Math.round(e));
+      obj.example = message.example;
     }
     return obj;
   },
@@ -6928,11 +7435,35 @@ export const SFixed64Rules: MessageFns<SFixed64Rules> = {
   },
   fromPartial<I extends Exact<DeepPartial<SFixed64Rules>, I>>(object: I): SFixed64Rules {
     const message = createBaseSFixed64Rules();
-    message.const = object.const ?? 0;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
+    message.const = object.const ?? "0";
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
     message.example = object.example?.map((e) => e) || [];
@@ -6949,11 +7480,13 @@ export const BoolRules: MessageFns<BoolRules> = {
     if (message.const !== undefined && message.const !== false) {
       writer.uint32(8).bool(message.const);
     }
-    writer.uint32(18).fork();
-    for (const v of message.example) {
-      writer.bool(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(18).fork();
+      for (const v of message.example) {
+        writer.bool(v);
+      }
+      writer.join();
     }
-    writer.join();
     return writer;
   },
 
@@ -6974,7 +7507,7 @@ export const BoolRules: MessageFns<BoolRules> = {
         }
         case 2: {
           if (tag === 16) {
-            message.example.push(reader.bool());
+            message.example!.push(reader.bool());
 
             continue;
           }
@@ -6982,7 +7515,7 @@ export const BoolRules: MessageFns<BoolRules> = {
           if (tag === 18) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(reader.bool());
+              message.example!.push(reader.bool());
             }
 
             continue;
@@ -7031,12 +7564,12 @@ export const BoolRules: MessageFns<BoolRules> = {
 function createBaseStringRules(): StringRules {
   return {
     const: "",
-    len: 0,
-    minLen: 0,
-    maxLen: 0,
-    lenBytes: 0,
-    minBytes: 0,
-    maxBytes: 0,
+    len: "0",
+    minLen: "0",
+    maxLen: "0",
+    lenBytes: "0",
+    minBytes: "0",
+    maxBytes: "0",
     pattern: "",
     prefix: "",
     suffix: "",
@@ -7044,24 +7577,7 @@ function createBaseStringRules(): StringRules {
     notContains: "",
     in: [],
     notIn: [],
-    email: undefined,
-    hostname: undefined,
-    ip: undefined,
-    ipv4: undefined,
-    ipv6: undefined,
-    uri: undefined,
-    uriRef: undefined,
-    address: undefined,
-    uuid: undefined,
-    tuuid: undefined,
-    ipWithPrefixlen: undefined,
-    ipv4WithPrefixlen: undefined,
-    ipv6WithPrefixlen: undefined,
-    ipPrefix: undefined,
-    ipv4Prefix: undefined,
-    ipv6Prefix: undefined,
-    hostAndPort: undefined,
-    wellKnownRegex: undefined,
+    wellKnown: undefined,
     strict: false,
     example: [],
   };
@@ -7072,22 +7588,22 @@ export const StringRules: MessageFns<StringRules> = {
     if (message.const !== undefined && message.const !== "") {
       writer.uint32(10).string(message.const);
     }
-    if (message.len !== undefined && message.len !== 0) {
+    if (message.len !== undefined && message.len !== "0") {
       writer.uint32(152).uint64(message.len);
     }
-    if (message.minLen !== undefined && message.minLen !== 0) {
+    if (message.minLen !== undefined && message.minLen !== "0") {
       writer.uint32(16).uint64(message.minLen);
     }
-    if (message.maxLen !== undefined && message.maxLen !== 0) {
+    if (message.maxLen !== undefined && message.maxLen !== "0") {
       writer.uint32(24).uint64(message.maxLen);
     }
-    if (message.lenBytes !== undefined && message.lenBytes !== 0) {
+    if (message.lenBytes !== undefined && message.lenBytes !== "0") {
       writer.uint32(160).uint64(message.lenBytes);
     }
-    if (message.minBytes !== undefined && message.minBytes !== 0) {
+    if (message.minBytes !== undefined && message.minBytes !== "0") {
       writer.uint32(32).uint64(message.minBytes);
     }
-    if (message.maxBytes !== undefined && message.maxBytes !== 0) {
+    if (message.maxBytes !== undefined && message.maxBytes !== "0") {
       writer.uint32(40).uint64(message.maxBytes);
     }
     if (message.pattern !== undefined && message.pattern !== "") {
@@ -7105,71 +7621,79 @@ export const StringRules: MessageFns<StringRules> = {
     if (message.notContains !== undefined && message.notContains !== "") {
       writer.uint32(186).string(message.notContains);
     }
-    for (const v of message.in) {
-      writer.uint32(82).string(v!);
+    if (message.in !== undefined && message.in.length !== 0) {
+      for (const v of message.in) {
+        writer.uint32(82).string(v!);
+      }
     }
-    for (const v of message.notIn) {
-      writer.uint32(90).string(v!);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      for (const v of message.notIn) {
+        writer.uint32(90).string(v!);
+      }
     }
-    if (message.email !== undefined) {
-      writer.uint32(96).bool(message.email);
-    }
-    if (message.hostname !== undefined) {
-      writer.uint32(104).bool(message.hostname);
-    }
-    if (message.ip !== undefined) {
-      writer.uint32(112).bool(message.ip);
-    }
-    if (message.ipv4 !== undefined) {
-      writer.uint32(120).bool(message.ipv4);
-    }
-    if (message.ipv6 !== undefined) {
-      writer.uint32(128).bool(message.ipv6);
-    }
-    if (message.uri !== undefined) {
-      writer.uint32(136).bool(message.uri);
-    }
-    if (message.uriRef !== undefined) {
-      writer.uint32(144).bool(message.uriRef);
-    }
-    if (message.address !== undefined) {
-      writer.uint32(168).bool(message.address);
-    }
-    if (message.uuid !== undefined) {
-      writer.uint32(176).bool(message.uuid);
-    }
-    if (message.tuuid !== undefined) {
-      writer.uint32(264).bool(message.tuuid);
-    }
-    if (message.ipWithPrefixlen !== undefined) {
-      writer.uint32(208).bool(message.ipWithPrefixlen);
-    }
-    if (message.ipv4WithPrefixlen !== undefined) {
-      writer.uint32(216).bool(message.ipv4WithPrefixlen);
-    }
-    if (message.ipv6WithPrefixlen !== undefined) {
-      writer.uint32(224).bool(message.ipv6WithPrefixlen);
-    }
-    if (message.ipPrefix !== undefined) {
-      writer.uint32(232).bool(message.ipPrefix);
-    }
-    if (message.ipv4Prefix !== undefined) {
-      writer.uint32(240).bool(message.ipv4Prefix);
-    }
-    if (message.ipv6Prefix !== undefined) {
-      writer.uint32(248).bool(message.ipv6Prefix);
-    }
-    if (message.hostAndPort !== undefined) {
-      writer.uint32(256).bool(message.hostAndPort);
-    }
-    if (message.wellKnownRegex !== undefined) {
-      writer.uint32(192).int32(message.wellKnownRegex);
+    switch (message.wellKnown?.$case) {
+      case "email":
+        writer.uint32(96).bool(message.wellKnown.value);
+        break;
+      case "hostname":
+        writer.uint32(104).bool(message.wellKnown.value);
+        break;
+      case "ip":
+        writer.uint32(112).bool(message.wellKnown.value);
+        break;
+      case "ipv4":
+        writer.uint32(120).bool(message.wellKnown.value);
+        break;
+      case "ipv6":
+        writer.uint32(128).bool(message.wellKnown.value);
+        break;
+      case "uri":
+        writer.uint32(136).bool(message.wellKnown.value);
+        break;
+      case "uriRef":
+        writer.uint32(144).bool(message.wellKnown.value);
+        break;
+      case "address":
+        writer.uint32(168).bool(message.wellKnown.value);
+        break;
+      case "uuid":
+        writer.uint32(176).bool(message.wellKnown.value);
+        break;
+      case "tuuid":
+        writer.uint32(264).bool(message.wellKnown.value);
+        break;
+      case "ipWithPrefixlen":
+        writer.uint32(208).bool(message.wellKnown.value);
+        break;
+      case "ipv4WithPrefixlen":
+        writer.uint32(216).bool(message.wellKnown.value);
+        break;
+      case "ipv6WithPrefixlen":
+        writer.uint32(224).bool(message.wellKnown.value);
+        break;
+      case "ipPrefix":
+        writer.uint32(232).bool(message.wellKnown.value);
+        break;
+      case "ipv4Prefix":
+        writer.uint32(240).bool(message.wellKnown.value);
+        break;
+      case "ipv6Prefix":
+        writer.uint32(248).bool(message.wellKnown.value);
+        break;
+      case "hostAndPort":
+        writer.uint32(256).bool(message.wellKnown.value);
+        break;
+      case "wellKnownRegex":
+        writer.uint32(192).int32(message.wellKnown.value);
+        break;
     }
     if (message.strict !== undefined && message.strict !== false) {
       writer.uint32(200).bool(message.strict);
     }
-    for (const v of message.example) {
-      writer.uint32(274).string(v!);
+    if (message.example !== undefined && message.example.length !== 0) {
+      for (const v of message.example) {
+        writer.uint32(274).string(v!);
+      }
     }
     return writer;
   },
@@ -7194,7 +7718,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.len = longToNumber(reader.uint64());
+          message.len = reader.uint64().toString();
           continue;
         }
         case 2: {
@@ -7202,7 +7726,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.minLen = longToNumber(reader.uint64());
+          message.minLen = reader.uint64().toString();
           continue;
         }
         case 3: {
@@ -7210,7 +7734,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.maxLen = longToNumber(reader.uint64());
+          message.maxLen = reader.uint64().toString();
           continue;
         }
         case 20: {
@@ -7218,7 +7742,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.lenBytes = longToNumber(reader.uint64());
+          message.lenBytes = reader.uint64().toString();
           continue;
         }
         case 4: {
@@ -7226,7 +7750,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.minBytes = longToNumber(reader.uint64());
+          message.minBytes = reader.uint64().toString();
           continue;
         }
         case 5: {
@@ -7234,7 +7758,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.maxBytes = longToNumber(reader.uint64());
+          message.maxBytes = reader.uint64().toString();
           continue;
         }
         case 6: {
@@ -7282,7 +7806,10 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.in.push(reader.string());
+          const el = reader.string();
+          if (el !== undefined) {
+            message.in!.push(el);
+          }
           continue;
         }
         case 11: {
@@ -7290,7 +7817,10 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.notIn.push(reader.string());
+          const el = reader.string();
+          if (el !== undefined) {
+            message.notIn!.push(el);
+          }
           continue;
         }
         case 12: {
@@ -7298,7 +7828,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.email = reader.bool();
+          message.wellKnown = { $case: "email", value: reader.bool() };
           continue;
         }
         case 13: {
@@ -7306,7 +7836,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.hostname = reader.bool();
+          message.wellKnown = { $case: "hostname", value: reader.bool() };
           continue;
         }
         case 14: {
@@ -7314,7 +7844,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.ip = reader.bool();
+          message.wellKnown = { $case: "ip", value: reader.bool() };
           continue;
         }
         case 15: {
@@ -7322,7 +7852,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.ipv4 = reader.bool();
+          message.wellKnown = { $case: "ipv4", value: reader.bool() };
           continue;
         }
         case 16: {
@@ -7330,7 +7860,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.ipv6 = reader.bool();
+          message.wellKnown = { $case: "ipv6", value: reader.bool() };
           continue;
         }
         case 17: {
@@ -7338,7 +7868,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.uri = reader.bool();
+          message.wellKnown = { $case: "uri", value: reader.bool() };
           continue;
         }
         case 18: {
@@ -7346,7 +7876,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.uriRef = reader.bool();
+          message.wellKnown = { $case: "uriRef", value: reader.bool() };
           continue;
         }
         case 21: {
@@ -7354,7 +7884,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.address = reader.bool();
+          message.wellKnown = { $case: "address", value: reader.bool() };
           continue;
         }
         case 22: {
@@ -7362,7 +7892,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.uuid = reader.bool();
+          message.wellKnown = { $case: "uuid", value: reader.bool() };
           continue;
         }
         case 33: {
@@ -7370,7 +7900,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.tuuid = reader.bool();
+          message.wellKnown = { $case: "tuuid", value: reader.bool() };
           continue;
         }
         case 26: {
@@ -7378,7 +7908,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.ipWithPrefixlen = reader.bool();
+          message.wellKnown = { $case: "ipWithPrefixlen", value: reader.bool() };
           continue;
         }
         case 27: {
@@ -7386,7 +7916,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.ipv4WithPrefixlen = reader.bool();
+          message.wellKnown = { $case: "ipv4WithPrefixlen", value: reader.bool() };
           continue;
         }
         case 28: {
@@ -7394,7 +7924,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.ipv6WithPrefixlen = reader.bool();
+          message.wellKnown = { $case: "ipv6WithPrefixlen", value: reader.bool() };
           continue;
         }
         case 29: {
@@ -7402,7 +7932,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.ipPrefix = reader.bool();
+          message.wellKnown = { $case: "ipPrefix", value: reader.bool() };
           continue;
         }
         case 30: {
@@ -7410,7 +7940,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.ipv4Prefix = reader.bool();
+          message.wellKnown = { $case: "ipv4Prefix", value: reader.bool() };
           continue;
         }
         case 31: {
@@ -7418,7 +7948,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.ipv6Prefix = reader.bool();
+          message.wellKnown = { $case: "ipv6Prefix", value: reader.bool() };
           continue;
         }
         case 32: {
@@ -7426,7 +7956,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.hostAndPort = reader.bool();
+          message.wellKnown = { $case: "hostAndPort", value: reader.bool() };
           continue;
         }
         case 24: {
@@ -7434,7 +7964,7 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.wellKnownRegex = reader.int32() as any;
+          message.wellKnown = { $case: "wellKnownRegex", value: reader.int32() as any };
           continue;
         }
         case 25: {
@@ -7450,7 +7980,10 @@ export const StringRules: MessageFns<StringRules> = {
             break;
           }
 
-          message.example.push(reader.string());
+          const el = reader.string();
+          if (el !== undefined) {
+            message.example!.push(el);
+          }
           continue;
         }
       }
@@ -7465,12 +7998,12 @@ export const StringRules: MessageFns<StringRules> = {
   fromJSON(object: any): StringRules {
     return {
       const: isSet(object.const) ? globalThis.String(object.const) : "",
-      len: isSet(object.len) ? globalThis.Number(object.len) : 0,
-      minLen: isSet(object.minLen) ? globalThis.Number(object.minLen) : 0,
-      maxLen: isSet(object.maxLen) ? globalThis.Number(object.maxLen) : 0,
-      lenBytes: isSet(object.lenBytes) ? globalThis.Number(object.lenBytes) : 0,
-      minBytes: isSet(object.minBytes) ? globalThis.Number(object.minBytes) : 0,
-      maxBytes: isSet(object.maxBytes) ? globalThis.Number(object.maxBytes) : 0,
+      len: isSet(object.len) ? globalThis.String(object.len) : "0",
+      minLen: isSet(object.minLen) ? globalThis.String(object.minLen) : "0",
+      maxLen: isSet(object.maxLen) ? globalThis.String(object.maxLen) : "0",
+      lenBytes: isSet(object.lenBytes) ? globalThis.String(object.lenBytes) : "0",
+      minBytes: isSet(object.minBytes) ? globalThis.String(object.minBytes) : "0",
+      maxBytes: isSet(object.maxBytes) ? globalThis.String(object.maxBytes) : "0",
       pattern: isSet(object.pattern) ? globalThis.String(object.pattern) : "",
       prefix: isSet(object.prefix) ? globalThis.String(object.prefix) : "",
       suffix: isSet(object.suffix) ? globalThis.String(object.suffix) : "",
@@ -7478,24 +8011,43 @@ export const StringRules: MessageFns<StringRules> = {
       notContains: isSet(object.notContains) ? globalThis.String(object.notContains) : "",
       in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => globalThis.String(e)) : [],
       notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => globalThis.String(e)) : [],
-      email: isSet(object.email) ? globalThis.Boolean(object.email) : undefined,
-      hostname: isSet(object.hostname) ? globalThis.Boolean(object.hostname) : undefined,
-      ip: isSet(object.ip) ? globalThis.Boolean(object.ip) : undefined,
-      ipv4: isSet(object.ipv4) ? globalThis.Boolean(object.ipv4) : undefined,
-      ipv6: isSet(object.ipv6) ? globalThis.Boolean(object.ipv6) : undefined,
-      uri: isSet(object.uri) ? globalThis.Boolean(object.uri) : undefined,
-      uriRef: isSet(object.uriRef) ? globalThis.Boolean(object.uriRef) : undefined,
-      address: isSet(object.address) ? globalThis.Boolean(object.address) : undefined,
-      uuid: isSet(object.uuid) ? globalThis.Boolean(object.uuid) : undefined,
-      tuuid: isSet(object.tuuid) ? globalThis.Boolean(object.tuuid) : undefined,
-      ipWithPrefixlen: isSet(object.ipWithPrefixlen) ? globalThis.Boolean(object.ipWithPrefixlen) : undefined,
-      ipv4WithPrefixlen: isSet(object.ipv4WithPrefixlen) ? globalThis.Boolean(object.ipv4WithPrefixlen) : undefined,
-      ipv6WithPrefixlen: isSet(object.ipv6WithPrefixlen) ? globalThis.Boolean(object.ipv6WithPrefixlen) : undefined,
-      ipPrefix: isSet(object.ipPrefix) ? globalThis.Boolean(object.ipPrefix) : undefined,
-      ipv4Prefix: isSet(object.ipv4Prefix) ? globalThis.Boolean(object.ipv4Prefix) : undefined,
-      ipv6Prefix: isSet(object.ipv6Prefix) ? globalThis.Boolean(object.ipv6Prefix) : undefined,
-      hostAndPort: isSet(object.hostAndPort) ? globalThis.Boolean(object.hostAndPort) : undefined,
-      wellKnownRegex: isSet(object.wellKnownRegex) ? knownRegexFromJSON(object.wellKnownRegex) : undefined,
+      wellKnown: isSet(object.email)
+        ? { $case: "email", value: globalThis.Boolean(object.email) }
+        : isSet(object.hostname)
+        ? { $case: "hostname", value: globalThis.Boolean(object.hostname) }
+        : isSet(object.ip)
+        ? { $case: "ip", value: globalThis.Boolean(object.ip) }
+        : isSet(object.ipv4)
+        ? { $case: "ipv4", value: globalThis.Boolean(object.ipv4) }
+        : isSet(object.ipv6)
+        ? { $case: "ipv6", value: globalThis.Boolean(object.ipv6) }
+        : isSet(object.uri)
+        ? { $case: "uri", value: globalThis.Boolean(object.uri) }
+        : isSet(object.uriRef)
+        ? { $case: "uriRef", value: globalThis.Boolean(object.uriRef) }
+        : isSet(object.address)
+        ? { $case: "address", value: globalThis.Boolean(object.address) }
+        : isSet(object.uuid)
+        ? { $case: "uuid", value: globalThis.Boolean(object.uuid) }
+        : isSet(object.tuuid)
+        ? { $case: "tuuid", value: globalThis.Boolean(object.tuuid) }
+        : isSet(object.ipWithPrefixlen)
+        ? { $case: "ipWithPrefixlen", value: globalThis.Boolean(object.ipWithPrefixlen) }
+        : isSet(object.ipv4WithPrefixlen)
+        ? { $case: "ipv4WithPrefixlen", value: globalThis.Boolean(object.ipv4WithPrefixlen) }
+        : isSet(object.ipv6WithPrefixlen)
+        ? { $case: "ipv6WithPrefixlen", value: globalThis.Boolean(object.ipv6WithPrefixlen) }
+        : isSet(object.ipPrefix)
+        ? { $case: "ipPrefix", value: globalThis.Boolean(object.ipPrefix) }
+        : isSet(object.ipv4Prefix)
+        ? { $case: "ipv4Prefix", value: globalThis.Boolean(object.ipv4Prefix) }
+        : isSet(object.ipv6Prefix)
+        ? { $case: "ipv6Prefix", value: globalThis.Boolean(object.ipv6Prefix) }
+        : isSet(object.hostAndPort)
+        ? { $case: "hostAndPort", value: globalThis.Boolean(object.hostAndPort) }
+        : isSet(object.wellKnownRegex)
+        ? { $case: "wellKnownRegex", value: knownRegexFromJSON(object.wellKnownRegex) }
+        : undefined,
       strict: isSet(object.strict) ? globalThis.Boolean(object.strict) : false,
       example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => globalThis.String(e)) : [],
     };
@@ -7506,23 +8058,23 @@ export const StringRules: MessageFns<StringRules> = {
     if (message.const !== undefined && message.const !== "") {
       obj.const = message.const;
     }
-    if (message.len !== undefined && message.len !== 0) {
-      obj.len = Math.round(message.len);
+    if (message.len !== undefined && message.len !== "0") {
+      obj.len = message.len;
     }
-    if (message.minLen !== undefined && message.minLen !== 0) {
-      obj.minLen = Math.round(message.minLen);
+    if (message.minLen !== undefined && message.minLen !== "0") {
+      obj.minLen = message.minLen;
     }
-    if (message.maxLen !== undefined && message.maxLen !== 0) {
-      obj.maxLen = Math.round(message.maxLen);
+    if (message.maxLen !== undefined && message.maxLen !== "0") {
+      obj.maxLen = message.maxLen;
     }
-    if (message.lenBytes !== undefined && message.lenBytes !== 0) {
-      obj.lenBytes = Math.round(message.lenBytes);
+    if (message.lenBytes !== undefined && message.lenBytes !== "0") {
+      obj.lenBytes = message.lenBytes;
     }
-    if (message.minBytes !== undefined && message.minBytes !== 0) {
-      obj.minBytes = Math.round(message.minBytes);
+    if (message.minBytes !== undefined && message.minBytes !== "0") {
+      obj.minBytes = message.minBytes;
     }
-    if (message.maxBytes !== undefined && message.maxBytes !== 0) {
-      obj.maxBytes = Math.round(message.maxBytes);
+    if (message.maxBytes !== undefined && message.maxBytes !== "0") {
+      obj.maxBytes = message.maxBytes;
     }
     if (message.pattern !== undefined && message.pattern !== "") {
       obj.pattern = message.pattern;
@@ -7545,59 +8097,42 @@ export const StringRules: MessageFns<StringRules> = {
     if (message.notIn?.length) {
       obj.notIn = message.notIn;
     }
-    if (message.email !== undefined) {
-      obj.email = message.email;
-    }
-    if (message.hostname !== undefined) {
-      obj.hostname = message.hostname;
-    }
-    if (message.ip !== undefined) {
-      obj.ip = message.ip;
-    }
-    if (message.ipv4 !== undefined) {
-      obj.ipv4 = message.ipv4;
-    }
-    if (message.ipv6 !== undefined) {
-      obj.ipv6 = message.ipv6;
-    }
-    if (message.uri !== undefined) {
-      obj.uri = message.uri;
-    }
-    if (message.uriRef !== undefined) {
-      obj.uriRef = message.uriRef;
-    }
-    if (message.address !== undefined) {
-      obj.address = message.address;
-    }
-    if (message.uuid !== undefined) {
-      obj.uuid = message.uuid;
-    }
-    if (message.tuuid !== undefined) {
-      obj.tuuid = message.tuuid;
-    }
-    if (message.ipWithPrefixlen !== undefined) {
-      obj.ipWithPrefixlen = message.ipWithPrefixlen;
-    }
-    if (message.ipv4WithPrefixlen !== undefined) {
-      obj.ipv4WithPrefixlen = message.ipv4WithPrefixlen;
-    }
-    if (message.ipv6WithPrefixlen !== undefined) {
-      obj.ipv6WithPrefixlen = message.ipv6WithPrefixlen;
-    }
-    if (message.ipPrefix !== undefined) {
-      obj.ipPrefix = message.ipPrefix;
-    }
-    if (message.ipv4Prefix !== undefined) {
-      obj.ipv4Prefix = message.ipv4Prefix;
-    }
-    if (message.ipv6Prefix !== undefined) {
-      obj.ipv6Prefix = message.ipv6Prefix;
-    }
-    if (message.hostAndPort !== undefined) {
-      obj.hostAndPort = message.hostAndPort;
-    }
-    if (message.wellKnownRegex !== undefined) {
-      obj.wellKnownRegex = knownRegexToJSON(message.wellKnownRegex);
+    if (message.wellKnown?.$case === "email") {
+      obj.email = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "hostname") {
+      obj.hostname = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ip") {
+      obj.ip = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ipv4") {
+      obj.ipv4 = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ipv6") {
+      obj.ipv6 = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "uri") {
+      obj.uri = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "uriRef") {
+      obj.uriRef = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "address") {
+      obj.address = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "uuid") {
+      obj.uuid = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "tuuid") {
+      obj.tuuid = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ipWithPrefixlen") {
+      obj.ipWithPrefixlen = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ipv4WithPrefixlen") {
+      obj.ipv4WithPrefixlen = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ipv6WithPrefixlen") {
+      obj.ipv6WithPrefixlen = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ipPrefix") {
+      obj.ipPrefix = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ipv4Prefix") {
+      obj.ipv4Prefix = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ipv6Prefix") {
+      obj.ipv6Prefix = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "hostAndPort") {
+      obj.hostAndPort = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "wellKnownRegex") {
+      obj.wellKnownRegex = knownRegexToJSON(message.wellKnown.value);
     }
     if (message.strict !== undefined && message.strict !== false) {
       obj.strict = message.strict;
@@ -7614,12 +8149,12 @@ export const StringRules: MessageFns<StringRules> = {
   fromPartial<I extends Exact<DeepPartial<StringRules>, I>>(object: I): StringRules {
     const message = createBaseStringRules();
     message.const = object.const ?? "";
-    message.len = object.len ?? 0;
-    message.minLen = object.minLen ?? 0;
-    message.maxLen = object.maxLen ?? 0;
-    message.lenBytes = object.lenBytes ?? 0;
-    message.minBytes = object.minBytes ?? 0;
-    message.maxBytes = object.maxBytes ?? 0;
+    message.len = object.len ?? "0";
+    message.minLen = object.minLen ?? "0";
+    message.maxLen = object.maxLen ?? "0";
+    message.lenBytes = object.lenBytes ?? "0";
+    message.minBytes = object.minBytes ?? "0";
+    message.maxBytes = object.maxBytes ?? "0";
     message.pattern = object.pattern ?? "";
     message.prefix = object.prefix ?? "";
     message.suffix = object.suffix ?? "";
@@ -7627,24 +8162,116 @@ export const StringRules: MessageFns<StringRules> = {
     message.notContains = object.notContains ?? "";
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
-    message.email = object.email ?? undefined;
-    message.hostname = object.hostname ?? undefined;
-    message.ip = object.ip ?? undefined;
-    message.ipv4 = object.ipv4 ?? undefined;
-    message.ipv6 = object.ipv6 ?? undefined;
-    message.uri = object.uri ?? undefined;
-    message.uriRef = object.uriRef ?? undefined;
-    message.address = object.address ?? undefined;
-    message.uuid = object.uuid ?? undefined;
-    message.tuuid = object.tuuid ?? undefined;
-    message.ipWithPrefixlen = object.ipWithPrefixlen ?? undefined;
-    message.ipv4WithPrefixlen = object.ipv4WithPrefixlen ?? undefined;
-    message.ipv6WithPrefixlen = object.ipv6WithPrefixlen ?? undefined;
-    message.ipPrefix = object.ipPrefix ?? undefined;
-    message.ipv4Prefix = object.ipv4Prefix ?? undefined;
-    message.ipv6Prefix = object.ipv6Prefix ?? undefined;
-    message.hostAndPort = object.hostAndPort ?? undefined;
-    message.wellKnownRegex = object.wellKnownRegex ?? undefined;
+    switch (object.wellKnown?.$case) {
+      case "email": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "email", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "hostname": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "hostname", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ip": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ip", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ipv4": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ipv4", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ipv6": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ipv6", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "uri": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "uri", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "uriRef": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "uriRef", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "address": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "address", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "uuid": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "uuid", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "tuuid": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "tuuid", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ipWithPrefixlen": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ipWithPrefixlen", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ipv4WithPrefixlen": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ipv4WithPrefixlen", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ipv6WithPrefixlen": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ipv6WithPrefixlen", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ipPrefix": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ipPrefix", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ipv4Prefix": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ipv4Prefix", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ipv6Prefix": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ipv6Prefix", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "hostAndPort": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "hostAndPort", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "wellKnownRegex": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "wellKnownRegex", value: object.wellKnown.value };
+        }
+        break;
+      }
+    }
     message.strict = object.strict ?? false;
     message.example = object.example?.map((e) => e) || [];
     return message;
@@ -7653,19 +8280,17 @@ export const StringRules: MessageFns<StringRules> = {
 
 function createBaseBytesRules(): BytesRules {
   return {
-    const: new Uint8Array(0),
-    len: 0,
-    minLen: 0,
-    maxLen: 0,
+    const: Buffer.alloc(0),
+    len: "0",
+    minLen: "0",
+    maxLen: "0",
     pattern: "",
-    prefix: new Uint8Array(0),
-    suffix: new Uint8Array(0),
-    contains: new Uint8Array(0),
+    prefix: Buffer.alloc(0),
+    suffix: Buffer.alloc(0),
+    contains: Buffer.alloc(0),
     in: [],
     notIn: [],
-    ip: undefined,
-    ipv4: undefined,
-    ipv6: undefined,
+    wellKnown: undefined,
     example: [],
   };
 }
@@ -7675,13 +8300,13 @@ export const BytesRules: MessageFns<BytesRules> = {
     if (message.const !== undefined && message.const.length !== 0) {
       writer.uint32(10).bytes(message.const);
     }
-    if (message.len !== undefined && message.len !== 0) {
+    if (message.len !== undefined && message.len !== "0") {
       writer.uint32(104).uint64(message.len);
     }
-    if (message.minLen !== undefined && message.minLen !== 0) {
+    if (message.minLen !== undefined && message.minLen !== "0") {
       writer.uint32(16).uint64(message.minLen);
     }
-    if (message.maxLen !== undefined && message.maxLen !== 0) {
+    if (message.maxLen !== undefined && message.maxLen !== "0") {
       writer.uint32(24).uint64(message.maxLen);
     }
     if (message.pattern !== undefined && message.pattern !== "") {
@@ -7696,23 +8321,31 @@ export const BytesRules: MessageFns<BytesRules> = {
     if (message.contains !== undefined && message.contains.length !== 0) {
       writer.uint32(58).bytes(message.contains);
     }
-    for (const v of message.in) {
-      writer.uint32(66).bytes(v!);
+    if (message.in !== undefined && message.in.length !== 0) {
+      for (const v of message.in) {
+        writer.uint32(66).bytes(v!);
+      }
     }
-    for (const v of message.notIn) {
-      writer.uint32(74).bytes(v!);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      for (const v of message.notIn) {
+        writer.uint32(74).bytes(v!);
+      }
     }
-    if (message.ip !== undefined) {
-      writer.uint32(80).bool(message.ip);
+    switch (message.wellKnown?.$case) {
+      case "ip":
+        writer.uint32(80).bool(message.wellKnown.value);
+        break;
+      case "ipv4":
+        writer.uint32(88).bool(message.wellKnown.value);
+        break;
+      case "ipv6":
+        writer.uint32(96).bool(message.wellKnown.value);
+        break;
     }
-    if (message.ipv4 !== undefined) {
-      writer.uint32(88).bool(message.ipv4);
-    }
-    if (message.ipv6 !== undefined) {
-      writer.uint32(96).bool(message.ipv6);
-    }
-    for (const v of message.example) {
-      writer.uint32(114).bytes(v!);
+    if (message.example !== undefined && message.example.length !== 0) {
+      for (const v of message.example) {
+        writer.uint32(114).bytes(v!);
+      }
     }
     return writer;
   },
@@ -7729,7 +8362,7 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.const = reader.bytes();
+          message.const = Buffer.from(reader.bytes());
           continue;
         }
         case 13: {
@@ -7737,7 +8370,7 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.len = longToNumber(reader.uint64());
+          message.len = reader.uint64().toString();
           continue;
         }
         case 2: {
@@ -7745,7 +8378,7 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.minLen = longToNumber(reader.uint64());
+          message.minLen = reader.uint64().toString();
           continue;
         }
         case 3: {
@@ -7753,7 +8386,7 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.maxLen = longToNumber(reader.uint64());
+          message.maxLen = reader.uint64().toString();
           continue;
         }
         case 4: {
@@ -7769,7 +8402,7 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.prefix = reader.bytes();
+          message.prefix = Buffer.from(reader.bytes());
           continue;
         }
         case 6: {
@@ -7777,7 +8410,7 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.suffix = reader.bytes();
+          message.suffix = Buffer.from(reader.bytes());
           continue;
         }
         case 7: {
@@ -7785,7 +8418,7 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.contains = reader.bytes();
+          message.contains = Buffer.from(reader.bytes());
           continue;
         }
         case 8: {
@@ -7793,7 +8426,10 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.in.push(reader.bytes());
+          const el = Buffer.from(reader.bytes());
+          if (el !== undefined) {
+            message.in!.push(el);
+          }
           continue;
         }
         case 9: {
@@ -7801,7 +8437,10 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.notIn.push(reader.bytes());
+          const el = Buffer.from(reader.bytes());
+          if (el !== undefined) {
+            message.notIn!.push(el);
+          }
           continue;
         }
         case 10: {
@@ -7809,7 +8448,7 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.ip = reader.bool();
+          message.wellKnown = { $case: "ip", value: reader.bool() };
           continue;
         }
         case 11: {
@@ -7817,7 +8456,7 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.ipv4 = reader.bool();
+          message.wellKnown = { $case: "ipv4", value: reader.bool() };
           continue;
         }
         case 12: {
@@ -7825,7 +8464,7 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.ipv6 = reader.bool();
+          message.wellKnown = { $case: "ipv6", value: reader.bool() };
           continue;
         }
         case 14: {
@@ -7833,7 +8472,10 @@ export const BytesRules: MessageFns<BytesRules> = {
             break;
           }
 
-          message.example.push(reader.bytes());
+          const el = Buffer.from(reader.bytes());
+          if (el !== undefined) {
+            message.example!.push(el);
+          }
           continue;
         }
       }
@@ -7847,20 +8489,28 @@ export const BytesRules: MessageFns<BytesRules> = {
 
   fromJSON(object: any): BytesRules {
     return {
-      const: isSet(object.const) ? bytesFromBase64(object.const) : new Uint8Array(0),
-      len: isSet(object.len) ? globalThis.Number(object.len) : 0,
-      minLen: isSet(object.minLen) ? globalThis.Number(object.minLen) : 0,
-      maxLen: isSet(object.maxLen) ? globalThis.Number(object.maxLen) : 0,
+      const: isSet(object.const) ? Buffer.from(bytesFromBase64(object.const)) : Buffer.alloc(0),
+      len: isSet(object.len) ? globalThis.String(object.len) : "0",
+      minLen: isSet(object.minLen) ? globalThis.String(object.minLen) : "0",
+      maxLen: isSet(object.maxLen) ? globalThis.String(object.maxLen) : "0",
       pattern: isSet(object.pattern) ? globalThis.String(object.pattern) : "",
-      prefix: isSet(object.prefix) ? bytesFromBase64(object.prefix) : new Uint8Array(0),
-      suffix: isSet(object.suffix) ? bytesFromBase64(object.suffix) : new Uint8Array(0),
-      contains: isSet(object.contains) ? bytesFromBase64(object.contains) : new Uint8Array(0),
-      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => bytesFromBase64(e)) : [],
-      notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => bytesFromBase64(e)) : [],
-      ip: isSet(object.ip) ? globalThis.Boolean(object.ip) : undefined,
-      ipv4: isSet(object.ipv4) ? globalThis.Boolean(object.ipv4) : undefined,
-      ipv6: isSet(object.ipv6) ? globalThis.Boolean(object.ipv6) : undefined,
-      example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => bytesFromBase64(e)) : [],
+      prefix: isSet(object.prefix) ? Buffer.from(bytesFromBase64(object.prefix)) : Buffer.alloc(0),
+      suffix: isSet(object.suffix) ? Buffer.from(bytesFromBase64(object.suffix)) : Buffer.alloc(0),
+      contains: isSet(object.contains) ? Buffer.from(bytesFromBase64(object.contains)) : Buffer.alloc(0),
+      in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => Buffer.from(bytesFromBase64(e))) : [],
+      notIn: globalThis.Array.isArray(object?.notIn)
+        ? object.notIn.map((e: any) => Buffer.from(bytesFromBase64(e)))
+        : [],
+      wellKnown: isSet(object.ip)
+        ? { $case: "ip", value: globalThis.Boolean(object.ip) }
+        : isSet(object.ipv4)
+        ? { $case: "ipv4", value: globalThis.Boolean(object.ipv4) }
+        : isSet(object.ipv6)
+        ? { $case: "ipv6", value: globalThis.Boolean(object.ipv6) }
+        : undefined,
+      example: globalThis.Array.isArray(object?.example)
+        ? object.example.map((e: any) => Buffer.from(bytesFromBase64(e)))
+        : [],
     };
   },
 
@@ -7869,14 +8519,14 @@ export const BytesRules: MessageFns<BytesRules> = {
     if (message.const !== undefined && message.const.length !== 0) {
       obj.const = base64FromBytes(message.const);
     }
-    if (message.len !== undefined && message.len !== 0) {
-      obj.len = Math.round(message.len);
+    if (message.len !== undefined && message.len !== "0") {
+      obj.len = message.len;
     }
-    if (message.minLen !== undefined && message.minLen !== 0) {
-      obj.minLen = Math.round(message.minLen);
+    if (message.minLen !== undefined && message.minLen !== "0") {
+      obj.minLen = message.minLen;
     }
-    if (message.maxLen !== undefined && message.maxLen !== 0) {
-      obj.maxLen = Math.round(message.maxLen);
+    if (message.maxLen !== undefined && message.maxLen !== "0") {
+      obj.maxLen = message.maxLen;
     }
     if (message.pattern !== undefined && message.pattern !== "") {
       obj.pattern = message.pattern;
@@ -7896,14 +8546,12 @@ export const BytesRules: MessageFns<BytesRules> = {
     if (message.notIn?.length) {
       obj.notIn = message.notIn.map((e) => base64FromBytes(e));
     }
-    if (message.ip !== undefined) {
-      obj.ip = message.ip;
-    }
-    if (message.ipv4 !== undefined) {
-      obj.ipv4 = message.ipv4;
-    }
-    if (message.ipv6 !== undefined) {
-      obj.ipv6 = message.ipv6;
+    if (message.wellKnown?.$case === "ip") {
+      obj.ip = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ipv4") {
+      obj.ipv4 = message.wellKnown.value;
+    } else if (message.wellKnown?.$case === "ipv6") {
+      obj.ipv6 = message.wellKnown.value;
     }
     if (message.example?.length) {
       obj.example = message.example.map((e) => base64FromBytes(e));
@@ -7916,19 +8564,36 @@ export const BytesRules: MessageFns<BytesRules> = {
   },
   fromPartial<I extends Exact<DeepPartial<BytesRules>, I>>(object: I): BytesRules {
     const message = createBaseBytesRules();
-    message.const = object.const ?? new Uint8Array(0);
-    message.len = object.len ?? 0;
-    message.minLen = object.minLen ?? 0;
-    message.maxLen = object.maxLen ?? 0;
+    message.const = object.const ?? Buffer.alloc(0);
+    message.len = object.len ?? "0";
+    message.minLen = object.minLen ?? "0";
+    message.maxLen = object.maxLen ?? "0";
     message.pattern = object.pattern ?? "";
-    message.prefix = object.prefix ?? new Uint8Array(0);
-    message.suffix = object.suffix ?? new Uint8Array(0);
-    message.contains = object.contains ?? new Uint8Array(0);
+    message.prefix = object.prefix ?? Buffer.alloc(0);
+    message.suffix = object.suffix ?? Buffer.alloc(0);
+    message.contains = object.contains ?? Buffer.alloc(0);
     message.in = object.in?.map((e) => e) || [];
     message.notIn = object.notIn?.map((e) => e) || [];
-    message.ip = object.ip ?? undefined;
-    message.ipv4 = object.ipv4 ?? undefined;
-    message.ipv6 = object.ipv6 ?? undefined;
+    switch (object.wellKnown?.$case) {
+      case "ip": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ip", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ipv4": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ipv4", value: object.wellKnown.value };
+        }
+        break;
+      }
+      case "ipv6": {
+        if (object.wellKnown?.value !== undefined && object.wellKnown?.value !== null) {
+          message.wellKnown = { $case: "ipv6", value: object.wellKnown.value };
+        }
+        break;
+      }
+    }
     message.example = object.example?.map((e) => e) || [];
     return message;
   },
@@ -7946,21 +8611,27 @@ export const EnumRules: MessageFns<EnumRules> = {
     if (message.definedOnly !== undefined && message.definedOnly !== false) {
       writer.uint32(16).bool(message.definedOnly);
     }
-    writer.uint32(26).fork();
-    for (const v of message.in) {
-      writer.int32(v);
+    if (message.in !== undefined && message.in.length !== 0) {
+      writer.uint32(26).fork();
+      for (const v of message.in) {
+        writer.int32(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(34).fork();
-    for (const v of message.notIn) {
-      writer.int32(v);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      writer.uint32(34).fork();
+      for (const v of message.notIn) {
+        writer.int32(v);
+      }
+      writer.join();
     }
-    writer.join();
-    writer.uint32(42).fork();
-    for (const v of message.example) {
-      writer.int32(v);
+    if (message.example !== undefined && message.example.length !== 0) {
+      writer.uint32(42).fork();
+      for (const v of message.example) {
+        writer.int32(v);
+      }
+      writer.join();
     }
-    writer.join();
     return writer;
   },
 
@@ -7989,7 +8660,7 @@ export const EnumRules: MessageFns<EnumRules> = {
         }
         case 3: {
           if (tag === 24) {
-            message.in.push(reader.int32());
+            message.in!.push(reader.int32());
 
             continue;
           }
@@ -7997,7 +8668,7 @@ export const EnumRules: MessageFns<EnumRules> = {
           if (tag === 26) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.in.push(reader.int32());
+              message.in!.push(reader.int32());
             }
 
             continue;
@@ -8007,7 +8678,7 @@ export const EnumRules: MessageFns<EnumRules> = {
         }
         case 4: {
           if (tag === 32) {
-            message.notIn.push(reader.int32());
+            message.notIn!.push(reader.int32());
 
             continue;
           }
@@ -8015,7 +8686,7 @@ export const EnumRules: MessageFns<EnumRules> = {
           if (tag === 34) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.notIn.push(reader.int32());
+              message.notIn!.push(reader.int32());
             }
 
             continue;
@@ -8025,7 +8696,7 @@ export const EnumRules: MessageFns<EnumRules> = {
         }
         case 5: {
           if (tag === 40) {
-            message.example.push(reader.int32());
+            message.example!.push(reader.int32());
 
             continue;
           }
@@ -8033,7 +8704,7 @@ export const EnumRules: MessageFns<EnumRules> = {
           if (tag === 42) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.example.push(reader.int32());
+              message.example!.push(reader.int32());
             }
 
             continue;
@@ -8095,15 +8766,15 @@ export const EnumRules: MessageFns<EnumRules> = {
 };
 
 function createBaseRepeatedRules(): RepeatedRules {
-  return { minItems: 0, maxItems: 0, unique: false, items: undefined };
+  return { minItems: "0", maxItems: "0", unique: false, items: undefined };
 }
 
 export const RepeatedRules: MessageFns<RepeatedRules> = {
   encode(message: RepeatedRules, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.minItems !== undefined && message.minItems !== 0) {
+    if (message.minItems !== undefined && message.minItems !== "0") {
       writer.uint32(8).uint64(message.minItems);
     }
-    if (message.maxItems !== undefined && message.maxItems !== 0) {
+    if (message.maxItems !== undefined && message.maxItems !== "0") {
       writer.uint32(16).uint64(message.maxItems);
     }
     if (message.unique !== undefined && message.unique !== false) {
@@ -8127,7 +8798,7 @@ export const RepeatedRules: MessageFns<RepeatedRules> = {
             break;
           }
 
-          message.minItems = longToNumber(reader.uint64());
+          message.minItems = reader.uint64().toString();
           continue;
         }
         case 2: {
@@ -8135,7 +8806,7 @@ export const RepeatedRules: MessageFns<RepeatedRules> = {
             break;
           }
 
-          message.maxItems = longToNumber(reader.uint64());
+          message.maxItems = reader.uint64().toString();
           continue;
         }
         case 3: {
@@ -8165,8 +8836,8 @@ export const RepeatedRules: MessageFns<RepeatedRules> = {
 
   fromJSON(object: any): RepeatedRules {
     return {
-      minItems: isSet(object.minItems) ? globalThis.Number(object.minItems) : 0,
-      maxItems: isSet(object.maxItems) ? globalThis.Number(object.maxItems) : 0,
+      minItems: isSet(object.minItems) ? globalThis.String(object.minItems) : "0",
+      maxItems: isSet(object.maxItems) ? globalThis.String(object.maxItems) : "0",
       unique: isSet(object.unique) ? globalThis.Boolean(object.unique) : false,
       items: isSet(object.items) ? FieldConstraints.fromJSON(object.items) : undefined,
     };
@@ -8174,11 +8845,11 @@ export const RepeatedRules: MessageFns<RepeatedRules> = {
 
   toJSON(message: RepeatedRules): unknown {
     const obj: any = {};
-    if (message.minItems !== undefined && message.minItems !== 0) {
-      obj.minItems = Math.round(message.minItems);
+    if (message.minItems !== undefined && message.minItems !== "0") {
+      obj.minItems = message.minItems;
     }
-    if (message.maxItems !== undefined && message.maxItems !== 0) {
-      obj.maxItems = Math.round(message.maxItems);
+    if (message.maxItems !== undefined && message.maxItems !== "0") {
+      obj.maxItems = message.maxItems;
     }
     if (message.unique !== undefined && message.unique !== false) {
       obj.unique = message.unique;
@@ -8194,8 +8865,8 @@ export const RepeatedRules: MessageFns<RepeatedRules> = {
   },
   fromPartial<I extends Exact<DeepPartial<RepeatedRules>, I>>(object: I): RepeatedRules {
     const message = createBaseRepeatedRules();
-    message.minItems = object.minItems ?? 0;
-    message.maxItems = object.maxItems ?? 0;
+    message.minItems = object.minItems ?? "0";
+    message.maxItems = object.maxItems ?? "0";
     message.unique = object.unique ?? false;
     message.items = (object.items !== undefined && object.items !== null)
       ? FieldConstraints.fromPartial(object.items)
@@ -8205,15 +8876,15 @@ export const RepeatedRules: MessageFns<RepeatedRules> = {
 };
 
 function createBaseMapRules(): MapRules {
-  return { minPairs: 0, maxPairs: 0, keys: undefined, values: undefined };
+  return { minPairs: "0", maxPairs: "0", keys: undefined, values: undefined };
 }
 
 export const MapRules: MessageFns<MapRules> = {
   encode(message: MapRules, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.minPairs !== undefined && message.minPairs !== 0) {
+    if (message.minPairs !== undefined && message.minPairs !== "0") {
       writer.uint32(8).uint64(message.minPairs);
     }
-    if (message.maxPairs !== undefined && message.maxPairs !== 0) {
+    if (message.maxPairs !== undefined && message.maxPairs !== "0") {
       writer.uint32(16).uint64(message.maxPairs);
     }
     if (message.keys !== undefined) {
@@ -8237,7 +8908,7 @@ export const MapRules: MessageFns<MapRules> = {
             break;
           }
 
-          message.minPairs = longToNumber(reader.uint64());
+          message.minPairs = reader.uint64().toString();
           continue;
         }
         case 2: {
@@ -8245,7 +8916,7 @@ export const MapRules: MessageFns<MapRules> = {
             break;
           }
 
-          message.maxPairs = longToNumber(reader.uint64());
+          message.maxPairs = reader.uint64().toString();
           continue;
         }
         case 4: {
@@ -8275,8 +8946,8 @@ export const MapRules: MessageFns<MapRules> = {
 
   fromJSON(object: any): MapRules {
     return {
-      minPairs: isSet(object.minPairs) ? globalThis.Number(object.minPairs) : 0,
-      maxPairs: isSet(object.maxPairs) ? globalThis.Number(object.maxPairs) : 0,
+      minPairs: isSet(object.minPairs) ? globalThis.String(object.minPairs) : "0",
+      maxPairs: isSet(object.maxPairs) ? globalThis.String(object.maxPairs) : "0",
       keys: isSet(object.keys) ? FieldConstraints.fromJSON(object.keys) : undefined,
       values: isSet(object.values) ? FieldConstraints.fromJSON(object.values) : undefined,
     };
@@ -8284,11 +8955,11 @@ export const MapRules: MessageFns<MapRules> = {
 
   toJSON(message: MapRules): unknown {
     const obj: any = {};
-    if (message.minPairs !== undefined && message.minPairs !== 0) {
-      obj.minPairs = Math.round(message.minPairs);
+    if (message.minPairs !== undefined && message.minPairs !== "0") {
+      obj.minPairs = message.minPairs;
     }
-    if (message.maxPairs !== undefined && message.maxPairs !== 0) {
-      obj.maxPairs = Math.round(message.maxPairs);
+    if (message.maxPairs !== undefined && message.maxPairs !== "0") {
+      obj.maxPairs = message.maxPairs;
     }
     if (message.keys !== undefined) {
       obj.keys = FieldConstraints.toJSON(message.keys);
@@ -8304,8 +8975,8 @@ export const MapRules: MessageFns<MapRules> = {
   },
   fromPartial<I extends Exact<DeepPartial<MapRules>, I>>(object: I): MapRules {
     const message = createBaseMapRules();
-    message.minPairs = object.minPairs ?? 0;
-    message.maxPairs = object.maxPairs ?? 0;
+    message.minPairs = object.minPairs ?? "0";
+    message.maxPairs = object.maxPairs ?? "0";
     message.keys = (object.keys !== undefined && object.keys !== null)
       ? FieldConstraints.fromPartial(object.keys)
       : undefined;
@@ -8322,11 +8993,15 @@ function createBaseAnyRules(): AnyRules {
 
 export const AnyRules: MessageFns<AnyRules> = {
   encode(message: AnyRules, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    for (const v of message.in) {
-      writer.uint32(18).string(v!);
+    if (message.in !== undefined && message.in.length !== 0) {
+      for (const v of message.in) {
+        writer.uint32(18).string(v!);
+      }
     }
-    for (const v of message.notIn) {
-      writer.uint32(26).string(v!);
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      for (const v of message.notIn) {
+        writer.uint32(26).string(v!);
+      }
     }
     return writer;
   },
@@ -8343,7 +9018,10 @@ export const AnyRules: MessageFns<AnyRules> = {
             break;
           }
 
-          message.in.push(reader.string());
+          const el = reader.string();
+          if (el !== undefined) {
+            message.in!.push(el);
+          }
           continue;
         }
         case 3: {
@@ -8351,7 +9029,10 @@ export const AnyRules: MessageFns<AnyRules> = {
             break;
           }
 
-          message.notIn.push(reader.string());
+          const el = reader.string();
+          if (el !== undefined) {
+            message.notIn!.push(el);
+          }
           continue;
         }
       }
@@ -8393,16 +9074,7 @@ export const AnyRules: MessageFns<AnyRules> = {
 };
 
 function createBaseDurationRules(): DurationRules {
-  return {
-    const: undefined,
-    lt: undefined,
-    lte: undefined,
-    gt: undefined,
-    gte: undefined,
-    in: [],
-    notIn: [],
-    example: [],
-  };
+  return { const: undefined, lessThan: undefined, greaterThan: undefined, in: [], notIn: [], example: [] };
 }
 
 export const DurationRules: MessageFns<DurationRules> = {
@@ -8410,26 +9082,36 @@ export const DurationRules: MessageFns<DurationRules> = {
     if (message.const !== undefined) {
       Duration.encode(message.const, writer.uint32(18).fork()).join();
     }
-    if (message.lt !== undefined) {
-      Duration.encode(message.lt, writer.uint32(26).fork()).join();
+    switch (message.lessThan?.$case) {
+      case "lt":
+        Duration.encode(message.lessThan.value, writer.uint32(26).fork()).join();
+        break;
+      case "lte":
+        Duration.encode(message.lessThan.value, writer.uint32(34).fork()).join();
+        break;
     }
-    if (message.lte !== undefined) {
-      Duration.encode(message.lte, writer.uint32(34).fork()).join();
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        Duration.encode(message.greaterThan.value, writer.uint32(42).fork()).join();
+        break;
+      case "gte":
+        Duration.encode(message.greaterThan.value, writer.uint32(50).fork()).join();
+        break;
     }
-    if (message.gt !== undefined) {
-      Duration.encode(message.gt, writer.uint32(42).fork()).join();
+    if (message.in !== undefined && message.in.length !== 0) {
+      for (const v of message.in) {
+        Duration.encode(v!, writer.uint32(58).fork()).join();
+      }
     }
-    if (message.gte !== undefined) {
-      Duration.encode(message.gte, writer.uint32(50).fork()).join();
+    if (message.notIn !== undefined && message.notIn.length !== 0) {
+      for (const v of message.notIn) {
+        Duration.encode(v!, writer.uint32(66).fork()).join();
+      }
     }
-    for (const v of message.in) {
-      Duration.encode(v!, writer.uint32(58).fork()).join();
-    }
-    for (const v of message.notIn) {
-      Duration.encode(v!, writer.uint32(66).fork()).join();
-    }
-    for (const v of message.example) {
-      Duration.encode(v!, writer.uint32(74).fork()).join();
+    if (message.example !== undefined && message.example.length !== 0) {
+      for (const v of message.example) {
+        Duration.encode(v!, writer.uint32(74).fork()).join();
+      }
     }
     return writer;
   },
@@ -8454,7 +9136,7 @@ export const DurationRules: MessageFns<DurationRules> = {
             break;
           }
 
-          message.lt = Duration.decode(reader, reader.uint32());
+          message.lessThan = { $case: "lt", value: Duration.decode(reader, reader.uint32()) };
           continue;
         }
         case 4: {
@@ -8462,7 +9144,7 @@ export const DurationRules: MessageFns<DurationRules> = {
             break;
           }
 
-          message.lte = Duration.decode(reader, reader.uint32());
+          message.lessThan = { $case: "lte", value: Duration.decode(reader, reader.uint32()) };
           continue;
         }
         case 5: {
@@ -8470,7 +9152,7 @@ export const DurationRules: MessageFns<DurationRules> = {
             break;
           }
 
-          message.gt = Duration.decode(reader, reader.uint32());
+          message.greaterThan = { $case: "gt", value: Duration.decode(reader, reader.uint32()) };
           continue;
         }
         case 6: {
@@ -8478,7 +9160,7 @@ export const DurationRules: MessageFns<DurationRules> = {
             break;
           }
 
-          message.gte = Duration.decode(reader, reader.uint32());
+          message.greaterThan = { $case: "gte", value: Duration.decode(reader, reader.uint32()) };
           continue;
         }
         case 7: {
@@ -8486,7 +9168,10 @@ export const DurationRules: MessageFns<DurationRules> = {
             break;
           }
 
-          message.in.push(Duration.decode(reader, reader.uint32()));
+          const el = Duration.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.in!.push(el);
+          }
           continue;
         }
         case 8: {
@@ -8494,7 +9179,10 @@ export const DurationRules: MessageFns<DurationRules> = {
             break;
           }
 
-          message.notIn.push(Duration.decode(reader, reader.uint32()));
+          const el = Duration.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.notIn!.push(el);
+          }
           continue;
         }
         case 9: {
@@ -8502,7 +9190,10 @@ export const DurationRules: MessageFns<DurationRules> = {
             break;
           }
 
-          message.example.push(Duration.decode(reader, reader.uint32()));
+          const el = Duration.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.example!.push(el);
+          }
           continue;
         }
       }
@@ -8517,10 +9208,16 @@ export const DurationRules: MessageFns<DurationRules> = {
   fromJSON(object: any): DurationRules {
     return {
       const: isSet(object.const) ? Duration.fromJSON(object.const) : undefined,
-      lt: isSet(object.lt) ? Duration.fromJSON(object.lt) : undefined,
-      lte: isSet(object.lte) ? Duration.fromJSON(object.lte) : undefined,
-      gt: isSet(object.gt) ? Duration.fromJSON(object.gt) : undefined,
-      gte: isSet(object.gte) ? Duration.fromJSON(object.gte) : undefined,
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: Duration.fromJSON(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: Duration.fromJSON(object.lte) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: Duration.fromJSON(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: Duration.fromJSON(object.gte) }
+        : undefined,
       in: globalThis.Array.isArray(object?.in) ? object.in.map((e: any) => Duration.fromJSON(e)) : [],
       notIn: globalThis.Array.isArray(object?.notIn) ? object.notIn.map((e: any) => Duration.fromJSON(e)) : [],
       example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => Duration.fromJSON(e)) : [],
@@ -8532,17 +9229,15 @@ export const DurationRules: MessageFns<DurationRules> = {
     if (message.const !== undefined) {
       obj.const = Duration.toJSON(message.const);
     }
-    if (message.lt !== undefined) {
-      obj.lt = Duration.toJSON(message.lt);
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = Duration.toJSON(message.lessThan.value);
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = Duration.toJSON(message.lessThan.value);
     }
-    if (message.lte !== undefined) {
-      obj.lte = Duration.toJSON(message.lte);
-    }
-    if (message.gt !== undefined) {
-      obj.gt = Duration.toJSON(message.gt);
-    }
-    if (message.gte !== undefined) {
-      obj.gte = Duration.toJSON(message.gte);
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = Duration.toJSON(message.greaterThan.value);
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = Duration.toJSON(message.greaterThan.value);
     }
     if (message.in?.length) {
       obj.in = message.in.map((e) => Duration.toJSON(e));
@@ -8564,10 +9259,34 @@ export const DurationRules: MessageFns<DurationRules> = {
     message.const = (object.const !== undefined && object.const !== null)
       ? Duration.fromPartial(object.const)
       : undefined;
-    message.lt = (object.lt !== undefined && object.lt !== null) ? Duration.fromPartial(object.lt) : undefined;
-    message.lte = (object.lte !== undefined && object.lte !== null) ? Duration.fromPartial(object.lte) : undefined;
-    message.gt = (object.gt !== undefined && object.gt !== null) ? Duration.fromPartial(object.gt) : undefined;
-    message.gte = (object.gte !== undefined && object.gte !== null) ? Duration.fromPartial(object.gte) : undefined;
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: Duration.fromPartial(object.lessThan.value) };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: Duration.fromPartial(object.lessThan.value) };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: Duration.fromPartial(object.greaterThan.value) };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: Duration.fromPartial(object.greaterThan.value) };
+        }
+        break;
+      }
+    }
     message.in = object.in?.map((e) => Duration.fromPartial(e)) || [];
     message.notIn = object.notIn?.map((e) => Duration.fromPartial(e)) || [];
     message.example = object.example?.map((e) => Duration.fromPartial(e)) || [];
@@ -8576,17 +9295,7 @@ export const DurationRules: MessageFns<DurationRules> = {
 };
 
 function createBaseTimestampRules(): TimestampRules {
-  return {
-    const: undefined,
-    lt: undefined,
-    lte: undefined,
-    ltNow: undefined,
-    gt: undefined,
-    gte: undefined,
-    gtNow: undefined,
-    within: undefined,
-    example: [],
-  };
+  return { const: undefined, lessThan: undefined, greaterThan: undefined, within: undefined, example: [] };
 }
 
 export const TimestampRules: MessageFns<TimestampRules> = {
@@ -8594,29 +9303,35 @@ export const TimestampRules: MessageFns<TimestampRules> = {
     if (message.const !== undefined) {
       Timestamp.encode(toTimestamp(message.const), writer.uint32(18).fork()).join();
     }
-    if (message.lt !== undefined) {
-      Timestamp.encode(toTimestamp(message.lt), writer.uint32(26).fork()).join();
+    switch (message.lessThan?.$case) {
+      case "lt":
+        Timestamp.encode(toTimestamp(message.lessThan.value), writer.uint32(26).fork()).join();
+        break;
+      case "lte":
+        Timestamp.encode(toTimestamp(message.lessThan.value), writer.uint32(34).fork()).join();
+        break;
+      case "ltNow":
+        writer.uint32(56).bool(message.lessThan.value);
+        break;
     }
-    if (message.lte !== undefined) {
-      Timestamp.encode(toTimestamp(message.lte), writer.uint32(34).fork()).join();
-    }
-    if (message.ltNow !== undefined) {
-      writer.uint32(56).bool(message.ltNow);
-    }
-    if (message.gt !== undefined) {
-      Timestamp.encode(toTimestamp(message.gt), writer.uint32(42).fork()).join();
-    }
-    if (message.gte !== undefined) {
-      Timestamp.encode(toTimestamp(message.gte), writer.uint32(50).fork()).join();
-    }
-    if (message.gtNow !== undefined) {
-      writer.uint32(64).bool(message.gtNow);
+    switch (message.greaterThan?.$case) {
+      case "gt":
+        Timestamp.encode(toTimestamp(message.greaterThan.value), writer.uint32(42).fork()).join();
+        break;
+      case "gte":
+        Timestamp.encode(toTimestamp(message.greaterThan.value), writer.uint32(50).fork()).join();
+        break;
+      case "gtNow":
+        writer.uint32(64).bool(message.greaterThan.value);
+        break;
     }
     if (message.within !== undefined) {
       Duration.encode(message.within, writer.uint32(74).fork()).join();
     }
-    for (const v of message.example) {
-      Timestamp.encode(toTimestamp(v!), writer.uint32(82).fork()).join();
+    if (message.example !== undefined && message.example.length !== 0) {
+      for (const v of message.example) {
+        Timestamp.encode(toTimestamp(v!), writer.uint32(82).fork()).join();
+      }
     }
     return writer;
   },
@@ -8641,7 +9356,7 @@ export const TimestampRules: MessageFns<TimestampRules> = {
             break;
           }
 
-          message.lt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.lessThan = { $case: "lt", value: fromTimestamp(Timestamp.decode(reader, reader.uint32())) };
           continue;
         }
         case 4: {
@@ -8649,7 +9364,7 @@ export const TimestampRules: MessageFns<TimestampRules> = {
             break;
           }
 
-          message.lte = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.lessThan = { $case: "lte", value: fromTimestamp(Timestamp.decode(reader, reader.uint32())) };
           continue;
         }
         case 7: {
@@ -8657,7 +9372,7 @@ export const TimestampRules: MessageFns<TimestampRules> = {
             break;
           }
 
-          message.ltNow = reader.bool();
+          message.lessThan = { $case: "ltNow", value: reader.bool() };
           continue;
         }
         case 5: {
@@ -8665,7 +9380,7 @@ export const TimestampRules: MessageFns<TimestampRules> = {
             break;
           }
 
-          message.gt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.greaterThan = { $case: "gt", value: fromTimestamp(Timestamp.decode(reader, reader.uint32())) };
           continue;
         }
         case 6: {
@@ -8673,7 +9388,7 @@ export const TimestampRules: MessageFns<TimestampRules> = {
             break;
           }
 
-          message.gte = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.greaterThan = { $case: "gte", value: fromTimestamp(Timestamp.decode(reader, reader.uint32())) };
           continue;
         }
         case 8: {
@@ -8681,7 +9396,7 @@ export const TimestampRules: MessageFns<TimestampRules> = {
             break;
           }
 
-          message.gtNow = reader.bool();
+          message.greaterThan = { $case: "gtNow", value: reader.bool() };
           continue;
         }
         case 9: {
@@ -8697,7 +9412,10 @@ export const TimestampRules: MessageFns<TimestampRules> = {
             break;
           }
 
-          message.example.push(fromTimestamp(Timestamp.decode(reader, reader.uint32())));
+          const el = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          if (el !== undefined) {
+            message.example!.push(el);
+          }
           continue;
         }
       }
@@ -8712,12 +9430,20 @@ export const TimestampRules: MessageFns<TimestampRules> = {
   fromJSON(object: any): TimestampRules {
     return {
       const: isSet(object.const) ? fromJsonTimestamp(object.const) : undefined,
-      lt: isSet(object.lt) ? fromJsonTimestamp(object.lt) : undefined,
-      lte: isSet(object.lte) ? fromJsonTimestamp(object.lte) : undefined,
-      ltNow: isSet(object.ltNow) ? globalThis.Boolean(object.ltNow) : undefined,
-      gt: isSet(object.gt) ? fromJsonTimestamp(object.gt) : undefined,
-      gte: isSet(object.gte) ? fromJsonTimestamp(object.gte) : undefined,
-      gtNow: isSet(object.gtNow) ? globalThis.Boolean(object.gtNow) : undefined,
+      lessThan: isSet(object.lt)
+        ? { $case: "lt", value: fromJsonTimestamp(object.lt) }
+        : isSet(object.lte)
+        ? { $case: "lte", value: fromJsonTimestamp(object.lte) }
+        : isSet(object.ltNow)
+        ? { $case: "ltNow", value: globalThis.Boolean(object.ltNow) }
+        : undefined,
+      greaterThan: isSet(object.gt)
+        ? { $case: "gt", value: fromJsonTimestamp(object.gt) }
+        : isSet(object.gte)
+        ? { $case: "gte", value: fromJsonTimestamp(object.gte) }
+        : isSet(object.gtNow)
+        ? { $case: "gtNow", value: globalThis.Boolean(object.gtNow) }
+        : undefined,
       within: isSet(object.within) ? Duration.fromJSON(object.within) : undefined,
       example: globalThis.Array.isArray(object?.example) ? object.example.map((e: any) => fromJsonTimestamp(e)) : [],
     };
@@ -8728,23 +9454,19 @@ export const TimestampRules: MessageFns<TimestampRules> = {
     if (message.const !== undefined) {
       obj.const = message.const.toISOString();
     }
-    if (message.lt !== undefined) {
-      obj.lt = message.lt.toISOString();
+    if (message.lessThan?.$case === "lt") {
+      obj.lt = message.lessThan.value.toISOString();
+    } else if (message.lessThan?.$case === "lte") {
+      obj.lte = message.lessThan.value.toISOString();
+    } else if (message.lessThan?.$case === "ltNow") {
+      obj.ltNow = message.lessThan.value;
     }
-    if (message.lte !== undefined) {
-      obj.lte = message.lte.toISOString();
-    }
-    if (message.ltNow !== undefined) {
-      obj.ltNow = message.ltNow;
-    }
-    if (message.gt !== undefined) {
-      obj.gt = message.gt.toISOString();
-    }
-    if (message.gte !== undefined) {
-      obj.gte = message.gte.toISOString();
-    }
-    if (message.gtNow !== undefined) {
-      obj.gtNow = message.gtNow;
+    if (message.greaterThan?.$case === "gt") {
+      obj.gt = message.greaterThan.value.toISOString();
+    } else if (message.greaterThan?.$case === "gte") {
+      obj.gte = message.greaterThan.value.toISOString();
+    } else if (message.greaterThan?.$case === "gtNow") {
+      obj.gtNow = message.greaterThan.value;
     }
     if (message.within !== undefined) {
       obj.within = Duration.toJSON(message.within);
@@ -8761,12 +9483,46 @@ export const TimestampRules: MessageFns<TimestampRules> = {
   fromPartial<I extends Exact<DeepPartial<TimestampRules>, I>>(object: I): TimestampRules {
     const message = createBaseTimestampRules();
     message.const = object.const ?? undefined;
-    message.lt = object.lt ?? undefined;
-    message.lte = object.lte ?? undefined;
-    message.ltNow = object.ltNow ?? undefined;
-    message.gt = object.gt ?? undefined;
-    message.gte = object.gte ?? undefined;
-    message.gtNow = object.gtNow ?? undefined;
+    switch (object.lessThan?.$case) {
+      case "lt": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lt", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "lte": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "lte", value: object.lessThan.value };
+        }
+        break;
+      }
+      case "ltNow": {
+        if (object.lessThan?.value !== undefined && object.lessThan?.value !== null) {
+          message.lessThan = { $case: "ltNow", value: object.lessThan.value };
+        }
+        break;
+      }
+    }
+    switch (object.greaterThan?.$case) {
+      case "gt": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gt", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gte": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gte", value: object.greaterThan.value };
+        }
+        break;
+      }
+      case "gtNow": {
+        if (object.greaterThan?.value !== undefined && object.greaterThan?.value !== null) {
+          message.greaterThan = { $case: "gtNow", value: object.greaterThan.value };
+        }
+        break;
+      }
+    }
     message.within = (object.within !== undefined && object.within !== null)
       ? Duration.fromPartial(object.within)
       : undefined;
@@ -8781,8 +9537,10 @@ function createBaseViolations(): Violations {
 
 export const Violations: MessageFns<Violations> = {
   encode(message: Violations, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    for (const v of message.violations) {
-      Violation.encode(v!, writer.uint32(10).fork()).join();
+    if (message.violations !== undefined && message.violations.length !== 0) {
+      for (const v of message.violations) {
+        Violation.encode(v!, writer.uint32(10).fork()).join();
+      }
     }
     return writer;
   },
@@ -8799,7 +9557,10 @@ export const Violations: MessageFns<Violations> = {
             break;
           }
 
-          message.violations.push(Violation.decode(reader, reader.uint32()));
+          const el = Violation.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.violations!.push(el);
+          }
           continue;
         }
       }
@@ -8969,8 +9730,10 @@ function createBaseFieldPath(): FieldPath {
 
 export const FieldPath: MessageFns<FieldPath> = {
   encode(message: FieldPath, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    for (const v of message.elements) {
-      FieldPathElement.encode(v!, writer.uint32(10).fork()).join();
+    if (message.elements !== undefined && message.elements.length !== 0) {
+      for (const v of message.elements) {
+        FieldPathElement.encode(v!, writer.uint32(10).fork()).join();
+      }
     }
     return writer;
   },
@@ -8987,7 +9750,10 @@ export const FieldPath: MessageFns<FieldPath> = {
             break;
           }
 
-          message.elements.push(FieldPathElement.decode(reader, reader.uint32()));
+          const el = FieldPathElement.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.elements!.push(el);
+          }
           continue;
         }
       }
@@ -9026,18 +9792,7 @@ export const FieldPath: MessageFns<FieldPath> = {
 };
 
 function createBaseFieldPathElement(): FieldPathElement {
-  return {
-    fieldNumber: 0,
-    fieldName: "",
-    fieldType: 1,
-    keyType: 1,
-    valueType: 1,
-    index: undefined,
-    boolKey: undefined,
-    intKey: undefined,
-    uintKey: undefined,
-    stringKey: undefined,
-  };
+  return { fieldNumber: 0, fieldName: "", fieldType: 1, keyType: 1, valueType: 1, subscript: undefined };
 }
 
 export const FieldPathElement: MessageFns<FieldPathElement> = {
@@ -9057,20 +9812,22 @@ export const FieldPathElement: MessageFns<FieldPathElement> = {
     if (message.valueType !== undefined && message.valueType !== 1) {
       writer.uint32(40).int32(message.valueType);
     }
-    if (message.index !== undefined) {
-      writer.uint32(48).uint64(message.index);
-    }
-    if (message.boolKey !== undefined) {
-      writer.uint32(56).bool(message.boolKey);
-    }
-    if (message.intKey !== undefined) {
-      writer.uint32(64).int64(message.intKey);
-    }
-    if (message.uintKey !== undefined) {
-      writer.uint32(72).uint64(message.uintKey);
-    }
-    if (message.stringKey !== undefined) {
-      writer.uint32(82).string(message.stringKey);
+    switch (message.subscript?.$case) {
+      case "index":
+        writer.uint32(48).uint64(message.subscript.value);
+        break;
+      case "boolKey":
+        writer.uint32(56).bool(message.subscript.value);
+        break;
+      case "intKey":
+        writer.uint32(64).int64(message.subscript.value);
+        break;
+      case "uintKey":
+        writer.uint32(72).uint64(message.subscript.value);
+        break;
+      case "stringKey":
+        writer.uint32(82).string(message.subscript.value);
+        break;
     }
     return writer;
   },
@@ -9127,7 +9884,7 @@ export const FieldPathElement: MessageFns<FieldPathElement> = {
             break;
           }
 
-          message.index = longToNumber(reader.uint64());
+          message.subscript = { $case: "index", value: reader.uint64().toString() };
           continue;
         }
         case 7: {
@@ -9135,7 +9892,7 @@ export const FieldPathElement: MessageFns<FieldPathElement> = {
             break;
           }
 
-          message.boolKey = reader.bool();
+          message.subscript = { $case: "boolKey", value: reader.bool() };
           continue;
         }
         case 8: {
@@ -9143,7 +9900,7 @@ export const FieldPathElement: MessageFns<FieldPathElement> = {
             break;
           }
 
-          message.intKey = longToNumber(reader.int64());
+          message.subscript = { $case: "intKey", value: reader.int64().toString() };
           continue;
         }
         case 9: {
@@ -9151,7 +9908,7 @@ export const FieldPathElement: MessageFns<FieldPathElement> = {
             break;
           }
 
-          message.uintKey = longToNumber(reader.uint64());
+          message.subscript = { $case: "uintKey", value: reader.uint64().toString() };
           continue;
         }
         case 10: {
@@ -9159,7 +9916,7 @@ export const FieldPathElement: MessageFns<FieldPathElement> = {
             break;
           }
 
-          message.stringKey = reader.string();
+          message.subscript = { $case: "stringKey", value: reader.string() };
           continue;
         }
       }
@@ -9178,11 +9935,17 @@ export const FieldPathElement: MessageFns<FieldPathElement> = {
       fieldType: isSet(object.fieldType) ? fieldDescriptorProto_TypeFromJSON(object.fieldType) : 1,
       keyType: isSet(object.keyType) ? fieldDescriptorProto_TypeFromJSON(object.keyType) : 1,
       valueType: isSet(object.valueType) ? fieldDescriptorProto_TypeFromJSON(object.valueType) : 1,
-      index: isSet(object.index) ? globalThis.Number(object.index) : undefined,
-      boolKey: isSet(object.boolKey) ? globalThis.Boolean(object.boolKey) : undefined,
-      intKey: isSet(object.intKey) ? globalThis.Number(object.intKey) : undefined,
-      uintKey: isSet(object.uintKey) ? globalThis.Number(object.uintKey) : undefined,
-      stringKey: isSet(object.stringKey) ? globalThis.String(object.stringKey) : undefined,
+      subscript: isSet(object.index)
+        ? { $case: "index", value: globalThis.String(object.index) }
+        : isSet(object.boolKey)
+        ? { $case: "boolKey", value: globalThis.Boolean(object.boolKey) }
+        : isSet(object.intKey)
+        ? { $case: "intKey", value: globalThis.String(object.intKey) }
+        : isSet(object.uintKey)
+        ? { $case: "uintKey", value: globalThis.String(object.uintKey) }
+        : isSet(object.stringKey)
+        ? { $case: "stringKey", value: globalThis.String(object.stringKey) }
+        : undefined,
     };
   },
 
@@ -9203,20 +9966,16 @@ export const FieldPathElement: MessageFns<FieldPathElement> = {
     if (message.valueType !== undefined && message.valueType !== 1) {
       obj.valueType = fieldDescriptorProto_TypeToJSON(message.valueType);
     }
-    if (message.index !== undefined) {
-      obj.index = Math.round(message.index);
-    }
-    if (message.boolKey !== undefined) {
-      obj.boolKey = message.boolKey;
-    }
-    if (message.intKey !== undefined) {
-      obj.intKey = Math.round(message.intKey);
-    }
-    if (message.uintKey !== undefined) {
-      obj.uintKey = Math.round(message.uintKey);
-    }
-    if (message.stringKey !== undefined) {
-      obj.stringKey = message.stringKey;
+    if (message.subscript?.$case === "index") {
+      obj.index = message.subscript.value;
+    } else if (message.subscript?.$case === "boolKey") {
+      obj.boolKey = message.subscript.value;
+    } else if (message.subscript?.$case === "intKey") {
+      obj.intKey = message.subscript.value;
+    } else if (message.subscript?.$case === "uintKey") {
+      obj.uintKey = message.subscript.value;
+    } else if (message.subscript?.$case === "stringKey") {
+      obj.stringKey = message.subscript.value;
     }
     return obj;
   },
@@ -9231,38 +9990,48 @@ export const FieldPathElement: MessageFns<FieldPathElement> = {
     message.fieldType = object.fieldType ?? 1;
     message.keyType = object.keyType ?? 1;
     message.valueType = object.valueType ?? 1;
-    message.index = object.index ?? undefined;
-    message.boolKey = object.boolKey ?? undefined;
-    message.intKey = object.intKey ?? undefined;
-    message.uintKey = object.uintKey ?? undefined;
-    message.stringKey = object.stringKey ?? undefined;
+    switch (object.subscript?.$case) {
+      case "index": {
+        if (object.subscript?.value !== undefined && object.subscript?.value !== null) {
+          message.subscript = { $case: "index", value: object.subscript.value };
+        }
+        break;
+      }
+      case "boolKey": {
+        if (object.subscript?.value !== undefined && object.subscript?.value !== null) {
+          message.subscript = { $case: "boolKey", value: object.subscript.value };
+        }
+        break;
+      }
+      case "intKey": {
+        if (object.subscript?.value !== undefined && object.subscript?.value !== null) {
+          message.subscript = { $case: "intKey", value: object.subscript.value };
+        }
+        break;
+      }
+      case "uintKey": {
+        if (object.subscript?.value !== undefined && object.subscript?.value !== null) {
+          message.subscript = { $case: "uintKey", value: object.subscript.value };
+        }
+        break;
+      }
+      case "stringKey": {
+        if (object.subscript?.value !== undefined && object.subscript?.value !== null) {
+          message.subscript = { $case: "stringKey", value: object.subscript.value };
+        }
+        break;
+      }
+    }
     return message;
   },
 };
 
 function bytesFromBase64(b64: string): Uint8Array {
-  if ((globalThis as any).Buffer) {
-    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
-  } else {
-    const bin = globalThis.atob(b64);
-    const arr = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; ++i) {
-      arr[i] = bin.charCodeAt(i);
-    }
-    return arr;
-  }
+  return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
 }
 
 function base64FromBytes(arr: Uint8Array): string {
-  if ((globalThis as any).Buffer) {
-    return globalThis.Buffer.from(arr).toString("base64");
-  } else {
-    const bin: string[] = [];
-    arr.forEach((byte) => {
-      bin.push(globalThis.String.fromCharCode(byte));
-    });
-    return globalThis.btoa(bin.join(""));
-  }
+  return globalThis.Buffer.from(arr).toString("base64");
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
@@ -9270,6 +10039,7 @@ type Builtin = Date | Function | Uint8Array | string | number | boolean | undefi
 export type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string; value: unknown } ? { $case: T["$case"]; value?: DeepPartial<T["value"]> }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
@@ -9278,13 +10048,13 @@ export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function toTimestamp(date: Date): Timestamp {
-  const seconds = Math.trunc(date.getTime() / 1_000);
+  const seconds = Math.trunc(date.getTime() / 1_000).toString();
   const nanos = (date.getTime() % 1_000) * 1_000_000;
   return { seconds, nanos };
 }
 
 function fromTimestamp(t: Timestamp): Date {
-  let millis = (t.seconds || 0) * 1_000;
+  let millis = (globalThis.Number(t.seconds) || 0) * 1_000;
   millis += (t.nanos || 0) / 1_000_000;
   return new globalThis.Date(millis);
 }
@@ -9297,17 +10067,6 @@ function fromJsonTimestamp(o: any): Date {
   } else {
     return fromTimestamp(Timestamp.fromJSON(o));
   }
-}
-
-function longToNumber(int64: { toString(): string }): number {
-  const num = globalThis.Number(int64.toString());
-  if (num > globalThis.Number.MAX_SAFE_INTEGER) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-  }
-  if (num < globalThis.Number.MIN_SAFE_INTEGER) {
-    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
-  }
-  return num;
 }
 
 function isSet(value: any): boolean {

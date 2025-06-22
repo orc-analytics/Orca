@@ -121,29 +121,20 @@ func (q *Queries) CreateAlgorithmDependency(ctx context.Context, arg CreateAlgor
 }
 
 const createProcessorAndPurgeAlgos = `-- name: CreateProcessorAndPurgeAlgos :exec
-WITH processor_insert AS (
-  INSERT INTO processor (
-    name,
-    runtime,
-    connection_string
-  ) VALUES (
-    $1,
-    $2,
-    $3
-  ) ON CONFLICT (name, runtime) DO UPDATE 
-  SET 
-    name = EXCLUDED.name,
-    runtime = EXCLUDED.runtime,
-    connection_string = EXCLUDED.connection_string
-  RETURNING id
-)
-  -- clean up old algorithm associations
-  DELETE FROM processor_algorithm
-  WHERE processor_id = (
-    SELECT id FROM processor p
-    WHERE p.name = $1 
-    AND p.runtime = $2
-)
+INSERT INTO processor (
+  name,
+  runtime,
+  connection_string
+) VALUES (
+  $1,
+  $2,
+  $3
+) ON CONFLICT (name, runtime) DO UPDATE 
+SET 
+  name = EXCLUDED.name,
+  runtime = EXCLUDED.runtime,
+  connection_string = EXCLUDED.connection_string
+RETURNING id
 `
 
 type CreateProcessorAndPurgeAlgosParams struct {
@@ -152,6 +143,7 @@ type CreateProcessorAndPurgeAlgosParams struct {
 	ConnectionString string
 }
 
+// -------------------- Core Operations ----------------------
 func (q *Queries) CreateProcessorAndPurgeAlgos(ctx context.Context, arg CreateProcessorAndPurgeAlgosParams) error {
 	_, err := q.db.Exec(ctx, createProcessorAndPurgeAlgos, arg.Name, arg.Runtime, arg.ConnectionString)
 	return err
@@ -309,6 +301,62 @@ func (q *Queries) ReadAlgorithmId(ctx context.Context, arg ReadAlgorithmIdParams
 	return id, err
 }
 
+const readAlgorithms = `-- name: ReadAlgorithms :many
+SELECT
+  a.id,
+  a.name,
+  a.version,
+  a.created,
+  w.name as window_name, 
+  w.version as window_version,
+  p.name as processor_name, 
+  p.runtime as processor_runtime
+FROM algorithm a
+  JOIN window_type w ON a.window_type_id = w.id
+  JOIN processor p ON a.processor_id = p.id
+ORDER BY a.processor_id, a.created DESC
+`
+
+type ReadAlgorithmsRow struct {
+	ID               int64
+	Name             string
+	Version          string
+	Created          pgtype.Timestamp
+	WindowName       string
+	WindowVersion    string
+	ProcessorName    string
+	ProcessorRuntime string
+}
+
+func (q *Queries) ReadAlgorithms(ctx context.Context) ([]ReadAlgorithmsRow, error) {
+	rows, err := q.db.Query(ctx, readAlgorithms)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReadAlgorithmsRow
+	for rows.Next() {
+		var i ReadAlgorithmsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Version,
+			&i.Created,
+			&i.WindowName,
+			&i.WindowVersion,
+			&i.ProcessorName,
+			&i.ProcessorRuntime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const readAlgorithmsForWindow = `-- name: ReadAlgorithmsForWindow :many
 SELECT a.id, a.name, a.version, a.processor_id, a.window_type_id, a.created FROM algorithm a
 JOIN window_type wt ON a.window_type_id = wt.id
@@ -438,6 +486,48 @@ func (q *Queries) ReadFromAlgorithmDependencies(ctx context.Context, arg ReadFro
 	return items, nil
 }
 
+const readProcessors = `-- name: ReadProcessors :many
+SELECT
+  id,
+  name, 
+  runtime, 
+  created
+FROM processor
+ORDER BY created DESC
+`
+
+type ReadProcessorsRow struct {
+	ID      int64
+	Name    string
+	Runtime string
+	Created pgtype.Timestamp
+}
+
+func (q *Queries) ReadProcessors(ctx context.Context) ([]ReadProcessorsRow, error) {
+	rows, err := q.db.Query(ctx, readProcessors)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReadProcessorsRow
+	for rows.Next() {
+		var i ReadProcessorsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Runtime,
+			&i.Created,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const readProcessorsByIDs = `-- name: ReadProcessorsByIDs :many
 SELECT 
   id,
@@ -476,6 +566,19 @@ func (q *Queries) ReadProcessorsByIDs(ctx context.Context, processorIds []int64)
 	return items, nil
 }
 
+const readResultsStats = `-- name: ReadResultsStats :one
+SELECT
+  COUNT(t.id)
+FROM results t
+`
+
+func (q *Queries) ReadResultsStats(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, readResultsStats)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const readWindowTypes = `-- name: ReadWindowTypes :many
 SELECT
   id, 
@@ -493,6 +596,7 @@ type ReadWindowTypesRow struct {
 	Created pgtype.Timestamp
 }
 
+// -------------------- Data operations ----------------------
 func (q *Queries) ReadWindowTypes(ctx context.Context) ([]ReadWindowTypesRow, error) {
 	rows, err := q.db.Query(ctx, readWindowTypes)
 	if err != nil {

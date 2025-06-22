@@ -12,7 +12,6 @@ DROP FUNCTION IF EXISTS refresh_algorithm_exec_paths;
 DROP TABLE IF EXISTS results;
 DROP TABLE IF EXISTS windows;
 DROP TABLE IF EXISTS algorithm_dependency;
-DROP TABLE IF EXISTS processor_algorithm;
 DROP TABLE IF EXISTS algorithm;
 DROP TABLE IF EXISTS processor;
 DROP TABLE IF EXISTS window_type;

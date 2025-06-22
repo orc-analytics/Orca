@@ -1,6 +1,5 @@
 CREATE EXTENSION ltree;
 
-
 -- Window types that can trigger algorithms
 CREATE TABLE window_type (
   id BIGSERIAL PRIMARY KEY,
@@ -54,16 +53,6 @@ CREATE TABLE algorithm_dependency (
   CHECK (from_algorithm_id != to_algorithm_id)
 );
 
--- Map of which processors support which algorithms
-CREATE TABLE processor_algorithm (
-  id BIGSERIAL PRIMARY KEY,
-  processor_id BIGINT NOT NULL,
-  algorithm_id BIGINT NOT NULL,
-  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (processor_id, algorithm_id),
-  FOREIGN KEY (algorithm_id) REFERENCES algorithm(id),
-  FOREIGN KEY (processor_id) REFERENCES processor(id)
-);
 
 -- Windows that trigger algorithms
 CREATE TABLE windows (

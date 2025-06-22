@@ -31,7 +31,7 @@ class OrcaCoreStub(object):
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
-    Core operations
+    ------------------- Core operations ------------------- 
     """
 
     def __init__(self, channel):
@@ -55,6 +55,21 @@ class OrcaCoreStub(object):
                 request_serializer=service__pb2.WindowTypeRead.SerializeToString,
                 response_deserializer=service__pb2.WindowTypes.FromString,
                 _registered_method=True)
+        self.ReadAlgorithms = channel.unary_unary(
+                '/OrcaCore/ReadAlgorithms',
+                request_serializer=service__pb2.AlgorithmsRead.SerializeToString,
+                response_deserializer=service__pb2.Algorithms.FromString,
+                _registered_method=True)
+        self.ReadProcessors = channel.unary_unary(
+                '/OrcaCore/ReadProcessors',
+                request_serializer=service__pb2.ProcessorsRead.SerializeToString,
+                response_deserializer=service__pb2.Processors.FromString,
+                _registered_method=True)
+        self.ReadResultsStats = channel.unary_unary(
+                '/OrcaCore/ReadResultsStats',
+                request_serializer=service__pb2.ResultsStatsRead.SerializeToString,
+                response_deserializer=service__pb2.ResultsStats.FromString,
+                _registered_method=True)
 
 
 class OrcaCoreServicer(object):
@@ -63,7 +78,7 @@ class OrcaCoreServicer(object):
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
-    Core operations
+    ------------------- Core operations ------------------- 
     """
 
     def RegisterProcessor(self, request, context):
@@ -81,8 +96,26 @@ class OrcaCoreServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def ReadWindowTypes(self, request, context):
-        """Data operations
+        """------------------- Data operations ------------------- 
         """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReadAlgorithms(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReadProcessors(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReadResultsStats(self, request, context):
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -105,6 +138,21 @@ def add_OrcaCoreServicer_to_server(servicer, server):
                     request_deserializer=service__pb2.WindowTypeRead.FromString,
                     response_serializer=service__pb2.WindowTypes.SerializeToString,
             ),
+            'ReadAlgorithms': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReadAlgorithms,
+                    request_deserializer=service__pb2.AlgorithmsRead.FromString,
+                    response_serializer=service__pb2.Algorithms.SerializeToString,
+            ),
+            'ReadProcessors': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReadProcessors,
+                    request_deserializer=service__pb2.ProcessorsRead.FromString,
+                    response_serializer=service__pb2.Processors.SerializeToString,
+            ),
+            'ReadResultsStats': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReadResultsStats,
+                    request_deserializer=service__pb2.ResultsStatsRead.FromString,
+                    response_serializer=service__pb2.ResultsStats.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'OrcaCore', rpc_method_handlers)
@@ -119,7 +167,7 @@ class OrcaCore(object):
     - Coordinates algorithm execution across distributed processors
     - Tracks DAG dependencies and execution state
     - Routes results between dependent algorithms
-    Core operations
+    ------------------- Core operations ------------------- 
     """
 
     @staticmethod
@@ -193,6 +241,87 @@ class OrcaCore(object):
             '/OrcaCore/ReadWindowTypes',
             service__pb2.WindowTypeRead.SerializeToString,
             service__pb2.WindowTypes.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ReadAlgorithms(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrcaCore/ReadAlgorithms',
+            service__pb2.AlgorithmsRead.SerializeToString,
+            service__pb2.Algorithms.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ReadProcessors(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrcaCore/ReadProcessors',
+            service__pb2.ProcessorsRead.SerializeToString,
+            service__pb2.Processors.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ReadResultsStats(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrcaCore/ReadResultsStats',
+            service__pb2.ResultsStatsRead.SerializeToString,
+            service__pb2.ResultsStats.FromString,
             options,
             channel_credentials,
             insecure,

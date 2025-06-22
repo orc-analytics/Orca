@@ -1,27 +1,19 @@
+---------------------- Core Operations ----------------------  
 -- name: CreateProcessorAndPurgeAlgos :exec
-WITH processor_insert AS (
-  INSERT INTO processor (
-    name,
-    runtime,
-    connection_string
-  ) VALUES (
-    sqlc.arg('name'),
-    sqlc.arg('runtime'),
-    sqlc.arg('connection_string')
-  ) ON CONFLICT (name, runtime) DO UPDATE 
-  SET 
-    name = EXCLUDED.name,
-    runtime = EXCLUDED.runtime,
-    connection_string = EXCLUDED.connection_string
-  RETURNING id
-)
-  -- clean up old algorithm associations
-  DELETE FROM processor_algorithm
-  WHERE processor_id = (
-    SELECT id FROM processor p
-    WHERE p.name = sqlc.arg('name') 
-    AND p.runtime = sqlc.arg('runtime')
-);
+INSERT INTO processor (
+  name,
+  runtime,
+  connection_string
+) VALUES (
+  sqlc.arg('name'),
+  sqlc.arg('runtime'),
+  sqlc.arg('connection_string')
+) ON CONFLICT (name, runtime) DO UPDATE 
+SET 
+  name = EXCLUDED.name,
+  runtime = EXCLUDED.runtime,
+  connection_string = EXCLUDED.connection_string
+RETURNING id;
 
 -- name: CreateWindowType :exec
 INSERT INTO window_type (
@@ -183,6 +175,8 @@ FROM processor
 WHERE id = ANY(sqlc.arg('processor_ids')::bigint[])
 ORDER BY name, runtime;
 
+
+---------------------- Data operations ---------------------- 
 -- name: ReadWindowTypes :many
 SELECT
   id, 
@@ -191,3 +185,32 @@ SELECT
   created
 FROM window_type
 ORDER BY created DESC;
+
+-- name: ReadAlgorithms :many
+SELECT
+  a.id,
+  a.name,
+  a.version,
+  a.created,
+  w.name as window_name, 
+  w.version as window_version,
+  p.name as processor_name, 
+  p.runtime as processor_runtime
+FROM algorithm a
+  JOIN window_type w ON a.window_type_id = w.id
+  JOIN processor p ON a.processor_id = p.id
+ORDER BY a.processor_id, a.created DESC;
+
+-- name: ReadProcessors :many
+SELECT
+  id,
+  name, 
+  runtime, 
+  created
+FROM processor
+ORDER BY created DESC;
+
+-- name: ReadResultsStats :one
+SELECT
+  COUNT(t.id)
+FROM results t;

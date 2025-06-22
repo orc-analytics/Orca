@@ -68,6 +68,7 @@ func validate[T proto.Message](msg T) error {
 }
 
 // --------------------------- gRPC Services ---------------------------
+// -------------------------- Core Operations --------------------------
 // Register a processor with orca-core. Called when a processor startsup.
 func (o *OrcaCoreServer) RegisterProcessor(
 	ctx context.Context,
@@ -102,13 +103,31 @@ func (o *OrcaCoreServer) EmitWindow(
 	return &windowEmitStatus, err
 }
 
+// -------------------------- Data Operations --------------------------
 func (o *OrcaCoreServer) ReadWindowTypes(
 	ctx context.Context,
 	windowTypeReadStub *pb.WindowTypeRead,
 ) (*pb.WindowTypes, error) {
-	slog.Info("getting window types")
+	return o.client.ReadWindowTypes(ctx)
+}
 
-	windowTypes, err := o.client.ReadWindowTypes(ctx)
+func (o *OrcaCoreServer) ReadAlgorithms(
+	ctx context.Context,
+	algorithmsReadStub *pb.AlgorithmsRead,
+) (*pb.Algorithms, error) {
+	return o.client.ReadAlgorithms(ctx)
+}
 
-	return windowTypes, err
+func (o *OrcaCoreServer) ReadProcessors(
+	ctx context.Context,
+	processorsReadStub *pb.ProcessorsRead,
+) (*pb.Processors, error) {
+	return o.client.ReadProcessors(ctx)
+}
+
+func (o *OrcaCoreServer) ReadResultsStats(
+	ctx context.Context,
+	ResultsStatsReadStub *pb.ResultsStatsRead,
+) (*pb.ResultsStats, error) {
+	return o.client.ReadResultsStats(ctx)
 }

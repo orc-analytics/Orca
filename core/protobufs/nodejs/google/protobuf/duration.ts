@@ -75,7 +75,9 @@ export interface Duration {
    * to +315,576,000,000 inclusive. Note: these bounds are computed from:
    * 60 sec/min * 60 min/hr * 24 hr/day * 365.25 days/year * 10000 years
    */
-  seconds: number;
+  seconds?:
+    | string
+    | undefined;
   /**
    * Signed fractions of a second at nanosecond resolution of the span
    * of time. Durations less than one second are represented with a 0
@@ -84,19 +86,19 @@ export interface Duration {
    * of the same sign as the `seconds` field. Must be from -999,999,999
    * to +999,999,999 inclusive.
    */
-  nanos: number;
+  nanos?: number | undefined;
 }
 
 function createBaseDuration(): Duration {
-  return { seconds: 0, nanos: 0 };
+  return { seconds: "0", nanos: 0 };
 }
 
 export const Duration: MessageFns<Duration> = {
   encode(message: Duration, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.seconds !== 0) {
+    if (message.seconds !== undefined && message.seconds !== "0") {
       writer.uint32(8).int64(message.seconds);
     }
-    if (message.nanos !== 0) {
+    if (message.nanos !== undefined && message.nanos !== 0) {
       writer.uint32(16).int32(message.nanos);
     }
     return writer;
@@ -114,7 +116,7 @@ export const Duration: MessageFns<Duration> = {
             break;
           }
 
-          message.seconds = longToNumber(reader.int64());
+          message.seconds = reader.int64().toString();
           continue;
         }
         case 2: {
@@ -136,17 +138,17 @@ export const Duration: MessageFns<Duration> = {
 
   fromJSON(object: any): Duration {
     return {
-      seconds: isSet(object.seconds) ? globalThis.Number(object.seconds) : 0,
+      seconds: isSet(object.seconds) ? globalThis.String(object.seconds) : "0",
       nanos: isSet(object.nanos) ? globalThis.Number(object.nanos) : 0,
     };
   },
 
   toJSON(message: Duration): unknown {
     const obj: any = {};
-    if (message.seconds !== 0) {
-      obj.seconds = Math.round(message.seconds);
+    if (message.seconds !== undefined && message.seconds !== "0") {
+      obj.seconds = message.seconds;
     }
-    if (message.nanos !== 0) {
+    if (message.nanos !== undefined && message.nanos !== 0) {
       obj.nanos = Math.round(message.nanos);
     }
     return obj;
@@ -157,7 +159,7 @@ export const Duration: MessageFns<Duration> = {
   },
   fromPartial<I extends Exact<DeepPartial<Duration>, I>>(object: I): Duration {
     const message = createBaseDuration();
-    message.seconds = object.seconds ?? 0;
+    message.seconds = object.seconds ?? "0";
     message.nanos = object.nanos ?? 0;
     return message;
   },
@@ -168,23 +170,13 @@ type Builtin = Date | Function | Uint8Array | string | number | boolean | undefi
 export type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string; value: unknown } ? { $case: T["$case"]; value?: DeepPartial<T["value"]> }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
-
-function longToNumber(int64: { toString(): string }): number {
-  const num = globalThis.Number(int64.toString());
-  if (num > globalThis.Number.MAX_SAFE_INTEGER) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-  }
-  if (num < globalThis.Number.MIN_SAFE_INTEGER) {
-    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
-  }
-  return num;
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
