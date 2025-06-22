@@ -22,6 +22,9 @@ const (
 	OrcaCore_RegisterProcessor_FullMethodName = "/OrcaCore/RegisterProcessor"
 	OrcaCore_EmitWindow_FullMethodName        = "/OrcaCore/EmitWindow"
 	OrcaCore_ReadWindowTypes_FullMethodName   = "/OrcaCore/ReadWindowTypes"
+	OrcaCore_ReadAlgorithms_FullMethodName    = "/OrcaCore/ReadAlgorithms"
+	OrcaCore_ReadProcessors_FullMethodName    = "/OrcaCore/ReadProcessors"
+	OrcaCore_ReadResultsStats_FullMethodName  = "/OrcaCore/ReadResultsStats"
 )
 
 // OrcaCoreClient is the client API for OrcaCore service.
@@ -38,8 +41,11 @@ type OrcaCoreClient interface {
 	RegisterProcessor(ctx context.Context, in *ProcessorRegistration, opts ...grpc.CallOption) (*Status, error)
 	// Submit a window for processing
 	EmitWindow(ctx context.Context, in *Window, opts ...grpc.CallOption) (*WindowEmitStatus, error)
-	// Data operations
+	// ------------------- Data operations -------------------
 	ReadWindowTypes(ctx context.Context, in *WindowTypeRead, opts ...grpc.CallOption) (*WindowTypes, error)
+	ReadAlgorithms(ctx context.Context, in *AlgorithmsRead, opts ...grpc.CallOption) (*Algorithms, error)
+	ReadProcessors(ctx context.Context, in *ProcessorsRead, opts ...grpc.CallOption) (*Processors, error)
+	ReadResultsStats(ctx context.Context, in *ResultsStatsRead, opts ...grpc.CallOption) (*ResultsStats, error)
 }
 
 type orcaCoreClient struct {
@@ -80,6 +86,36 @@ func (c *orcaCoreClient) ReadWindowTypes(ctx context.Context, in *WindowTypeRead
 	return out, nil
 }
 
+func (c *orcaCoreClient) ReadAlgorithms(ctx context.Context, in *AlgorithmsRead, opts ...grpc.CallOption) (*Algorithms, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Algorithms)
+	err := c.cc.Invoke(ctx, OrcaCore_ReadAlgorithms_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orcaCoreClient) ReadProcessors(ctx context.Context, in *ProcessorsRead, opts ...grpc.CallOption) (*Processors, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Processors)
+	err := c.cc.Invoke(ctx, OrcaCore_ReadProcessors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orcaCoreClient) ReadResultsStats(ctx context.Context, in *ResultsStatsRead, opts ...grpc.CallOption) (*ResultsStats, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResultsStats)
+	err := c.cc.Invoke(ctx, OrcaCore_ReadResultsStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrcaCoreServer is the server API for OrcaCore service.
 // All implementations must embed UnimplementedOrcaCoreServer
 // for forward compatibility.
@@ -94,8 +130,11 @@ type OrcaCoreServer interface {
 	RegisterProcessor(context.Context, *ProcessorRegistration) (*Status, error)
 	// Submit a window for processing
 	EmitWindow(context.Context, *Window) (*WindowEmitStatus, error)
-	// Data operations
+	// ------------------- Data operations -------------------
 	ReadWindowTypes(context.Context, *WindowTypeRead) (*WindowTypes, error)
+	ReadAlgorithms(context.Context, *AlgorithmsRead) (*Algorithms, error)
+	ReadProcessors(context.Context, *ProcessorsRead) (*Processors, error)
+	ReadResultsStats(context.Context, *ResultsStatsRead) (*ResultsStats, error)
 	mustEmbedUnimplementedOrcaCoreServer()
 }
 
@@ -114,6 +153,15 @@ func (UnimplementedOrcaCoreServer) EmitWindow(context.Context, *Window) (*Window
 }
 func (UnimplementedOrcaCoreServer) ReadWindowTypes(context.Context, *WindowTypeRead) (*WindowTypes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadWindowTypes not implemented")
+}
+func (UnimplementedOrcaCoreServer) ReadAlgorithms(context.Context, *AlgorithmsRead) (*Algorithms, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadAlgorithms not implemented")
+}
+func (UnimplementedOrcaCoreServer) ReadProcessors(context.Context, *ProcessorsRead) (*Processors, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadProcessors not implemented")
+}
+func (UnimplementedOrcaCoreServer) ReadResultsStats(context.Context, *ResultsStatsRead) (*ResultsStats, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadResultsStats not implemented")
 }
 func (UnimplementedOrcaCoreServer) mustEmbedUnimplementedOrcaCoreServer() {}
 func (UnimplementedOrcaCoreServer) testEmbeddedByValue()                  {}
@@ -190,6 +238,60 @@ func _OrcaCore_ReadWindowTypes_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrcaCore_ReadAlgorithms_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AlgorithmsRead)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaCoreServer).ReadAlgorithms(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaCore_ReadAlgorithms_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaCoreServer).ReadAlgorithms(ctx, req.(*AlgorithmsRead))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrcaCore_ReadProcessors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProcessorsRead)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaCoreServer).ReadProcessors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaCore_ReadProcessors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaCoreServer).ReadProcessors(ctx, req.(*ProcessorsRead))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrcaCore_ReadResultsStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResultsStatsRead)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaCoreServer).ReadResultsStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaCore_ReadResultsStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaCoreServer).ReadResultsStats(ctx, req.(*ResultsStatsRead))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrcaCore_ServiceDesc is the grpc.ServiceDesc for OrcaCore service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -208,6 +310,18 @@ var OrcaCore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReadWindowTypes",
 			Handler:    _OrcaCore_ReadWindowTypes_Handler,
+		},
+		{
+			MethodName: "ReadAlgorithms",
+			Handler:    _OrcaCore_ReadAlgorithms_Handler,
+		},
+		{
+			MethodName: "ReadProcessors",
+			Handler:    _OrcaCore_ReadProcessors_Handler,
+		},
+		{
+			MethodName: "ReadResultsStats",
+			Handler:    _OrcaCore_ReadResultsStats_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

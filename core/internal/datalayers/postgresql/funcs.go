@@ -106,7 +106,6 @@ func (d *Datalayer) addAlgorithm(
 ) error {
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
-
 	// create algos
 	params := CreateAlgorithmParams{
 		Name:              algo.GetName(),

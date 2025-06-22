@@ -22,6 +22,9 @@ type (
 
 		// Data level operations
 		ReadWindowTypes(ctx context.Context) (*pb.WindowTypes, error)
+		ReadAlgorithms(ctx context.Context) (*pb.Algorithms, error)
+		ReadProcessors(ctx context.Context) (*pb.Processors, error)
+		ReadResultsStats(ctx context.Context) (*pb.ResultsStats, error)
 	}
 )
 

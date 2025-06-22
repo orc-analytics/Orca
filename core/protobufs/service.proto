@@ -12,7 +12,7 @@ import "vendor/validate.proto";
 // - Tracks DAG dependencies and execution state
 // - Routes results between dependent algorithms
 service OrcaCore {
-  // Core operations
+  // ------------------- Core operations ------------------- 
 
   // Register a processor node and its supported algorithms
   rpc RegisterProcessor(ProcessorRegistration) returns (Status);
@@ -20,8 +20,11 @@ service OrcaCore {
   // Submit a window for processing
   rpc EmitWindow(Window) returns (WindowEmitStatus);
 
-  // Data operations
+  // ------------------- Data operations ------------------- 
   rpc ReadWindowTypes(WindowTypeRead) returns (WindowTypes);
+  rpc ReadAlgorithms(AlgorithmsRead) returns (Algorithms);
+  rpc ReadProcessors(ProcessorsRead) returns (Processors);
+  rpc ReadResultsStats(ResultsStatsRead) returns (ResultsStats);
 }
 // ---------------------------- Core Operations ----------------------------
 //
@@ -313,4 +316,26 @@ message WindowTypeRead {}
 
 message WindowTypes {
   repeated WindowType windows = 1; 
+}
+
+message AlgorithmsRead {}
+
+message Algorithms {
+  repeated Algorithm algorithm = 1; 
+}
+
+message ProcessorsRead {}
+
+message Processors {
+  message Processor {
+    string name = 1;
+    string runtime = 2;
+  }
+  repeated Processor processor = 1;
+}
+
+message ResultsStatsRead {}
+
+message ResultsStats {
+  int64 Count = 1;
 }
