@@ -69,6 +69,10 @@ message Window {
 
   // A unique identifier that defines where the window came from
   string origin = 5 [(buf.validate.field).required = true];
+  
+  // Additional metadata to attach to this window
+  // e.g. unique asset identifiers
+  google.protobuf.Struct struct_value = 6;
 
   option (buf.validate.message).cel = {
       id: "window.time_to",

@@ -106,7 +106,14 @@ export interface Window {
     | string
     | undefined;
   /** A unique identifier that defines where the window came from */
-  origin?: string | undefined;
+  origin?:
+    | string
+    | undefined;
+  /**
+   * Additional metadata to attach to this window
+   * e.g. unique asset identifiers
+   */
+  structValue?: { [key: string]: any } | undefined;
 }
 
 /**
@@ -497,7 +504,7 @@ export interface ResultsStats {
 }
 
 function createBaseWindow(): Window {
-  return { timeFrom: "0", timeTo: "0", windowTypeName: "", windowTypeVersion: "", origin: "" };
+  return { timeFrom: "0", timeTo: "0", windowTypeName: "", windowTypeVersion: "", origin: "", structValue: undefined };
 }
 
 export const Window: MessageFns<Window> = {
@@ -516,6 +523,9 @@ export const Window: MessageFns<Window> = {
     }
     if (message.origin !== undefined && message.origin !== "") {
       writer.uint32(42).string(message.origin);
+    }
+    if (message.structValue !== undefined) {
+      Struct.encode(Struct.wrap(message.structValue), writer.uint32(50).fork()).join();
     }
     return writer;
   },
@@ -567,6 +577,14 @@ export const Window: MessageFns<Window> = {
           message.origin = reader.string();
           continue;
         }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.structValue = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -583,6 +601,7 @@ export const Window: MessageFns<Window> = {
       windowTypeName: isSet(object.windowTypeName) ? globalThis.String(object.windowTypeName) : "",
       windowTypeVersion: isSet(object.windowTypeVersion) ? globalThis.String(object.windowTypeVersion) : "",
       origin: isSet(object.origin) ? globalThis.String(object.origin) : "",
+      structValue: isObject(object.structValue) ? object.structValue : undefined,
     };
   },
 
@@ -603,6 +622,9 @@ export const Window: MessageFns<Window> = {
     if (message.origin !== undefined && message.origin !== "") {
       obj.origin = message.origin;
     }
+    if (message.structValue !== undefined) {
+      obj.structValue = message.structValue;
+    }
     return obj;
   },
 
@@ -616,6 +638,7 @@ export const Window: MessageFns<Window> = {
     message.windowTypeName = object.windowTypeName ?? "";
     message.windowTypeVersion = object.windowTypeVersion ?? "";
     message.origin = object.origin ?? "";
+    message.structValue = object.structValue ?? undefined;
     return message;
   },
 };
@@ -2832,6 +2855,10 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
