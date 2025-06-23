@@ -49,10 +49,10 @@ CREATE TABLE algorithm_dependency (
   FOREIGN KEY (to_window_type_id) REFERENCES window_type(id),
   FOREIGN KEY (from_processor_id) REFERENCES processor(id),
   FOREIGN KEY (to_processor_id) REFERENCES processor(id),
+
   -- Prevent self-dependencies
   CHECK (from_algorithm_id != to_algorithm_id)
 );
-
 
 -- Windows that trigger algorithms
 CREATE TABLE windows (
@@ -60,7 +60,8 @@ CREATE TABLE windows (
   window_type_id BIGINT NOT NULL,
   time_from BIGINT NOT NULL,
   time_to BIGINT NOT NULL,
-  origin TEXT NOT NULL, -- the location that emitted the window
+  origin TEXT NOT NULL,   -- the location that emitted the window
+  metadata JSONB,         -- additional contextual information e.g. unique asset identifiers
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (window_type_id) REFERENCES window_type(id)
 );

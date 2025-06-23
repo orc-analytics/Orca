@@ -129,12 +129,14 @@ INSERT INTO windows (
   window_type_id,
   time_from, 
   time_to,
-  origin
+  origin, 
+  metadata
 ) VALUES (
   (SELECT id FROM window_type_id),
   sqlc.arg('time_from'),
   sqlc.arg('time_to'),
-  sqlc.arg('origin')
+  sqlc.arg('origin'),
+  sqlc.arg('metadata')
 ) RETURNING window_type_id, id;
 
 -- name: CreateResult :one

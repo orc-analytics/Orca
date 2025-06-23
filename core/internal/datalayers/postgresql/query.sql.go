@@ -625,19 +625,21 @@ func (q *Queries) ReadWindowTypes(ctx context.Context) ([]ReadWindowTypesRow, er
 const registerWindow = `-- name: RegisterWindow :one
 WITH window_type_id AS (
   SELECT id FROM window_type 
-  WHERE name = $4 
-  AND version = $5
+  WHERE name = $5 
+  AND version = $6
 )
 INSERT INTO windows (
   window_type_id,
   time_from, 
   time_to,
-  origin
+  origin, 
+  metadata
 ) VALUES (
   (SELECT id FROM window_type_id),
   $1,
   $2,
-  $3
+  $3,
+  $4
 ) RETURNING window_type_id, id
 `
 
@@ -645,6 +647,7 @@ type RegisterWindowParams struct {
 	TimeFrom          int64
 	TimeTo            int64
 	Origin            string
+	Metadata          []byte
 	WindowTypeName    string
 	WindowTypeVersion string
 }
@@ -659,6 +662,7 @@ func (q *Queries) RegisterWindow(ctx context.Context, arg RegisterWindowParams) 
 		arg.TimeFrom,
 		arg.TimeTo,
 		arg.Origin,
+		arg.Metadata,
 		arg.WindowTypeName,
 		arg.WindowTypeVersion,
 	)
