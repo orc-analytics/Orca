@@ -193,20 +193,27 @@ func (q *Queries) CreateResult(ctx context.Context, arg CreateResultParams) (int
 const createWindowType = `-- name: CreateWindowType :exec
 INSERT INTO window_type (
   name, 
-  version
+  version, 
+  description
 ) VALUES (
   $1,
-  $2
-) ON CONFLICT (name, version) DO NOTHING
+  $2,
+  $3
+) ON CONFLICT (name, version) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  version = EXCLUDED.version,
+  description = EXCLUDED.description
 `
 
 type CreateWindowTypeParams struct {
-	Name    string
-	Version string
+	Name        string
+	Version     string
+	Description string
 }
 
 func (q *Queries) CreateWindowType(ctx context.Context, arg CreateWindowTypeParams) error {
-	_, err := q.db.Exec(ctx, createWindowType, arg.Name, arg.Version)
+	_, err := q.db.Exec(ctx, createWindowType, arg.Name, arg.Version, arg.Description)
 	return err
 }
 

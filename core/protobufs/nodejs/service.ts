@@ -132,7 +132,14 @@ export interface WindowType {
    * Version of the algorithm. Follows basic semver and allows window
    * types to be changed over time, with traceability
    */
-  version?: string | undefined;
+  version?:
+    | string
+    | undefined;
+  /**
+   * Description of the window
+   * E.g. "Emitted every day, at noon"
+   */
+  description?: string | undefined;
 }
 
 export interface WindowEmitStatus {
@@ -644,7 +651,7 @@ export const Window: MessageFns<Window> = {
 };
 
 function createBaseWindowType(): WindowType {
-  return { name: "", version: "" };
+  return { name: "", version: "", description: "" };
 }
 
 export const WindowType: MessageFns<WindowType> = {
@@ -654,6 +661,9 @@ export const WindowType: MessageFns<WindowType> = {
     }
     if (message.version !== undefined && message.version !== "") {
       writer.uint32(18).string(message.version);
+    }
+    if (message.description !== undefined && message.description !== "") {
+      writer.uint32(26).string(message.description);
     }
     return writer;
   },
@@ -681,6 +691,14 @@ export const WindowType: MessageFns<WindowType> = {
           message.version = reader.string();
           continue;
         }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -694,6 +712,7 @@ export const WindowType: MessageFns<WindowType> = {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       version: isSet(object.version) ? globalThis.String(object.version) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
     };
   },
 
@@ -705,6 +724,9 @@ export const WindowType: MessageFns<WindowType> = {
     if (message.version !== undefined && message.version !== "") {
       obj.version = message.version;
     }
+    if (message.description !== undefined && message.description !== "") {
+      obj.description = message.description;
+    }
     return obj;
   },
 
@@ -715,6 +737,7 @@ export const WindowType: MessageFns<WindowType> = {
     const message = createBaseWindowType();
     message.name = object.name ?? "";
     message.version = object.version ?? "";
+    message.description = object.description ?? "";
     return message;
   },
 };
@@ -2762,8 +2785,6 @@ export const OrcaCoreClient = makeGenericClientConstructor(OrcaCoreService, "Orc
 };
 
 /**
- * ---------------------------- Core Operations ----------------------------
- *
  * OrcaProcessor defines the interface that each processing node must implement.
  * Processors are language-agnostic services that:
  * - Execute individual algorithms

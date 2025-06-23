@@ -18,11 +18,17 @@ RETURNING id;
 -- name: CreateWindowType :exec
 INSERT INTO window_type (
   name, 
-  version
+  version, 
+  description
 ) VALUES (
   sqlc.arg('name'),
-  sqlc.arg('version')
-) ON CONFLICT (name, version) DO NOTHING;
+  sqlc.arg('version'),
+  sqlc.arg('description')
+) ON CONFLICT (name, version) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  version = EXCLUDED.version,
+  description = EXCLUDED.description;
 
 -- name: CreateAlgorithm :exec
 WITH processor_id AS (

@@ -334,9 +334,7 @@ class OrcaCore(object):
 
 
 class OrcaProcessorStub(object):
-    """---------------------------- Core Operations ----------------------------
-
-    OrcaProcessor defines the interface that each processing node must implement.
+    """OrcaProcessor defines the interface that each processing node must implement.
     Processors are language-agnostic services that:
     - Execute individual algorithms
     - Handle their own internal state
@@ -363,9 +361,7 @@ class OrcaProcessorStub(object):
 
 
 class OrcaProcessorServicer(object):
-    """---------------------------- Core Operations ----------------------------
-
-    OrcaProcessor defines the interface that each processing node must implement.
+    """OrcaProcessor defines the interface that each processing node must implement.
     Processors are language-agnostic services that:
     - Execute individual algorithms
     - Handle their own internal state
@@ -410,9 +406,7 @@ def add_OrcaProcessorServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class OrcaProcessor(object):
-    """---------------------------- Core Operations ----------------------------
-
-    OrcaProcessor defines the interface that each processing node must implement.
+    """OrcaProcessor defines the interface that each processing node must implement.
     Processors are language-agnostic services that:
     - Execute individual algorithms
     - Handle their own internal state

@@ -337,8 +337,6 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// ---------------------------- Core Operations ----------------------------
-//
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:
 // - Execute individual algorithms
@@ -393,8 +391,6 @@ func (c *orcaProcessorClient) HealthCheck(ctx context.Context, in *HealthCheckRe
 // OrcaProcessorServer is the server API for OrcaProcessor service.
 // All implementations must embed UnimplementedOrcaProcessorServer
 // for forward compatibility.
-//
-// ---------------------------- Core Operations ----------------------------
 //
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:

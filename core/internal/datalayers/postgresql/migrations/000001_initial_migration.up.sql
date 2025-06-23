@@ -5,6 +5,7 @@ CREATE TABLE window_type (
   id BIGSERIAL PRIMARY KEY,
   name TEXT NOT NULL,
   version TEXT NOT NULL CHECK (version ~ '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$'),
+  description TEXT NOT NULL,
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (name, version)
 );

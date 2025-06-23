@@ -26,8 +26,6 @@ service OrcaCore {
   rpc ReadProcessors(ProcessorsRead) returns (Processors);
   rpc ReadResultsStats(ResultsStatsRead) returns (ResultsStats);
 }
-// ---------------------------- Core Operations ----------------------------
-//
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:
 // - Execute individual algorithms
@@ -92,6 +90,10 @@ message WindowType {
   // Version of the algorithm. Follows basic semver and allows window
   // types to be changed over time, with traceability
   string version = 2 [(buf.validate.field).required=true];
+
+  // Description of the window
+  // E.g. "Emitted every day, at noon"
+  string description = 3 [(buf.validate.field).required=true];
 }
 
 message WindowEmitStatus {
