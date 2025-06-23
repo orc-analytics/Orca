@@ -65,8 +65,9 @@ type Window struct {
 }
 
 type WindowType struct {
-	ID      int64
-	Name    string
-	Version string
-	Created pgtype.Timestamp
+	ID          int64
+	Name        string
+	Version     string
+	Description string
+	Created     pgtype.Timestamp
 }

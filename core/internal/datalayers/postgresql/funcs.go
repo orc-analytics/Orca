@@ -89,8 +89,9 @@ func (d *Datalayer) createWindowType(
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
 	err := qtx.CreateWindowType(ctx, CreateWindowTypeParams{
-		Name:    windowType.Name,
-		Version: windowType.Version,
+		Name:        windowType.GetName(),
+		Version:     windowType.GetVersion(),
+		Description: windowType.GetDescription(),
 	})
 	if err != nil {
 		slog.Error("could not create window type", "error", err)
