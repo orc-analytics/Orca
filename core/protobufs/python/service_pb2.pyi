@@ -18,20 +18,20 @@ RESULT_STATUS_UNHANDLED_FAILED: ResultStatus
 RESULT_STATUS_SUCEEDED: ResultStatus
 
 class Window(_message.Message):
-    __slots__ = ("time_from", "time_to", "window_type_name", "window_type_version", "origin", "struct_value")
+    __slots__ = ("time_from", "time_to", "window_type_name", "window_type_version", "origin", "metadata")
     TIME_FROM_FIELD_NUMBER: _ClassVar[int]
     TIME_TO_FIELD_NUMBER: _ClassVar[int]
     WINDOW_TYPE_NAME_FIELD_NUMBER: _ClassVar[int]
     WINDOW_TYPE_VERSION_FIELD_NUMBER: _ClassVar[int]
     ORIGIN_FIELD_NUMBER: _ClassVar[int]
-    STRUCT_VALUE_FIELD_NUMBER: _ClassVar[int]
+    METADATA_FIELD_NUMBER: _ClassVar[int]
     time_from: int
     time_to: int
     window_type_name: str
     window_type_version: str
     origin: str
-    struct_value: _struct_pb2.Struct
-    def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., window_type_name: _Optional[str] = ..., window_type_version: _Optional[str] = ..., origin: _Optional[str] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+    metadata: _struct_pb2.Struct
+    def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., window_type_name: _Optional[str] = ..., window_type_version: _Optional[str] = ..., origin: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
 class WindowType(_message.Message):
     __slots__ = ("name", "version")
