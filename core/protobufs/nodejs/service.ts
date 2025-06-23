@@ -113,7 +113,7 @@ export interface Window {
    * Additional metadata to attach to this window
    * e.g. unique asset identifiers
    */
-  structValue?: { [key: string]: any } | undefined;
+  metadata?: { [key: string]: any } | undefined;
 }
 
 /**
@@ -504,7 +504,7 @@ export interface ResultsStats {
 }
 
 function createBaseWindow(): Window {
-  return { timeFrom: "0", timeTo: "0", windowTypeName: "", windowTypeVersion: "", origin: "", structValue: undefined };
+  return { timeFrom: "0", timeTo: "0", windowTypeName: "", windowTypeVersion: "", origin: "", metadata: undefined };
 }
 
 export const Window: MessageFns<Window> = {
@@ -524,8 +524,8 @@ export const Window: MessageFns<Window> = {
     if (message.origin !== undefined && message.origin !== "") {
       writer.uint32(42).string(message.origin);
     }
-    if (message.structValue !== undefined) {
-      Struct.encode(Struct.wrap(message.structValue), writer.uint32(50).fork()).join();
+    if (message.metadata !== undefined) {
+      Struct.encode(Struct.wrap(message.metadata), writer.uint32(50).fork()).join();
     }
     return writer;
   },
@@ -582,7 +582,7 @@ export const Window: MessageFns<Window> = {
             break;
           }
 
-          message.structValue = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          message.metadata = Struct.unwrap(Struct.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -601,7 +601,7 @@ export const Window: MessageFns<Window> = {
       windowTypeName: isSet(object.windowTypeName) ? globalThis.String(object.windowTypeName) : "",
       windowTypeVersion: isSet(object.windowTypeVersion) ? globalThis.String(object.windowTypeVersion) : "",
       origin: isSet(object.origin) ? globalThis.String(object.origin) : "",
-      structValue: isObject(object.structValue) ? object.structValue : undefined,
+      metadata: isObject(object.metadata) ? object.metadata : undefined,
     };
   },
 
@@ -622,8 +622,8 @@ export const Window: MessageFns<Window> = {
     if (message.origin !== undefined && message.origin !== "") {
       obj.origin = message.origin;
     }
-    if (message.structValue !== undefined) {
-      obj.structValue = message.structValue;
+    if (message.metadata !== undefined) {
+      obj.metadata = message.metadata;
     }
     return obj;
   },
@@ -638,7 +638,7 @@ export const Window: MessageFns<Window> = {
     message.windowTypeName = object.windowTypeName ?? "";
     message.windowTypeVersion = object.windowTypeVersion ?? "";
     message.origin = object.origin ?? "";
-    message.structValue = object.structValue ?? undefined;
+    message.metadata = object.metadata ?? undefined;
     return message;
   },
 };

@@ -98,12 +98,20 @@ func (d *Datalayer) EmitWindow(
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
 
+	// marshal metadata
+	metadata := window.GetMetadata()
+	metadataBytes, err := metadata.MarshalJSON()
+	if err != nil {
+		return pb.WindowEmitStatus{}, fmt.Errorf("could not marshal metadata: %v", err)
+	}
+
 	insertedWindow, err := qtx.RegisterWindow(ctx, RegisterWindowParams{
 		WindowTypeName:    window.GetWindowTypeName(),
 		WindowTypeVersion: window.GetWindowTypeVersion(),
 		TimeFrom:          int64(window.GetTimeFrom()),
 		TimeTo:            int64(window.GetTimeTo()),
 		Origin:            window.GetOrigin(),
+		Metadata:          metadataBytes,
 	})
 	if err != nil {
 		slog.Error("could not insert window", "error", err)
