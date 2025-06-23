@@ -60,6 +60,7 @@ type Window struct {
 	TimeFrom     int64
 	TimeTo       int64
 	Origin       string
+	Metadata     []byte
 	Created      pgtype.Timestamp
 }
 
