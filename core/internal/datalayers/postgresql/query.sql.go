@@ -308,6 +308,56 @@ func (q *Queries) ReadAlgorithmId(ctx context.Context, arg ReadAlgorithmIdParams
 	return id, err
 }
 
+const readAlgorithmJsonField = `-- name: ReadAlgorithmJsonField :many
+select w.time_from, w.time_to, (r.result_json::json->>$1) as result from results r
+join algorithm a on r.algorithm_id = a.id
+join windows w on r.windows_id = w.id
+where
+	w.time_from  >= $2 and w.time_to <= $3
+	and a."name" = $4
+	and a."version" = $5
+`
+
+type ReadAlgorithmJsonFieldParams struct {
+	FieldName        []byte
+	TimeFrom         int64
+	TimeTo           int64
+	AlgorithmName    string
+	AlgorithmVersion string
+}
+
+type ReadAlgorithmJsonFieldRow struct {
+	TimeFrom int64
+	TimeTo   int64
+	Result   interface{}
+}
+
+func (q *Queries) ReadAlgorithmJsonField(ctx context.Context, arg ReadAlgorithmJsonFieldParams) ([]ReadAlgorithmJsonFieldRow, error) {
+	rows, err := q.db.Query(ctx, readAlgorithmJsonField,
+		arg.FieldName,
+		arg.TimeFrom,
+		arg.TimeTo,
+		arg.AlgorithmName,
+		arg.AlgorithmVersion,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReadAlgorithmJsonFieldRow
+	for rows.Next() {
+		var i ReadAlgorithmJsonFieldRow
+		if err := rows.Scan(&i.TimeFrom, &i.TimeTo, &i.Result); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const readAlgorithms = `-- name: ReadAlgorithms :many
 SELECT
   a.id,
@@ -433,6 +483,78 @@ func (q *Queries) ReadAllProcessors(ctx context.Context) ([]Processor, error) {
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const readDistinctJsonResultFieldsForAlgorithm = `-- name: ReadDistinctJsonResultFieldsForAlgorithm :many
+select distinct jsonb_object_keys(r.result_json) as field_names from results r
+join algorithm a on r.algorithm_id = a.id
+join windows w on r.windows_id = w.id
+where
+	w.time_from  >= $1 and w.time_to <= $2
+	and a."name" = $3
+	and a."version" = $4
+`
+
+type ReadDistinctJsonResultFieldsForAlgorithmParams struct {
+	TimeFrom         int64
+	TimeTo           int64
+	AlgorithmName    string
+	AlgorithmVersion string
+}
+
+func (q *Queries) ReadDistinctJsonResultFieldsForAlgorithm(ctx context.Context, arg ReadDistinctJsonResultFieldsForAlgorithmParams) ([]string, error) {
+	rows, err := q.db.Query(ctx, readDistinctJsonResultFieldsForAlgorithm,
+		arg.TimeFrom,
+		arg.TimeTo,
+		arg.AlgorithmName,
+		arg.AlgorithmVersion,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var field_names string
+		if err := rows.Scan(&field_names); err != nil {
+			return nil, err
+		}
+		items = append(items, field_names)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const readDistinctWindowMetadata = `-- name: ReadDistinctWindowMetadata :many
+select distinct w.metadata from windows w
+where w.time_from  >= $1 and w.time_to <= $2
+`
+
+type ReadDistinctWindowMetadataParams struct {
+	TimeFrom int64
+	TimeTo   int64
+}
+
+func (q *Queries) ReadDistinctWindowMetadata(ctx context.Context, arg ReadDistinctWindowMetadataParams) ([][]byte, error) {
+	rows, err := q.db.Query(ctx, readDistinctWindowMetadata, arg.TimeFrom, arg.TimeTo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items [][]byte
+	for rows.Next() {
+		var metadata []byte
+		if err := rows.Scan(&metadata); err != nil {
+			return nil, err
+		}
+		items = append(items, metadata)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -573,10 +695,102 @@ func (q *Queries) ReadProcessorsByIDs(ctx context.Context, processorIds []int64)
 	return items, nil
 }
 
+const readResultsForAlgorithm = `-- name: ReadResultsForAlgorithm :many
+select r.id, r.windows_id, r.window_type_id, r.algorithm_id, r.result_value, r.result_array, r.result_json from results r
+join algorithm a on r.algorithm_id = a.id
+join windows w on r.windows_id = w.id
+where
+	w.time_from  >= $1 and w.time_to <= $2
+	and a."name" = $3
+	and a."version" = $4
+`
+
+type ReadResultsForAlgorithmParams struct {
+	TimeFrom         int64
+	TimeTo           int64
+	AlgorithmName    string
+	AlgorithmVersion string
+}
+
+func (q *Queries) ReadResultsForAlgorithm(ctx context.Context, arg ReadResultsForAlgorithmParams) ([]Result, error) {
+	rows, err := q.db.Query(ctx, readResultsForAlgorithm,
+		arg.TimeFrom,
+		arg.TimeTo,
+		arg.AlgorithmName,
+		arg.AlgorithmVersion,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Result
+	for rows.Next() {
+		var i Result
+		if err := rows.Scan(
+			&i.ID,
+			&i.WindowsID,
+			&i.WindowTypeID,
+			&i.AlgorithmID,
+			&i.ResultValue,
+			&i.ResultArray,
+			&i.ResultJson,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const readResultsForWindowMetadataField = `-- name: ReadResultsForWindowMetadataField :many
+select r.id, r.windows_id, r.window_type_id, r.algorithm_id, r.result_value, r.result_array, r.result_json from results r
+join windows w on r.windows_id = w.id
+where
+	w.time_from  >= sql.arg('time_from') and w.time_to <= $1
+	and (w.metadata::json->>$2) = $3
+`
+
+type ReadResultsForWindowMetadataFieldParams struct {
+	TimeTo             int64
+	MetadataField      []byte
+	MetadataFieldMatch []byte
+}
+
+func (q *Queries) ReadResultsForWindowMetadataField(ctx context.Context, arg ReadResultsForWindowMetadataFieldParams) ([]Result, error) {
+	rows, err := q.db.Query(ctx, readResultsForWindowMetadataField, arg.TimeTo, arg.MetadataField, arg.MetadataFieldMatch)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Result
+	for rows.Next() {
+		var i Result
+		if err := rows.Scan(
+			&i.ID,
+			&i.WindowsID,
+			&i.WindowTypeID,
+			&i.AlgorithmID,
+			&i.ResultValue,
+			&i.ResultArray,
+			&i.ResultJson,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const readResultsStats = `-- name: ReadResultsStats :one
 SELECT
-  COUNT(t.id)
-FROM results t
+  COUNT(r.id)
+FROM results r
 `
 
 func (q *Queries) ReadResultsStats(ctx context.Context) (int64, error) {
@@ -590,17 +804,19 @@ const readWindowTypes = `-- name: ReadWindowTypes :many
 SELECT
   id, 
   version, 
-  name, 
+  name,
+  description,
   created
 FROM window_type
 ORDER BY created DESC
 `
 
 type ReadWindowTypesRow struct {
-	ID      int64
-	Version string
-	Name    string
-	Created pgtype.Timestamp
+	ID          int64
+	Version     string
+	Name        string
+	Description string
+	Created     pgtype.Timestamp
 }
 
 // -------------------- Data operations ----------------------
@@ -617,8 +833,54 @@ func (q *Queries) ReadWindowTypes(ctx context.Context) ([]ReadWindowTypesRow, er
 			&i.ID,
 			&i.Version,
 			&i.Name,
+			&i.Description,
 			&i.Created,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const readWindows = `-- name: ReadWindows :many
+select w.time_from, w.time_to from windows w
+join window_type wt on w.window_type_id =wt.id
+where
+	wt."name" = $1 and wt."version" = $2
+	and w.time_from  >= $3 and w.time_to <= $4
+`
+
+type ReadWindowsParams struct {
+	WindowTypeName    string
+	WindowTypeVersion string
+	TimeFrom          int64
+	TimeTo            int64
+}
+
+type ReadWindowsRow struct {
+	TimeFrom int64
+	TimeTo   int64
+}
+
+func (q *Queries) ReadWindows(ctx context.Context, arg ReadWindowsParams) ([]ReadWindowsRow, error) {
+	rows, err := q.db.Query(ctx, readWindows,
+		arg.WindowTypeName,
+		arg.WindowTypeVersion,
+		arg.TimeFrom,
+		arg.TimeTo,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReadWindowsRow
+	for rows.Next() {
+		var i ReadWindowsRow
+		if err := rows.Scan(&i.TimeFrom, &i.TimeTo); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

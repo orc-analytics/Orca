@@ -25,6 +25,7 @@ service OrcaCore {
   rpc ReadAlgorithms(AlgorithmsRead) returns (Algorithms);
   rpc ReadProcessors(ProcessorsRead) returns (Processors);
   rpc ReadResultsStats(ResultsStatsRead) returns (ResultsStats);
+  rpc ReadResultFieldsForAlgorithm(AlgorithmFieldsRead) returns (AlgorithmFields);
 }
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:
@@ -345,3 +346,13 @@ message ResultsStatsRead {}
 message ResultsStats {
   int64 Count = 1;
 }
+
+message AlgorithmFieldsRead {
+  int64 time_from = 1;
+  int64 time_to = 2;
+  Algorithm algorithm = 3;
+}
+
+message AlgorithmFields {
+  repeated string field = 1;
+};

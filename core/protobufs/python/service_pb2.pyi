@@ -245,3 +245,19 @@ class ResultsStats(_message.Message):
     COUNT_FIELD_NUMBER: _ClassVar[int]
     Count: int
     def __init__(self, Count: _Optional[int] = ...) -> None: ...
+
+class AlgorithmFieldsRead(_message.Message):
+    __slots__ = ("time_from", "time_to", "algorithm")
+    TIME_FROM_FIELD_NUMBER: _ClassVar[int]
+    TIME_TO_FIELD_NUMBER: _ClassVar[int]
+    ALGORITHM_FIELD_NUMBER: _ClassVar[int]
+    time_from: int
+    time_to: int
+    algorithm: Algorithm
+    def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., algorithm: _Optional[_Union[Algorithm, _Mapping]] = ...) -> None: ...
+
+class AlgorithmFields(_message.Message):
+    __slots__ = ("field",)
+    FIELD_FIELD_NUMBER: _ClassVar[int]
+    field: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, field: _Optional[_Iterable[str]] = ...) -> None: ...

@@ -131,3 +131,10 @@ func (o *OrcaCoreServer) ReadResultsStats(
 ) (*pb.ResultsStats, error) {
 	return o.client.ReadResultsStats(ctx)
 }
+
+func (o *OrcaCoreServer) ReadResultFieldsForAlgorithm(
+	ctx context.Context,
+	algorithmFieldsRead *pb.AlgorithmFieldsRead,
+) (*pb.AlgorithmFields, error) {
+	return o.client.ReadResultFieldsForAlgorithm(ctx, algorithmFieldsRead)
+}
