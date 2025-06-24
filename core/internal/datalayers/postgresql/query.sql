@@ -189,7 +189,8 @@ ORDER BY name, runtime;
 SELECT
   id, 
   version, 
-  name, 
+  name,
+  description,
   created
 FROM window_type
 ORDER BY created DESC;
@@ -220,5 +221,50 @@ ORDER BY created DESC;
 
 -- name: ReadResultsStats :one
 SELECT
-  COUNT(t.id)
-FROM results t;
+  COUNT(r.id)
+FROM results r;
+
+-- name: ReadDistinctWindowMetadata :many
+select distinct w.metadata from windows w
+where w.time_from  >= sqlc.arg('time_from') and w.time_to <= sqlc.arg('time_to');
+
+-- name: ReadResultsForWindowMetadataField :many
+select r.* from results r
+join windows w on r.windows_id = w.id
+where
+	w.time_from  >= sql.arg('time_from') and w.time_to <= sqlc.arg('time_to')
+	and (w.metadata::json->>sqlc.arg('metadata_field')) = sqlc.arg('metadata_field_match');
+
+-- name: ReadResultsForAlgorithm :many
+select r.* from results r
+join algorithm a on r.algorithm_id = a.id
+join windows w on r.windows_id = w.id
+where
+	w.time_from  >= sqlc.arg('time_from') and w.time_to <= sqlc.arg('time_to')
+	and a."name" = sqlc.arg('algorithm_name')
+	and a."version" = sqlc.arg('algorithm_version');
+
+-- name: ReadDistinctJsonResultFieldsForAlgorithm :many
+select distinct jsonb_object_keys(r.result_json) as field_names from results r
+join algorithm a on r.algorithm_id = a.id
+join windows w on r.windows_id = w.id
+where
+	w.time_from  >= sqlc.arg('time_from') and w.time_to <= sqlc.arg('time_to')
+	and a."name" = sqlc.arg('algorithm_name')
+	and a."version" = sqlc.arg('algorithm_version');
+
+-- name: ReadAlgorithmJsonField :many
+select w.time_from, w.time_to, (r.result_json::json->>sqlc.arg('field_name')) as result from results r
+join algorithm a on r.algorithm_id = a.id
+join windows w on r.windows_id = w.id
+where
+	w.time_from  >= sqlc.arg('time_from') and w.time_to <= sqlc.arg('time_to')
+	and a."name" = sqlc.arg('algorithm_name')
+	and a."version" = sqlc.arg('algorithm_version');
+
+-- name: ReadWindows :many
+select w.time_from, w.time_to from windows w
+join window_type wt on w.window_type_id =wt.id
+where
+	wt."name" = sqlc.arg('window_type_name') and wt."version" = sqlc.arg('window_type_version')
+	and w.time_from  >= sqlc.arg('time_from') and w.time_to <= sqlc.arg('time_to');	

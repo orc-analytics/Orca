@@ -206,8 +206,9 @@ func (d *Datalayer) ReadWindowTypes(
 
 	for ii, window := range windowTypes {
 		windowTypesPb.Windows[ii] = &pb.WindowType{
-			Name:    window.Name,
-			Version: window.Version,
+			Name:        window.Name,
+			Version:     window.Version,
+			Description: window.Description,
 		}
 	}
 	return &windowTypesPb, tx.Commit(ctx)
@@ -303,4 +304,39 @@ func (d *Datalayer) ReadResultsStats(
 	}
 
 	return &resultsStatsPb, tx.Commit(ctx)
+}
+
+func (d *Datalayer) ReadResultFieldsForAlgorithm(
+	ctx context.Context,
+	resultFieldsRead *pb.AlgorithmFieldsRead,
+) (*pb.AlgorithmFields, error) {
+	tx, err := d.WithTx(ctx)
+	if err != nil {
+		slog.Error("could not start a transaction", "error", err)
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+
+	algorithmFields, err := qtx.ReadDistinctJsonResultFieldsForAlgorithm(
+		ctx,
+		ReadDistinctJsonResultFieldsForAlgorithmParams{
+			TimeFrom:         resultFieldsRead.GetTimeFrom(),
+			TimeTo:           resultFieldsRead.GetTimeTo(),
+			AlgorithmName:    resultFieldsRead.GetAlgorithm().GetName(),
+			AlgorithmVersion: resultFieldsRead.GetAlgorithm().GetVersion(),
+		},
+	)
+	if err != nil {
+		return &pb.AlgorithmFields{}, fmt.Errorf("could not read results: %v", err)
+	}
+	algorithmFieldsResult := pb.AlgorithmFields{
+		Field: make([]string, len(algorithmFields)),
+	}
+	for ii, algoField := range algorithmFields {
+		algorithmFieldsResult.Field[ii] = algoField
+	}
+	return &algorithmFieldsResult, tx.Commit(ctx)
 }

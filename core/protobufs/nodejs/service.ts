@@ -510,6 +510,16 @@ export interface ResultsStats {
   Count?: string | undefined;
 }
 
+export interface AlgorithmFieldsRead {
+  timeFrom?: string | undefined;
+  timeTo?: string | undefined;
+  algorithm?: Algorithm | undefined;
+}
+
+export interface AlgorithmFields {
+  field?: string[] | undefined;
+}
+
 function createBaseWindow(): Window {
   return { timeFrom: "0", timeTo: "0", windowTypeName: "", windowTypeVersion: "", origin: "", metadata: undefined };
 }
@@ -2601,6 +2611,163 @@ export const ResultsStats: MessageFns<ResultsStats> = {
   },
 };
 
+function createBaseAlgorithmFieldsRead(): AlgorithmFieldsRead {
+  return { timeFrom: "0", timeTo: "0", algorithm: undefined };
+}
+
+export const AlgorithmFieldsRead: MessageFns<AlgorithmFieldsRead> = {
+  encode(message: AlgorithmFieldsRead, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
+      writer.uint32(8).int64(message.timeFrom);
+    }
+    if (message.timeTo !== undefined && message.timeTo !== "0") {
+      writer.uint32(16).int64(message.timeTo);
+    }
+    if (message.algorithm !== undefined) {
+      Algorithm.encode(message.algorithm, writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AlgorithmFieldsRead {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAlgorithmFieldsRead();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.timeFrom = reader.int64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.timeTo = reader.int64().toString();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.algorithm = Algorithm.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AlgorithmFieldsRead {
+    return {
+      timeFrom: isSet(object.timeFrom) ? globalThis.String(object.timeFrom) : "0",
+      timeTo: isSet(object.timeTo) ? globalThis.String(object.timeTo) : "0",
+      algorithm: isSet(object.algorithm) ? Algorithm.fromJSON(object.algorithm) : undefined,
+    };
+  },
+
+  toJSON(message: AlgorithmFieldsRead): unknown {
+    const obj: any = {};
+    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
+      obj.timeFrom = message.timeFrom;
+    }
+    if (message.timeTo !== undefined && message.timeTo !== "0") {
+      obj.timeTo = message.timeTo;
+    }
+    if (message.algorithm !== undefined) {
+      obj.algorithm = Algorithm.toJSON(message.algorithm);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AlgorithmFieldsRead>, I>>(base?: I): AlgorithmFieldsRead {
+    return AlgorithmFieldsRead.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AlgorithmFieldsRead>, I>>(object: I): AlgorithmFieldsRead {
+    const message = createBaseAlgorithmFieldsRead();
+    message.timeFrom = object.timeFrom ?? "0";
+    message.timeTo = object.timeTo ?? "0";
+    message.algorithm = (object.algorithm !== undefined && object.algorithm !== null)
+      ? Algorithm.fromPartial(object.algorithm)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseAlgorithmFields(): AlgorithmFields {
+  return { field: [] };
+}
+
+export const AlgorithmFields: MessageFns<AlgorithmFields> = {
+  encode(message: AlgorithmFields, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.field !== undefined && message.field.length !== 0) {
+      for (const v of message.field) {
+        writer.uint32(10).string(v!);
+      }
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AlgorithmFields {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAlgorithmFields();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          const el = reader.string();
+          if (el !== undefined) {
+            message.field!.push(el);
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AlgorithmFields {
+    return { field: globalThis.Array.isArray(object?.field) ? object.field.map((e: any) => globalThis.String(e)) : [] };
+  },
+
+  toJSON(message: AlgorithmFields): unknown {
+    const obj: any = {};
+    if (message.field?.length) {
+      obj.field = message.field;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AlgorithmFields>, I>>(base?: I): AlgorithmFields {
+    return AlgorithmFields.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AlgorithmFields>, I>>(object: I): AlgorithmFields {
+    const message = createBaseAlgorithmFields();
+    message.field = object.field?.map((e) => e) || [];
+    return message;
+  },
+};
+
 /**
  * OrcaCore is the central orchestration service that:
  * - Manages the lifecycle of processing windows
@@ -2668,6 +2835,15 @@ export const OrcaCoreService = {
     responseSerialize: (value: ResultsStats): Buffer => Buffer.from(ResultsStats.encode(value).finish()),
     responseDeserialize: (value: Buffer): ResultsStats => ResultsStats.decode(value),
   },
+  readResultFieldsForAlgorithm: {
+    path: "/OrcaCore/ReadResultFieldsForAlgorithm",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: AlgorithmFieldsRead): Buffer => Buffer.from(AlgorithmFieldsRead.encode(value).finish()),
+    requestDeserialize: (value: Buffer): AlgorithmFieldsRead => AlgorithmFieldsRead.decode(value),
+    responseSerialize: (value: AlgorithmFields): Buffer => Buffer.from(AlgorithmFields.encode(value).finish()),
+    responseDeserialize: (value: Buffer): AlgorithmFields => AlgorithmFields.decode(value),
+  },
 } as const;
 
 export interface OrcaCoreServer extends UntypedServiceImplementation {
@@ -2680,6 +2856,7 @@ export interface OrcaCoreServer extends UntypedServiceImplementation {
   readAlgorithms: handleUnaryCall<AlgorithmsRead, Algorithms>;
   readProcessors: handleUnaryCall<ProcessorsRead, Processors>;
   readResultsStats: handleUnaryCall<ResultsStatsRead, ResultsStats>;
+  readResultFieldsForAlgorithm: handleUnaryCall<AlgorithmFieldsRead, AlgorithmFields>;
 }
 
 export interface OrcaCoreClient extends Client {
@@ -2775,6 +2952,21 @@ export interface OrcaCoreClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: ResultsStats) => void,
+  ): ClientUnaryCall;
+  readResultFieldsForAlgorithm(
+    request: AlgorithmFieldsRead,
+    callback: (error: ServiceError | null, response: AlgorithmFields) => void,
+  ): ClientUnaryCall;
+  readResultFieldsForAlgorithm(
+    request: AlgorithmFieldsRead,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: AlgorithmFields) => void,
+  ): ClientUnaryCall;
+  readResultFieldsForAlgorithm(
+    request: AlgorithmFieldsRead,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: AlgorithmFields) => void,
   ): ClientUnaryCall;
 }
 
