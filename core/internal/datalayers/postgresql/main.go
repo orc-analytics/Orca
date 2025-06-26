@@ -214,7 +214,6 @@ func (d *Datalayer) ReadWindowTypes(
 	return &windowTypesPb, tx.Commit(ctx)
 }
 
-// TODO - Add in dependencies
 func (d *Datalayer) ReadAlgorithms(
 	ctx context.Context,
 ) (*pb.Algorithms, error) {
@@ -238,6 +237,19 @@ func (d *Datalayer) ReadAlgorithms(
 	}
 
 	for ii, algorithm := range algorithms {
+		var resultType pb.ResultType
+		if algorithm.ResultType.ResultType == ResultTypeNone {
+			resultType = pb.ResultType_NONE
+		} else if algorithm.ResultType.ResultType == ResultTypeArray {
+			resultType = pb.ResultType_ARRAY
+		} else if algorithm.ResultType.ResultType == ResultTypeStruct {
+			resultType = pb.ResultType_STRUCT
+		} else if algorithm.ResultType.ResultType == ResultTypeValue {
+			resultType = pb.ResultType_VALUE
+		} else {
+			return &pb.Algorithms{}, fmt.Errorf("read a result type that is not supported: %v", algorithm.ResultType.ResultType)
+		}
+
 		algorithmsPb.Algorithm[ii] = &pb.Algorithm{
 			Name:    algorithm.Name,
 			Version: algorithm.Version,
@@ -245,6 +257,7 @@ func (d *Datalayer) ReadAlgorithms(
 				Name:    algorithm.WindowName,
 				Version: algorithm.WindowVersion,
 			},
+			ResultType: resultType,
 		}
 	}
 	return &algorithmsPb, tx.Commit(ctx)

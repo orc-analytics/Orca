@@ -368,6 +368,7 @@ SELECT
   a.name,
   a.version,
   a.created,
+  a.result_type,
   w.name as window_name, 
   w.version as window_version,
   p.name as processor_name, 
@@ -383,6 +384,7 @@ type ReadAlgorithmsRow struct {
 	Name             string
 	Version          string
 	Created          pgtype.Timestamp
+	ResultType       NullResultType
 	WindowName       string
 	WindowVersion    string
 	ProcessorName    string
@@ -403,6 +405,7 @@ func (q *Queries) ReadAlgorithms(ctx context.Context) ([]ReadAlgorithmsRow, erro
 			&i.Name,
 			&i.Version,
 			&i.Created,
+			&i.ResultType,
 			&i.WindowName,
 			&i.WindowVersion,
 			&i.ProcessorName,
