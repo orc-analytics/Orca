@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -259,4 +260,12 @@ func convertFloat64ToFloat32(float64Slice []float64) []float32 {
 
 func convertStructToJsonBytes(s *structpb.Struct) ([]byte, error) {
 	return protojson.Marshal(s)
+}
+
+func unmarshalToStruct(data []byte) (*structpb.Struct, error) {
+	var m map[string]interface{}
+	if err := json.Unmarshal(data, &m); err != nil {
+		return nil, err
+	}
+	return structpb.NewStruct(m)
 }
