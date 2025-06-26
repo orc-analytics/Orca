@@ -203,6 +203,7 @@ SELECT
   a.name,
   a.version,
   a.created,
+  a.result_type,
   w.name as window_name, 
   w.version as window_version,
   p.name as processor_name, 
