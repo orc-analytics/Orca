@@ -1789,6 +1789,110 @@ func (x *AlgorithmFields) GetField() []string {
 	return nil
 }
 
+type ResultsForAlgorithmRead struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TimeFrom      int64                  `protobuf:"varint,1,opt,name=time_from,json=timeFrom,proto3" json:"time_from,omitempty"`
+	TimeTo        int64                  `protobuf:"varint,2,opt,name=time_to,json=timeTo,proto3" json:"time_to,omitempty"`
+	Algorithm     *Algorithm             `protobuf:"bytes,3,opt,name=algorithm,proto3" json:"algorithm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResultsForAlgorithmRead) Reset() {
+	*x = ResultsForAlgorithmRead{}
+	mi := &file_service_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResultsForAlgorithmRead) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResultsForAlgorithmRead) ProtoMessage() {}
+
+func (x *ResultsForAlgorithmRead) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResultsForAlgorithmRead.ProtoReflect.Descriptor instead.
+func (*ResultsForAlgorithmRead) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *ResultsForAlgorithmRead) GetTimeFrom() int64 {
+	if x != nil {
+		return x.TimeFrom
+	}
+	return 0
+}
+
+func (x *ResultsForAlgorithmRead) GetTimeTo() int64 {
+	if x != nil {
+		return x.TimeTo
+	}
+	return 0
+}
+
+func (x *ResultsForAlgorithmRead) GetAlgorithm() *Algorithm {
+	if x != nil {
+		return x.Algorithm
+	}
+	return nil
+}
+
+type ResultsForAlgorithm struct {
+	state         protoimpl.MessageState            `protogen:"open.v1"`
+	Results       []*ResultsForAlgorithm_ResultsRow `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResultsForAlgorithm) Reset() {
+	*x = ResultsForAlgorithm{}
+	mi := &file_service_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResultsForAlgorithm) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResultsForAlgorithm) ProtoMessage() {}
+
+func (x *ResultsForAlgorithm) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResultsForAlgorithm.ProtoReflect.Descriptor instead.
+func (*ResultsForAlgorithm) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *ResultsForAlgorithm) GetResults() []*ResultsForAlgorithm_ResultsRow {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
 type Processors_Processor struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -1799,7 +1903,7 @@ type Processors_Processor struct {
 
 func (x *Processors_Processor) Reset() {
 	*x = Processors_Processor{}
-	mi := &file_service_proto_msgTypes[26]
+	mi := &file_service_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1811,7 +1915,7 @@ func (x *Processors_Processor) String() string {
 func (*Processors_Processor) ProtoMessage() {}
 
 func (x *Processors_Processor) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[26]
+	mi := &file_service_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1840,6 +1944,128 @@ func (x *Processors_Processor) GetRuntime() string {
 	}
 	return ""
 }
+
+type ResultsForAlgorithm_ResultsRow struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// the time window from
+	TimeFrom int64 `protobuf:"varint,1,opt,name=time_from,json=timeFrom,proto3" json:"time_from,omitempty"`
+	// the time window to
+	TimeTo int64 `protobuf:"varint,2,opt,name=time_to,json=timeTo,proto3" json:"time_to,omitempty"`
+	// the result packet is one of these
+	//
+	// Types that are valid to be assigned to ResultData:
+	//
+	//	*ResultsForAlgorithm_ResultsRow_SingleValue
+	//	*ResultsForAlgorithm_ResultsRow_ArrayValues
+	//	*ResultsForAlgorithm_ResultsRow_StructValue
+	ResultData    isResultsForAlgorithm_ResultsRow_ResultData `protobuf_oneof:"result_data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResultsForAlgorithm_ResultsRow) Reset() {
+	*x = ResultsForAlgorithm_ResultsRow{}
+	mi := &file_service_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResultsForAlgorithm_ResultsRow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResultsForAlgorithm_ResultsRow) ProtoMessage() {}
+
+func (x *ResultsForAlgorithm_ResultsRow) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResultsForAlgorithm_ResultsRow.ProtoReflect.Descriptor instead.
+func (*ResultsForAlgorithm_ResultsRow) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{27, 0}
+}
+
+func (x *ResultsForAlgorithm_ResultsRow) GetTimeFrom() int64 {
+	if x != nil {
+		return x.TimeFrom
+	}
+	return 0
+}
+
+func (x *ResultsForAlgorithm_ResultsRow) GetTimeTo() int64 {
+	if x != nil {
+		return x.TimeTo
+	}
+	return 0
+}
+
+func (x *ResultsForAlgorithm_ResultsRow) GetResultData() isResultsForAlgorithm_ResultsRow_ResultData {
+	if x != nil {
+		return x.ResultData
+	}
+	return nil
+}
+
+func (x *ResultsForAlgorithm_ResultsRow) GetSingleValue() float32 {
+	if x != nil {
+		if x, ok := x.ResultData.(*ResultsForAlgorithm_ResultsRow_SingleValue); ok {
+			return x.SingleValue
+		}
+	}
+	return 0
+}
+
+func (x *ResultsForAlgorithm_ResultsRow) GetArrayValues() *FloatArray {
+	if x != nil {
+		if x, ok := x.ResultData.(*ResultsForAlgorithm_ResultsRow_ArrayValues); ok {
+			return x.ArrayValues
+		}
+	}
+	return nil
+}
+
+func (x *ResultsForAlgorithm_ResultsRow) GetStructValue() *structpb.Struct {
+	if x != nil {
+		if x, ok := x.ResultData.(*ResultsForAlgorithm_ResultsRow_StructValue); ok {
+			return x.StructValue
+		}
+	}
+	return nil
+}
+
+type isResultsForAlgorithm_ResultsRow_ResultData interface {
+	isResultsForAlgorithm_ResultsRow_ResultData()
+}
+
+type ResultsForAlgorithm_ResultsRow_SingleValue struct {
+	// for single number results
+	SingleValue float32 `protobuf:"fixed32,3,opt,name=single_value,json=singleValue,proto3,oneof"`
+}
+
+type ResultsForAlgorithm_ResultsRow_ArrayValues struct {
+	// For numeric array results
+	ArrayValues *FloatArray `protobuf:"bytes,4,opt,name=array_values,json=arrayValues,proto3,oneof"`
+}
+
+type ResultsForAlgorithm_ResultsRow_StructValue struct {
+	// For structured data results (JSON-like)
+	// Must follow a map<string, value> schema where value corresponds to https://protobuf.dev/reference/protobuf/google.protobuf/#value
+	StructValue *structpb.Struct `protobuf:"bytes,5,opt,name=struct_value,json=structValue,proto3,oneof"`
+}
+
+func (*ResultsForAlgorithm_ResultsRow_SingleValue) isResultsForAlgorithm_ResultsRow_ResultData() {}
+
+func (*ResultsForAlgorithm_ResultsRow_ArrayValues) isResultsForAlgorithm_ResultsRow_ResultData() {}
+
+func (*ResultsForAlgorithm_ResultsRow_StructValue) isResultsForAlgorithm_ResultsRow_ResultData() {}
 
 var File_service_proto protoreflect.FileDescriptor
 
@@ -2055,7 +2281,37 @@ var file_service_proto_rawDesc = string([]byte{
 	0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x09, 0x61, 0x6c, 0x67, 0x6f, 0x72, 0x69,
 	0x74, 0x68, 0x6d, 0x22, 0x27, 0x0a, 0x0f, 0x41, 0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74, 0x68, 0x6d,
 	0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x18,
-	0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x05, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x2a, 0x4b, 0x0a, 0x0a,
+	0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x05, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x22, 0x91, 0x01, 0x0a,
+	0x17, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x73, 0x46, 0x6f, 0x72, 0x41, 0x6c, 0x67, 0x6f, 0x72,
+	0x69, 0x74, 0x68, 0x6d, 0x52, 0x65, 0x61, 0x64, 0x12, 0x23, 0x0a, 0x09, 0x74, 0x69, 0x6d, 0x65,
+	0x5f, 0x66, 0x72, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x42, 0x06, 0xba, 0x48, 0x03,
+	0xc8, 0x01, 0x01, 0x52, 0x08, 0x74, 0x69, 0x6d, 0x65, 0x46, 0x72, 0x6f, 0x6d, 0x12, 0x1f, 0x0a,
+	0x07, 0x74, 0x69, 0x6d, 0x65, 0x5f, 0x74, 0x6f, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x42, 0x06,
+	0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x06, 0x74, 0x69, 0x6d, 0x65, 0x54, 0x6f, 0x12, 0x30,
+	0x0a, 0x09, 0x61, 0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x0a, 0x2e, 0x41, 0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x42, 0x06, 0xba,
+	0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x09, 0x61, 0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74, 0x68, 0x6d,
+	0x22, 0xc9, 0x02, 0x0a, 0x13, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x73, 0x46, 0x6f, 0x72, 0x41,
+	0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x12, 0x39, 0x0a, 0x07, 0x72, 0x65, 0x73, 0x75,
+	0x6c, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x52, 0x65, 0x73, 0x75,
+	0x6c, 0x74, 0x73, 0x46, 0x6f, 0x72, 0x41, 0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x2e,
+	0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x73, 0x52, 0x6f, 0x77, 0x52, 0x07, 0x72, 0x65, 0x73, 0x75,
+	0x6c, 0x74, 0x73, 0x1a, 0xf6, 0x01, 0x0a, 0x0a, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x73, 0x52,
+	0x6f, 0x77, 0x12, 0x23, 0x0a, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x5f, 0x66, 0x72, 0x6f, 0x6d, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x03, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x08, 0x74,
+	0x69, 0x6d, 0x65, 0x46, 0x72, 0x6f, 0x6d, 0x12, 0x1f, 0x0a, 0x07, 0x74, 0x69, 0x6d, 0x65, 0x5f,
+	0x74, 0x6f, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01,
+	0x52, 0x06, 0x74, 0x69, 0x6d, 0x65, 0x54, 0x6f, 0x12, 0x23, 0x0a, 0x0c, 0x73, 0x69, 0x6e, 0x67,
+	0x6c, 0x65, 0x5f, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x02, 0x48, 0x00,
+	0x52, 0x0b, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x30, 0x0a,
+	0x0c, 0x61, 0x72, 0x72, 0x61, 0x79, 0x5f, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x0b, 0x2e, 0x46, 0x6c, 0x6f, 0x61, 0x74, 0x41, 0x72, 0x72, 0x61, 0x79,
+	0x48, 0x00, 0x52, 0x0b, 0x61, 0x72, 0x72, 0x61, 0x79, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x12,
+	0x3c, 0x0a, 0x0c, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x5f, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
+	0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x75, 0x63, 0x74, 0x48, 0x00,
+	0x52, 0x0b, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x0d, 0x0a,
+	0x0b, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x5f, 0x64, 0x61, 0x74, 0x61, 0x2a, 0x4b, 0x0a, 0x0a,
 	0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x54, 0x79, 0x70, 0x65, 0x12, 0x11, 0x0a, 0x0d, 0x4e, 0x4f,
 	0x54, 0x5f, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x0a, 0x0a,
 	0x06, 0x53, 0x54, 0x52, 0x55, 0x43, 0x54, 0x10, 0x01, 0x12, 0x09, 0x0a, 0x05, 0x56, 0x41, 0x4c,
@@ -2067,7 +2323,7 @@ var file_service_proto_rawDesc = string([]byte{
 	0x45, 0x53, 0x55, 0x4c, 0x54, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x55, 0x4e, 0x48,
 	0x41, 0x4e, 0x44, 0x4c, 0x45, 0x44, 0x5f, 0x46, 0x41, 0x49, 0x4c, 0x45, 0x44, 0x10, 0x01, 0x12,
 	0x1a, 0x0a, 0x16, 0x52, 0x45, 0x53, 0x55, 0x4c, 0x54, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53,
-	0x5f, 0x53, 0x55, 0x43, 0x45, 0x45, 0x44, 0x45, 0x44, 0x10, 0x02, 0x32, 0xfa, 0x02, 0x0a, 0x08,
+	0x5f, 0x53, 0x55, 0x43, 0x45, 0x45, 0x44, 0x45, 0x44, 0x10, 0x02, 0x32, 0xc5, 0x03, 0x0a, 0x08,
 	0x4f, 0x72, 0x63, 0x61, 0x43, 0x6f, 0x72, 0x65, 0x12, 0x34, 0x0a, 0x11, 0x52, 0x65, 0x67, 0x69,
 	0x73, 0x74, 0x65, 0x72, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x6f, 0x72, 0x12, 0x16, 0x2e,
 	0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x6f, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72,
@@ -2091,18 +2347,23 @@ var file_service_proto_rawDesc = string([]byte{
 	0x65, 0x6c, 0x64, 0x73, 0x46, 0x6f, 0x72, 0x41, 0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74, 0x68, 0x6d,
 	0x12, 0x14, 0x2e, 0x41, 0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x46, 0x69, 0x65, 0x6c,
 	0x64, 0x73, 0x52, 0x65, 0x61, 0x64, 0x1a, 0x10, 0x2e, 0x41, 0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74,
-	0x68, 0x6d, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x32, 0x82, 0x01, 0x0a, 0x0d, 0x4f, 0x72, 0x63,
-	0x61, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x6f, 0x72, 0x12, 0x37, 0x0a, 0x0e, 0x45, 0x78,
-	0x65, 0x63, 0x75, 0x74, 0x65, 0x44, 0x61, 0x67, 0x50, 0x61, 0x72, 0x74, 0x12, 0x11, 0x2e, 0x45,
-	0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x10, 0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x75, 0x6c,
-	0x74, 0x30, 0x01, 0x12, 0x38, 0x0a, 0x0b, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65,
-	0x63, 0x6b, 0x12, 0x13, 0x2e, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65, 0x63, 0x6b,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x14, 0x2e, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68,
-	0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x27, 0x5a,
-	0x25, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x72, 0x65, 0x64,
-	0x69, 0x78, 0x75, 0x73, 0x2f, 0x6f, 0x72, 0x63, 0x61, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x73, 0x2f, 0x67, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x68, 0x6d, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x12, 0x49, 0x0a, 0x17, 0x52, 0x65, 0x61, 0x64,
+	0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x73, 0x46, 0x6f, 0x72, 0x41, 0x6c, 0x67, 0x6f, 0x72, 0x69,
+	0x74, 0x68, 0x6d, 0x12, 0x18, 0x2e, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x73, 0x46, 0x6f, 0x72,
+	0x41, 0x6c, 0x67, 0x6f, 0x72, 0x69, 0x74, 0x68, 0x6d, 0x52, 0x65, 0x61, 0x64, 0x1a, 0x14, 0x2e,
+	0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x73, 0x46, 0x6f, 0x72, 0x41, 0x6c, 0x67, 0x6f, 0x72, 0x69,
+	0x74, 0x68, 0x6d, 0x32, 0x82, 0x01, 0x0a, 0x0d, 0x4f, 0x72, 0x63, 0x61, 0x50, 0x72, 0x6f, 0x63,
+	0x65, 0x73, 0x73, 0x6f, 0x72, 0x12, 0x37, 0x0a, 0x0e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74, 0x65,
+	0x44, 0x61, 0x67, 0x50, 0x61, 0x72, 0x74, 0x12, 0x11, 0x2e, 0x45, 0x78, 0x65, 0x63, 0x75, 0x74,
+	0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x10, 0x2e, 0x45, 0x78, 0x65,
+	0x63, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x30, 0x01, 0x12, 0x38,
+	0x0a, 0x0b, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x12, 0x13, 0x2e,
+	0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x14, 0x2e, 0x48, 0x65, 0x61, 0x6c, 0x74, 0x68, 0x43, 0x68, 0x65, 0x63, 0x6b,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x27, 0x5a, 0x25, 0x67, 0x69, 0x74, 0x68,
+	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x70, 0x72, 0x65, 0x64, 0x69, 0x78, 0x75, 0x73, 0x2f,
+	0x6f, 0x72, 0x63, 0x61, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x73, 0x2f, 0x67,
+	0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -2118,50 +2379,53 @@ func file_service_proto_rawDescGZIP() []byte {
 }
 
 var file_service_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_service_proto_goTypes = []any{
-	(ResultType)(0),                  // 0: ResultType
-	(ResultStatus)(0),                // 1: ResultStatus
-	(WindowEmitStatus_StatusEnum)(0), // 2: WindowEmitStatus.StatusEnum
-	(HealthCheckResponse_Status)(0),  // 3: HealthCheckResponse.Status
-	(*Window)(nil),                   // 4: Window
-	(*WindowType)(nil),               // 5: WindowType
-	(*WindowEmitStatus)(nil),         // 6: WindowEmitStatus
-	(*AlgorithmDependency)(nil),      // 7: AlgorithmDependency
-	(*Algorithm)(nil),                // 8: Algorithm
-	(*FloatArray)(nil),               // 9: FloatArray
-	(*Result)(nil),                   // 10: Result
-	(*ProcessorRegistration)(nil),    // 11: ProcessorRegistration
-	(*ProcessingTask)(nil),           // 12: ProcessingTask
-	(*ExecutionRequest)(nil),         // 13: ExecutionRequest
-	(*ExecutionResult)(nil),          // 14: ExecutionResult
-	(*AlgorithmResult)(nil),          // 15: AlgorithmResult
-	(*Status)(nil),                   // 16: Status
-	(*HealthCheckRequest)(nil),       // 17: HealthCheckRequest
-	(*HealthCheckResponse)(nil),      // 18: HealthCheckResponse
-	(*ProcessorMetrics)(nil),         // 19: ProcessorMetrics
-	(*WindowTypeRead)(nil),           // 20: WindowTypeRead
-	(*WindowTypes)(nil),              // 21: WindowTypes
-	(*AlgorithmsRead)(nil),           // 22: AlgorithmsRead
-	(*Algorithms)(nil),               // 23: Algorithms
-	(*ProcessorsRead)(nil),           // 24: ProcessorsRead
-	(*Processors)(nil),               // 25: Processors
-	(*ResultsStatsRead)(nil),         // 26: ResultsStatsRead
-	(*ResultsStats)(nil),             // 27: ResultsStats
-	(*AlgorithmFieldsRead)(nil),      // 28: AlgorithmFieldsRead
-	(*AlgorithmFields)(nil),          // 29: AlgorithmFields
-	(*Processors_Processor)(nil),     // 30: Processors.Processor
-	(*structpb.Struct)(nil),          // 31: google.protobuf.Struct
+	(ResultType)(0),                        // 0: ResultType
+	(ResultStatus)(0),                      // 1: ResultStatus
+	(WindowEmitStatus_StatusEnum)(0),       // 2: WindowEmitStatus.StatusEnum
+	(HealthCheckResponse_Status)(0),        // 3: HealthCheckResponse.Status
+	(*Window)(nil),                         // 4: Window
+	(*WindowType)(nil),                     // 5: WindowType
+	(*WindowEmitStatus)(nil),               // 6: WindowEmitStatus
+	(*AlgorithmDependency)(nil),            // 7: AlgorithmDependency
+	(*Algorithm)(nil),                      // 8: Algorithm
+	(*FloatArray)(nil),                     // 9: FloatArray
+	(*Result)(nil),                         // 10: Result
+	(*ProcessorRegistration)(nil),          // 11: ProcessorRegistration
+	(*ProcessingTask)(nil),                 // 12: ProcessingTask
+	(*ExecutionRequest)(nil),               // 13: ExecutionRequest
+	(*ExecutionResult)(nil),                // 14: ExecutionResult
+	(*AlgorithmResult)(nil),                // 15: AlgorithmResult
+	(*Status)(nil),                         // 16: Status
+	(*HealthCheckRequest)(nil),             // 17: HealthCheckRequest
+	(*HealthCheckResponse)(nil),            // 18: HealthCheckResponse
+	(*ProcessorMetrics)(nil),               // 19: ProcessorMetrics
+	(*WindowTypeRead)(nil),                 // 20: WindowTypeRead
+	(*WindowTypes)(nil),                    // 21: WindowTypes
+	(*AlgorithmsRead)(nil),                 // 22: AlgorithmsRead
+	(*Algorithms)(nil),                     // 23: Algorithms
+	(*ProcessorsRead)(nil),                 // 24: ProcessorsRead
+	(*Processors)(nil),                     // 25: Processors
+	(*ResultsStatsRead)(nil),               // 26: ResultsStatsRead
+	(*ResultsStats)(nil),                   // 27: ResultsStats
+	(*AlgorithmFieldsRead)(nil),            // 28: AlgorithmFieldsRead
+	(*AlgorithmFields)(nil),                // 29: AlgorithmFields
+	(*ResultsForAlgorithmRead)(nil),        // 30: ResultsForAlgorithmRead
+	(*ResultsForAlgorithm)(nil),            // 31: ResultsForAlgorithm
+	(*Processors_Processor)(nil),           // 32: Processors.Processor
+	(*ResultsForAlgorithm_ResultsRow)(nil), // 33: ResultsForAlgorithm.ResultsRow
+	(*structpb.Struct)(nil),                // 34: google.protobuf.Struct
 }
 var file_service_proto_depIdxs = []int32{
-	31, // 0: Window.metadata:type_name -> google.protobuf.Struct
+	34, // 0: Window.metadata:type_name -> google.protobuf.Struct
 	2,  // 1: WindowEmitStatus.status:type_name -> WindowEmitStatus.StatusEnum
 	5,  // 2: Algorithm.window_type:type_name -> WindowType
 	7,  // 3: Algorithm.dependencies:type_name -> AlgorithmDependency
 	0,  // 4: Algorithm.result_type:type_name -> ResultType
 	1,  // 5: Result.status:type_name -> ResultStatus
 	9,  // 6: Result.float_values:type_name -> FloatArray
-	31, // 7: Result.struct_value:type_name -> google.protobuf.Struct
+	34, // 7: Result.struct_value:type_name -> google.protobuf.Struct
 	8,  // 8: ProcessorRegistration.supported_algorithms:type_name -> Algorithm
 	8,  // 9: ProcessingTask.algorithm:type_name -> Algorithm
 	4,  // 10: ProcessingTask.window:type_name -> Window
@@ -2176,31 +2440,37 @@ var file_service_proto_depIdxs = []int32{
 	19, // 19: HealthCheckResponse.metrics:type_name -> ProcessorMetrics
 	5,  // 20: WindowTypes.windows:type_name -> WindowType
 	8,  // 21: Algorithms.algorithm:type_name -> Algorithm
-	30, // 22: Processors.processor:type_name -> Processors.Processor
+	32, // 22: Processors.processor:type_name -> Processors.Processor
 	8,  // 23: AlgorithmFieldsRead.algorithm:type_name -> Algorithm
-	11, // 24: OrcaCore.RegisterProcessor:input_type -> ProcessorRegistration
-	4,  // 25: OrcaCore.EmitWindow:input_type -> Window
-	20, // 26: OrcaCore.ReadWindowTypes:input_type -> WindowTypeRead
-	22, // 27: OrcaCore.ReadAlgorithms:input_type -> AlgorithmsRead
-	24, // 28: OrcaCore.ReadProcessors:input_type -> ProcessorsRead
-	26, // 29: OrcaCore.ReadResultsStats:input_type -> ResultsStatsRead
-	28, // 30: OrcaCore.ReadResultFieldsForAlgorithm:input_type -> AlgorithmFieldsRead
-	13, // 31: OrcaProcessor.ExecuteDagPart:input_type -> ExecutionRequest
-	17, // 32: OrcaProcessor.HealthCheck:input_type -> HealthCheckRequest
-	16, // 33: OrcaCore.RegisterProcessor:output_type -> Status
-	6,  // 34: OrcaCore.EmitWindow:output_type -> WindowEmitStatus
-	21, // 35: OrcaCore.ReadWindowTypes:output_type -> WindowTypes
-	23, // 36: OrcaCore.ReadAlgorithms:output_type -> Algorithms
-	25, // 37: OrcaCore.ReadProcessors:output_type -> Processors
-	27, // 38: OrcaCore.ReadResultsStats:output_type -> ResultsStats
-	29, // 39: OrcaCore.ReadResultFieldsForAlgorithm:output_type -> AlgorithmFields
-	14, // 40: OrcaProcessor.ExecuteDagPart:output_type -> ExecutionResult
-	18, // 41: OrcaProcessor.HealthCheck:output_type -> HealthCheckResponse
-	33, // [33:42] is the sub-list for method output_type
-	24, // [24:33] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	8,  // 24: ResultsForAlgorithmRead.algorithm:type_name -> Algorithm
+	33, // 25: ResultsForAlgorithm.results:type_name -> ResultsForAlgorithm.ResultsRow
+	9,  // 26: ResultsForAlgorithm.ResultsRow.array_values:type_name -> FloatArray
+	34, // 27: ResultsForAlgorithm.ResultsRow.struct_value:type_name -> google.protobuf.Struct
+	11, // 28: OrcaCore.RegisterProcessor:input_type -> ProcessorRegistration
+	4,  // 29: OrcaCore.EmitWindow:input_type -> Window
+	20, // 30: OrcaCore.ReadWindowTypes:input_type -> WindowTypeRead
+	22, // 31: OrcaCore.ReadAlgorithms:input_type -> AlgorithmsRead
+	24, // 32: OrcaCore.ReadProcessors:input_type -> ProcessorsRead
+	26, // 33: OrcaCore.ReadResultsStats:input_type -> ResultsStatsRead
+	28, // 34: OrcaCore.ReadResultFieldsForAlgorithm:input_type -> AlgorithmFieldsRead
+	30, // 35: OrcaCore.ReadResultsForAlgorithm:input_type -> ResultsForAlgorithmRead
+	13, // 36: OrcaProcessor.ExecuteDagPart:input_type -> ExecutionRequest
+	17, // 37: OrcaProcessor.HealthCheck:input_type -> HealthCheckRequest
+	16, // 38: OrcaCore.RegisterProcessor:output_type -> Status
+	6,  // 39: OrcaCore.EmitWindow:output_type -> WindowEmitStatus
+	21, // 40: OrcaCore.ReadWindowTypes:output_type -> WindowTypes
+	23, // 41: OrcaCore.ReadAlgorithms:output_type -> Algorithms
+	25, // 42: OrcaCore.ReadProcessors:output_type -> Processors
+	27, // 43: OrcaCore.ReadResultsStats:output_type -> ResultsStats
+	29, // 44: OrcaCore.ReadResultFieldsForAlgorithm:output_type -> AlgorithmFields
+	31, // 45: OrcaCore.ReadResultsForAlgorithm:output_type -> ResultsForAlgorithm
+	14, // 46: OrcaProcessor.ExecuteDagPart:output_type -> ExecutionResult
+	18, // 47: OrcaProcessor.HealthCheck:output_type -> HealthCheckResponse
+	38, // [38:48] is the sub-list for method output_type
+	28, // [28:38] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_service_proto_init() }
@@ -2213,13 +2483,18 @@ func file_service_proto_init() {
 		(*Result_FloatValues)(nil),
 		(*Result_StructValue)(nil),
 	}
+	file_service_proto_msgTypes[29].OneofWrappers = []any{
+		(*ResultsForAlgorithm_ResultsRow_SingleValue)(nil),
+		(*ResultsForAlgorithm_ResultsRow_ArrayValues)(nil),
+		(*ResultsForAlgorithm_ResultsRow_StructValue)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_service_proto_rawDesc), len(file_service_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   27,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

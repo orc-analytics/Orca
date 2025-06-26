@@ -29,6 +29,10 @@ type (
 			ctx context.Context,
 			algorithmFieldsRead *pb.AlgorithmFieldsRead,
 		) (*pb.AlgorithmFields, error)
+		ReadResultsForAlgorithm(
+			ctx context.Context,
+			resultsForAlgorithm *pb.ResultsForAlgorithmRead,
+		) (*pb.ResultsForAlgorithm, error)
 	}
 )
 

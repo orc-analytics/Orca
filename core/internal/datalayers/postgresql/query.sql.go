@@ -704,7 +704,13 @@ func (q *Queries) ReadProcessorsByIDs(ctx context.Context, processorIds []int64)
 }
 
 const readResultsForAlgorithm = `-- name: ReadResultsForAlgorithm :many
-select r.id, r.windows_id, r.window_type_id, r.algorithm_id, r.result_value, r.result_array, r.result_json from results r
+select
+  w.time_from,
+  w.time_to,
+  r.result_value,
+  r.result_array,
+  r.result_json
+from results r
 join algorithm a on r.algorithm_id = a.id
 join windows w on r.windows_id = w.id
 where
@@ -720,7 +726,15 @@ type ReadResultsForAlgorithmParams struct {
 	AlgorithmVersion string
 }
 
-func (q *Queries) ReadResultsForAlgorithm(ctx context.Context, arg ReadResultsForAlgorithmParams) ([]Result, error) {
+type ReadResultsForAlgorithmRow struct {
+	TimeFrom    int64
+	TimeTo      int64
+	ResultValue pgtype.Float8
+	ResultArray []float64
+	ResultJson  []byte
+}
+
+func (q *Queries) ReadResultsForAlgorithm(ctx context.Context, arg ReadResultsForAlgorithmParams) ([]ReadResultsForAlgorithmRow, error) {
 	rows, err := q.db.Query(ctx, readResultsForAlgorithm,
 		arg.TimeFrom,
 		arg.TimeTo,
@@ -731,14 +745,12 @@ func (q *Queries) ReadResultsForAlgorithm(ctx context.Context, arg ReadResultsFo
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Result
+	var items []ReadResultsForAlgorithmRow
 	for rows.Next() {
-		var i Result
+		var i ReadResultsForAlgorithmRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.WindowsID,
-			&i.WindowTypeID,
-			&i.AlgorithmID,
+			&i.TimeFrom,
+			&i.TimeTo,
 			&i.ResultValue,
 			&i.ResultArray,
 			&i.ResultJson,

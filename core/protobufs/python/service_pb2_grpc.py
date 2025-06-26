@@ -75,6 +75,11 @@ class OrcaCoreStub(object):
                 request_serializer=service__pb2.AlgorithmFieldsRead.SerializeToString,
                 response_deserializer=service__pb2.AlgorithmFields.FromString,
                 _registered_method=True)
+        self.ReadResultsForAlgorithm = channel.unary_unary(
+                '/OrcaCore/ReadResultsForAlgorithm',
+                request_serializer=service__pb2.ResultsForAlgorithmRead.SerializeToString,
+                response_deserializer=service__pb2.ResultsForAlgorithm.FromString,
+                _registered_method=True)
 
 
 class OrcaCoreServicer(object):
@@ -126,8 +131,13 @@ class OrcaCoreServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def ReadResultFieldsForAlgorithm(self, request, context):
-        """rpc ReadResultsForAlgorithm(AlgorithmResultsRead) returns (AlgorithmResults);
-        """
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReadResultsForAlgorithm(self, request, context):
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -169,6 +179,11 @@ def add_OrcaCoreServicer_to_server(servicer, server):
                     servicer.ReadResultFieldsForAlgorithm,
                     request_deserializer=service__pb2.AlgorithmFieldsRead.FromString,
                     response_serializer=service__pb2.AlgorithmFields.SerializeToString,
+            ),
+            'ReadResultsForAlgorithm': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReadResultsForAlgorithm,
+                    request_deserializer=service__pb2.ResultsForAlgorithmRead.FromString,
+                    response_serializer=service__pb2.ResultsForAlgorithm.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -366,6 +381,33 @@ class OrcaCore(object):
             '/OrcaCore/ReadResultFieldsForAlgorithm',
             service__pb2.AlgorithmFieldsRead.SerializeToString,
             service__pb2.AlgorithmFields.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ReadResultsForAlgorithm(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrcaCore/ReadResultsForAlgorithm',
+            service__pb2.ResultsForAlgorithmRead.SerializeToString,
+            service__pb2.ResultsForAlgorithm.FromString,
             options,
             channel_credentials,
             insecure,

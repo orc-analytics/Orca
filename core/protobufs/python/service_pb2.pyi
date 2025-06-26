@@ -276,3 +276,32 @@ class AlgorithmFields(_message.Message):
     FIELD_FIELD_NUMBER: _ClassVar[int]
     field: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, field: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class ResultsForAlgorithmRead(_message.Message):
+    __slots__ = ("time_from", "time_to", "algorithm")
+    TIME_FROM_FIELD_NUMBER: _ClassVar[int]
+    TIME_TO_FIELD_NUMBER: _ClassVar[int]
+    ALGORITHM_FIELD_NUMBER: _ClassVar[int]
+    time_from: int
+    time_to: int
+    algorithm: Algorithm
+    def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., algorithm: _Optional[_Union[Algorithm, _Mapping]] = ...) -> None: ...
+
+class ResultsForAlgorithm(_message.Message):
+    __slots__ = ("results",)
+    class ResultsRow(_message.Message):
+        __slots__ = ("time_from", "time_to", "single_value", "array_values", "struct_value")
+        TIME_FROM_FIELD_NUMBER: _ClassVar[int]
+        TIME_TO_FIELD_NUMBER: _ClassVar[int]
+        SINGLE_VALUE_FIELD_NUMBER: _ClassVar[int]
+        ARRAY_VALUES_FIELD_NUMBER: _ClassVar[int]
+        STRUCT_VALUE_FIELD_NUMBER: _ClassVar[int]
+        time_from: int
+        time_to: int
+        single_value: float
+        array_values: FloatArray
+        struct_value: _struct_pb2.Struct
+        def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., single_value: _Optional[float] = ..., array_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+    RESULTS_FIELD_NUMBER: _ClassVar[int]
+    results: _containers.RepeatedCompositeFieldContainer[ResultsForAlgorithm.ResultsRow]
+    def __init__(self, results: _Optional[_Iterable[_Union[ResultsForAlgorithm.ResultsRow, _Mapping]]] = ...) -> None: ...

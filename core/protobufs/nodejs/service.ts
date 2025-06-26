@@ -583,6 +583,42 @@ export interface AlgorithmFields {
   field?: string[] | undefined;
 }
 
+export interface ResultsForAlgorithmRead {
+  timeFrom?: string | undefined;
+  timeTo?: string | undefined;
+  algorithm?: Algorithm | undefined;
+}
+
+export interface ResultsForAlgorithm {
+  results?: ResultsForAlgorithm_ResultsRow[] | undefined;
+}
+
+export interface ResultsForAlgorithm_ResultsRow {
+  /** the time window from */
+  timeFrom?:
+    | string
+    | undefined;
+  /** the time window to */
+  timeTo?:
+    | string
+    | undefined;
+  /** the result packet is one of these */
+  resultData?:
+    | //
+    /** for single number results */
+    { $case: "singleValue"; value: number }
+    | //
+    /** For numeric array results */
+    { $case: "arrayValues"; value: FloatArray }
+    | //
+    /**
+     * For structured data results (JSON-like)
+     * Must follow a map<string, value> schema where value corresponds to https://protobuf.dev/reference/protobuf/google.protobuf/#value
+     */
+    { $case: "structValue"; value: { [key: string]: any } | undefined }
+    | undefined;
+}
+
 function createBaseWindow(): Window {
   return { timeFrom: "0", timeTo: "0", windowTypeName: "", windowTypeVersion: "", origin: "", metadata: undefined };
 }
@@ -2847,6 +2883,314 @@ export const AlgorithmFields: MessageFns<AlgorithmFields> = {
   },
 };
 
+function createBaseResultsForAlgorithmRead(): ResultsForAlgorithmRead {
+  return { timeFrom: "0", timeTo: "0", algorithm: undefined };
+}
+
+export const ResultsForAlgorithmRead: MessageFns<ResultsForAlgorithmRead> = {
+  encode(message: ResultsForAlgorithmRead, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
+      writer.uint32(8).int64(message.timeFrom);
+    }
+    if (message.timeTo !== undefined && message.timeTo !== "0") {
+      writer.uint32(16).int64(message.timeTo);
+    }
+    if (message.algorithm !== undefined) {
+      Algorithm.encode(message.algorithm, writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithmRead {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResultsForAlgorithmRead();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.timeFrom = reader.int64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.timeTo = reader.int64().toString();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.algorithm = Algorithm.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResultsForAlgorithmRead {
+    return {
+      timeFrom: isSet(object.timeFrom) ? globalThis.String(object.timeFrom) : "0",
+      timeTo: isSet(object.timeTo) ? globalThis.String(object.timeTo) : "0",
+      algorithm: isSet(object.algorithm) ? Algorithm.fromJSON(object.algorithm) : undefined,
+    };
+  },
+
+  toJSON(message: ResultsForAlgorithmRead): unknown {
+    const obj: any = {};
+    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
+      obj.timeFrom = message.timeFrom;
+    }
+    if (message.timeTo !== undefined && message.timeTo !== "0") {
+      obj.timeTo = message.timeTo;
+    }
+    if (message.algorithm !== undefined) {
+      obj.algorithm = Algorithm.toJSON(message.algorithm);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResultsForAlgorithmRead>, I>>(base?: I): ResultsForAlgorithmRead {
+    return ResultsForAlgorithmRead.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithmRead>, I>>(object: I): ResultsForAlgorithmRead {
+    const message = createBaseResultsForAlgorithmRead();
+    message.timeFrom = object.timeFrom ?? "0";
+    message.timeTo = object.timeTo ?? "0";
+    message.algorithm = (object.algorithm !== undefined && object.algorithm !== null)
+      ? Algorithm.fromPartial(object.algorithm)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseResultsForAlgorithm(): ResultsForAlgorithm {
+  return { results: [] };
+}
+
+export const ResultsForAlgorithm: MessageFns<ResultsForAlgorithm> = {
+  encode(message: ResultsForAlgorithm, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.results !== undefined && message.results.length !== 0) {
+      for (const v of message.results) {
+        ResultsForAlgorithm_ResultsRow.encode(v!, writer.uint32(10).fork()).join();
+      }
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithm {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResultsForAlgorithm();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          const el = ResultsForAlgorithm_ResultsRow.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.results!.push(el);
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResultsForAlgorithm {
+    return {
+      results: globalThis.Array.isArray(object?.results)
+        ? object.results.map((e: any) => ResultsForAlgorithm_ResultsRow.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ResultsForAlgorithm): unknown {
+    const obj: any = {};
+    if (message.results?.length) {
+      obj.results = message.results.map((e) => ResultsForAlgorithm_ResultsRow.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResultsForAlgorithm>, I>>(base?: I): ResultsForAlgorithm {
+    return ResultsForAlgorithm.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithm>, I>>(object: I): ResultsForAlgorithm {
+    const message = createBaseResultsForAlgorithm();
+    message.results = object.results?.map((e) => ResultsForAlgorithm_ResultsRow.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseResultsForAlgorithm_ResultsRow(): ResultsForAlgorithm_ResultsRow {
+  return { timeFrom: "0", timeTo: "0", resultData: undefined };
+}
+
+export const ResultsForAlgorithm_ResultsRow: MessageFns<ResultsForAlgorithm_ResultsRow> = {
+  encode(message: ResultsForAlgorithm_ResultsRow, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
+      writer.uint32(8).int64(message.timeFrom);
+    }
+    if (message.timeTo !== undefined && message.timeTo !== "0") {
+      writer.uint32(16).int64(message.timeTo);
+    }
+    switch (message.resultData?.$case) {
+      case "singleValue":
+        writer.uint32(29).float(message.resultData.value);
+        break;
+      case "arrayValues":
+        FloatArray.encode(message.resultData.value, writer.uint32(34).fork()).join();
+        break;
+      case "structValue":
+        Struct.encode(Struct.wrap(message.resultData.value), writer.uint32(42).fork()).join();
+        break;
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithm_ResultsRow {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResultsForAlgorithm_ResultsRow();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.timeFrom = reader.int64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.timeTo = reader.int64().toString();
+          continue;
+        }
+        case 3: {
+          if (tag !== 29) {
+            break;
+          }
+
+          message.resultData = { $case: "singleValue", value: reader.float() };
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.resultData = { $case: "arrayValues", value: FloatArray.decode(reader, reader.uint32()) };
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.resultData = { $case: "structValue", value: Struct.unwrap(Struct.decode(reader, reader.uint32())) };
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResultsForAlgorithm_ResultsRow {
+    return {
+      timeFrom: isSet(object.timeFrom) ? globalThis.String(object.timeFrom) : "0",
+      timeTo: isSet(object.timeTo) ? globalThis.String(object.timeTo) : "0",
+      resultData: isSet(object.singleValue)
+        ? { $case: "singleValue", value: globalThis.Number(object.singleValue) }
+        : isSet(object.arrayValues)
+        ? { $case: "arrayValues", value: FloatArray.fromJSON(object.arrayValues) }
+        : isSet(object.structValue)
+        ? { $case: "structValue", value: object.structValue }
+        : undefined,
+    };
+  },
+
+  toJSON(message: ResultsForAlgorithm_ResultsRow): unknown {
+    const obj: any = {};
+    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
+      obj.timeFrom = message.timeFrom;
+    }
+    if (message.timeTo !== undefined && message.timeTo !== "0") {
+      obj.timeTo = message.timeTo;
+    }
+    if (message.resultData?.$case === "singleValue") {
+      obj.singleValue = message.resultData.value;
+    } else if (message.resultData?.$case === "arrayValues") {
+      obj.arrayValues = FloatArray.toJSON(message.resultData.value);
+    } else if (message.resultData?.$case === "structValue") {
+      obj.structValue = message.resultData.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResultsForAlgorithm_ResultsRow>, I>>(base?: I): ResultsForAlgorithm_ResultsRow {
+    return ResultsForAlgorithm_ResultsRow.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithm_ResultsRow>, I>>(
+    object: I,
+  ): ResultsForAlgorithm_ResultsRow {
+    const message = createBaseResultsForAlgorithm_ResultsRow();
+    message.timeFrom = object.timeFrom ?? "0";
+    message.timeTo = object.timeTo ?? "0";
+    switch (object.resultData?.$case) {
+      case "singleValue": {
+        if (object.resultData?.value !== undefined && object.resultData?.value !== null) {
+          message.resultData = { $case: "singleValue", value: object.resultData.value };
+        }
+        break;
+      }
+      case "arrayValues": {
+        if (object.resultData?.value !== undefined && object.resultData?.value !== null) {
+          message.resultData = { $case: "arrayValues", value: FloatArray.fromPartial(object.resultData.value) };
+        }
+        break;
+      }
+      case "structValue": {
+        if (object.resultData?.value !== undefined && object.resultData?.value !== null) {
+          message.resultData = { $case: "structValue", value: object.resultData.value };
+        }
+        break;
+      }
+    }
+    return message;
+  },
+};
+
 /**
  * OrcaCore is the central orchestration service that:
  * - Manages the lifecycle of processing windows
@@ -2914,7 +3258,6 @@ export const OrcaCoreService = {
     responseSerialize: (value: ResultsStats): Buffer => Buffer.from(ResultsStats.encode(value).finish()),
     responseDeserialize: (value: Buffer): ResultsStats => ResultsStats.decode(value),
   },
-  /** rpc ReadResultsForAlgorithm(AlgorithmResultsRead) returns (AlgorithmResults); */
   readResultFieldsForAlgorithm: {
     path: "/OrcaCore/ReadResultFieldsForAlgorithm",
     requestStream: false,
@@ -2923,6 +3266,16 @@ export const OrcaCoreService = {
     requestDeserialize: (value: Buffer): AlgorithmFieldsRead => AlgorithmFieldsRead.decode(value),
     responseSerialize: (value: AlgorithmFields): Buffer => Buffer.from(AlgorithmFields.encode(value).finish()),
     responseDeserialize: (value: Buffer): AlgorithmFields => AlgorithmFields.decode(value),
+  },
+  readResultsForAlgorithm: {
+    path: "/OrcaCore/ReadResultsForAlgorithm",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: ResultsForAlgorithmRead): Buffer =>
+      Buffer.from(ResultsForAlgorithmRead.encode(value).finish()),
+    requestDeserialize: (value: Buffer): ResultsForAlgorithmRead => ResultsForAlgorithmRead.decode(value),
+    responseSerialize: (value: ResultsForAlgorithm): Buffer => Buffer.from(ResultsForAlgorithm.encode(value).finish()),
+    responseDeserialize: (value: Buffer): ResultsForAlgorithm => ResultsForAlgorithm.decode(value),
   },
 } as const;
 
@@ -2936,8 +3289,8 @@ export interface OrcaCoreServer extends UntypedServiceImplementation {
   readAlgorithms: handleUnaryCall<AlgorithmsRead, Algorithms>;
   readProcessors: handleUnaryCall<ProcessorsRead, Processors>;
   readResultsStats: handleUnaryCall<ResultsStatsRead, ResultsStats>;
-  /** rpc ReadResultsForAlgorithm(AlgorithmResultsRead) returns (AlgorithmResults); */
   readResultFieldsForAlgorithm: handleUnaryCall<AlgorithmFieldsRead, AlgorithmFields>;
+  readResultsForAlgorithm: handleUnaryCall<ResultsForAlgorithmRead, ResultsForAlgorithm>;
 }
 
 export interface OrcaCoreClient extends Client {
@@ -3034,7 +3387,6 @@ export interface OrcaCoreClient extends Client {
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: ResultsStats) => void,
   ): ClientUnaryCall;
-  /** rpc ReadResultsForAlgorithm(AlgorithmResultsRead) returns (AlgorithmResults); */
   readResultFieldsForAlgorithm(
     request: AlgorithmFieldsRead,
     callback: (error: ServiceError | null, response: AlgorithmFields) => void,
@@ -3049,6 +3401,21 @@ export interface OrcaCoreClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: AlgorithmFields) => void,
+  ): ClientUnaryCall;
+  readResultsForAlgorithm(
+    request: ResultsForAlgorithmRead,
+    callback: (error: ServiceError | null, response: ResultsForAlgorithm) => void,
+  ): ClientUnaryCall;
+  readResultsForAlgorithm(
+    request: ResultsForAlgorithmRead,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: ResultsForAlgorithm) => void,
+  ): ClientUnaryCall;
+  readResultsForAlgorithm(
+    request: ResultsForAlgorithmRead,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: ResultsForAlgorithm) => void,
   ): ClientUnaryCall;
 }
 

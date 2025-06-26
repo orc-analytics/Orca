@@ -239,7 +239,13 @@ where
 	and (w.metadata::json->>sqlc.arg('metadata_field')) = sqlc.arg('metadata_field_match');
 
 -- name: ReadResultsForAlgorithm :many
-select r.* from results r
+select
+  w.time_from,
+  w.time_to,
+  r.result_value,
+  r.result_array,
+  r.result_json
+from results r
 join algorithm a on r.algorithm_id = a.id
 join windows w on r.windows_id = w.id
 where
