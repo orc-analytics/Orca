@@ -133,14 +133,17 @@ message AlgorithmDependency {
 }
 
 enum ResultType {
+  // placeholder sentinel to make explicit that nothing was provided 
+  NOT_SPECIFIED = 1;
+
   // the algorithm produces a struct result
-  STRUCT = 0;
+  STRUCT = 1;
 
   // the algorithm produces a single value
-  VALUE = 1;
+  VALUE = 2;
   
   // the algorithm produces an array of values
-  ARRAY = 2;
+  ARRAY = 3;
 }
 
 // Algorithm defines a processing unit that can be executed by processors.
