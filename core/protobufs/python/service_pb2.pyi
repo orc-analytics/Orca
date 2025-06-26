@@ -10,6 +10,7 @@ DESCRIPTOR: _descriptor.FileDescriptor
 
 class ResultType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
+    NOT_SPECIFIED: _ClassVar[ResultType]
     STRUCT: _ClassVar[ResultType]
     VALUE: _ClassVar[ResultType]
     ARRAY: _ClassVar[ResultType]
@@ -19,6 +20,7 @@ class ResultStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     RESULT_STATUS_HANDLED_FAILED: _ClassVar[ResultStatus]
     RESULT_STATUS_UNHANDLED_FAILED: _ClassVar[ResultStatus]
     RESULT_STATUS_SUCEEDED: _ClassVar[ResultStatus]
+NOT_SPECIFIED: ResultType
 STRUCT: ResultType
 VALUE: ResultType
 ARRAY: ResultType

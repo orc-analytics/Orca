@@ -134,7 +134,7 @@ message AlgorithmDependency {
 
 enum ResultType {
   // placeholder sentinel to make explicit that nothing was provided 
-  NOT_SPECIFIED = 1;
+  NOT_SPECIFIED = 0;
 
   // the algorithm produces a struct result
   STRUCT = 1;
