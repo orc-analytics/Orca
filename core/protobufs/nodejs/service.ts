@@ -25,24 +25,29 @@ import { Struct } from "./google/protobuf/struct";
 export const protobufPackage = "";
 
 export enum ResultType {
+  /** NOT_SPECIFIED - placeholder sentinel to make explicit that nothing was provided */
+  NOT_SPECIFIED = 0,
   /** STRUCT - the algorithm produces a struct result */
-  STRUCT = 0,
+  STRUCT = 1,
   /** VALUE - the algorithm produces a single value */
-  VALUE = 1,
+  VALUE = 2,
   /** ARRAY - the algorithm produces an array of values */
-  ARRAY = 2,
+  ARRAY = 3,
   UNRECOGNIZED = -1,
 }
 
 export function resultTypeFromJSON(object: any): ResultType {
   switch (object) {
     case 0:
+    case "NOT_SPECIFIED":
+      return ResultType.NOT_SPECIFIED;
+    case 1:
     case "STRUCT":
       return ResultType.STRUCT;
-    case 1:
+    case 2:
     case "VALUE":
       return ResultType.VALUE;
-    case 2:
+    case 3:
     case "ARRAY":
       return ResultType.ARRAY;
     case -1:
@@ -54,6 +59,8 @@ export function resultTypeFromJSON(object: any): ResultType {
 
 export function resultTypeToJSON(object: ResultType): string {
   switch (object) {
+    case ResultType.NOT_SPECIFIED:
+      return "NOT_SPECIFIED";
     case ResultType.STRUCT:
       return "STRUCT";
     case ResultType.VALUE:
