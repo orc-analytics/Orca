@@ -33,6 +33,8 @@ export enum ResultType {
   VALUE = 2,
   /** ARRAY - the algorithm produces an array of values */
   ARRAY = 3,
+  /** NONE - the algorithm does not produce a result */
+  NONE = 4,
   UNRECOGNIZED = -1,
 }
 
@@ -50,6 +52,9 @@ export function resultTypeFromJSON(object: any): ResultType {
     case 3:
     case "ARRAY":
       return ResultType.ARRAY;
+    case 4:
+    case "NONE":
+      return ResultType.NONE;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -67,6 +72,8 @@ export function resultTypeToJSON(object: ResultType): string {
       return "VALUE";
     case ResultType.ARRAY:
       return "ARRAY";
+    case ResultType.NONE:
+      return "NONE";
     case ResultType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

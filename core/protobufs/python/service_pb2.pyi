@@ -14,6 +14,7 @@ class ResultType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     STRUCT: _ClassVar[ResultType]
     VALUE: _ClassVar[ResultType]
     ARRAY: _ClassVar[ResultType]
+    NONE: _ClassVar[ResultType]
 
 class ResultStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -24,6 +25,7 @@ NOT_SPECIFIED: ResultType
 STRUCT: ResultType
 VALUE: ResultType
 ARRAY: ResultType
+NONE: ResultType
 RESULT_STATUS_HANDLED_FAILED: ResultStatus
 RESULT_STATUS_UNHANDLED_FAILED: ResultStatus
 RESULT_STATUS_SUCEEDED: ResultStatus

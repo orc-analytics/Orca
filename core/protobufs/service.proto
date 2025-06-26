@@ -144,6 +144,9 @@ enum ResultType {
   
   // the algorithm produces an array of values
   ARRAY = 3;
+
+  // the algorithm does not produce a result
+  NONE = 4;
 }
 
 // Algorithm defines a processing unit that can be executed by processors.
