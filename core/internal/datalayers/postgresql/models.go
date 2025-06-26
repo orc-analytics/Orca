@@ -5,8 +5,54 @@
 package postgresql
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type ResultType string
+
+const (
+	ResultTypeStruct ResultType = "struct"
+	ResultTypeArray  ResultType = "array"
+	ResultTypeValue  ResultType = "value"
+)
+
+func (e *ResultType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ResultType(s)
+	case string:
+		*e = ResultType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ResultType: %T", src)
+	}
+	return nil
+}
+
+type NullResultType struct {
+	ResultType ResultType
+	Valid      bool // Valid is true if ResultType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullResultType) Scan(value interface{}) error {
+	if value == nil {
+		ns.ResultType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ResultType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullResultType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ResultType), nil
+}
 
 type Algorithm struct {
 	ID           int64
@@ -15,6 +61,7 @@ type Algorithm struct {
 	ProcessorID  int64
 	WindowTypeID int64
 	Created      pgtype.Timestamp
+	ResultType   NullResultType
 }
 
 type AlgorithmDependency struct {

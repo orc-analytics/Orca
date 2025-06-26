@@ -14,22 +14,24 @@ import (
 const createAlgorithm = `-- name: CreateAlgorithm :exec
 WITH processor_id AS (
   SELECT id FROM processor p
-  WHERE p.name = $3 
-  AND p.runtime = $4
+  WHERE p.name = $4 
+  AND p.runtime = $5
 ),
 window_type_id AS (
   SELECT id FROM window_type w
-  WHERE w.name = $5 
-  AND w.version = $6
+  WHERE w.name = $6 
+  AND w.version = $7
 )
 INSERT INTO algorithm (
   name,
   version,
   processor_id,
-  window_type_id
+  window_type_id,
+  result_type
 ) VALUES (
   $1,
   $2,
+  $3,
   (SELECT id FROM processor_id),
   (SELECT id FROM window_type_id)
 ) ON CONFLICT DO NOTHING
@@ -38,6 +40,7 @@ INSERT INTO algorithm (
 type CreateAlgorithmParams struct {
 	Name              string
 	Version           string
+	ResultType        int64
 	ProcessorName     string
 	ProcessorRuntime  string
 	WindowTypeName    string
@@ -48,6 +51,7 @@ func (q *Queries) CreateAlgorithm(ctx context.Context, arg CreateAlgorithmParams
 	_, err := q.db.Exec(ctx, createAlgorithm,
 		arg.Name,
 		arg.Version,
+		arg.ResultType,
 		arg.ProcessorName,
 		arg.ProcessorRuntime,
 		arg.WindowTypeName,
@@ -415,7 +419,7 @@ func (q *Queries) ReadAlgorithms(ctx context.Context) ([]ReadAlgorithmsRow, erro
 }
 
 const readAlgorithmsForWindow = `-- name: ReadAlgorithmsForWindow :many
-SELECT a.id, a.name, a.version, a.processor_id, a.window_type_id, a.created FROM algorithm a
+SELECT a.id, a.name, a.version, a.processor_id, a.window_type_id, a.created, a.result_type FROM algorithm a
 JOIN window_type wt ON a.window_type_id = wt.id
 WHERE wt.name = $1 
 AND wt.version = $2
@@ -442,6 +446,7 @@ func (q *Queries) ReadAlgorithmsForWindow(ctx context.Context, arg ReadAlgorithm
 			&i.ProcessorID,
 			&i.WindowTypeID,
 			&i.Created,
+			&i.ResultType,
 		); err != nil {
 			return nil, err
 		}

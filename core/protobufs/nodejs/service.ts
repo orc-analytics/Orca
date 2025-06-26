@@ -24,6 +24,48 @@ import { Struct } from "./google/protobuf/struct";
 
 export const protobufPackage = "";
 
+export enum ResultType {
+  /** STRUCT - the algorithm produces a struct result */
+  STRUCT = 0,
+  /** VALUE - the algorithm produces a single value */
+  VALUE = 1,
+  /** ARRAY - the algorithm produces an array of values */
+  ARRAY = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function resultTypeFromJSON(object: any): ResultType {
+  switch (object) {
+    case 0:
+    case "STRUCT":
+      return ResultType.STRUCT;
+    case 1:
+    case "VALUE":
+      return ResultType.VALUE;
+    case 2:
+    case "ARRAY":
+      return ResultType.ARRAY;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return ResultType.UNRECOGNIZED;
+  }
+}
+
+export function resultTypeToJSON(object: ResultType): string {
+  switch (object) {
+    case ResultType.STRUCT:
+      return "STRUCT";
+    case ResultType.VALUE:
+      return "VALUE";
+    case ResultType.ARRAY:
+      return "ARRAY";
+    case ResultType.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 /** ResultStatus indicates the outcome of algorithm execution */
 export enum ResultStatus {
   /**
@@ -247,7 +289,14 @@ export interface Algorithm {
    * The algorithm won't execute until all dependencies have completed
    * Dependencies must not form cycles - this is statically checked on processor registration
    */
-  dependencies?: AlgorithmDependency[] | undefined;
+  dependencies?:
+    | AlgorithmDependency[]
+    | undefined;
+  /**
+   * The type of result that the algorithm produces. This is specified upfront
+   * rather than introspected, to allow for validation
+   */
+  resultType?: ResultType | undefined;
 }
 
 /** Container for array of float values */
@@ -919,7 +968,7 @@ export const AlgorithmDependency: MessageFns<AlgorithmDependency> = {
 };
 
 function createBaseAlgorithm(): Algorithm {
-  return { name: "", version: "", windowType: undefined, dependencies: [] };
+  return { name: "", version: "", windowType: undefined, dependencies: [], resultType: 0 };
 }
 
 export const Algorithm: MessageFns<Algorithm> = {
@@ -937,6 +986,9 @@ export const Algorithm: MessageFns<Algorithm> = {
       for (const v of message.dependencies) {
         AlgorithmDependency.encode(v!, writer.uint32(34).fork()).join();
       }
+    }
+    if (message.resultType !== undefined && message.resultType !== 0) {
+      writer.uint32(40).int32(message.resultType);
     }
     return writer;
   },
@@ -983,6 +1035,14 @@ export const Algorithm: MessageFns<Algorithm> = {
           }
           continue;
         }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.resultType = reader.int32() as any;
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1000,6 +1060,7 @@ export const Algorithm: MessageFns<Algorithm> = {
       dependencies: globalThis.Array.isArray(object?.dependencies)
         ? object.dependencies.map((e: any) => AlgorithmDependency.fromJSON(e))
         : [],
+      resultType: isSet(object.resultType) ? resultTypeFromJSON(object.resultType) : 0,
     };
   },
 
@@ -1017,6 +1078,9 @@ export const Algorithm: MessageFns<Algorithm> = {
     if (message.dependencies?.length) {
       obj.dependencies = message.dependencies.map((e) => AlgorithmDependency.toJSON(e));
     }
+    if (message.resultType !== undefined && message.resultType !== 0) {
+      obj.resultType = resultTypeToJSON(message.resultType);
+    }
     return obj;
   },
 
@@ -1031,6 +1095,7 @@ export const Algorithm: MessageFns<Algorithm> = {
       ? WindowType.fromPartial(object.windowType)
       : undefined;
     message.dependencies = object.dependencies?.map((e) => AlgorithmDependency.fromPartial(e)) || [];
+    message.resultType = object.resultType ?? 0;
     return message;
   },
 };
@@ -2835,6 +2900,7 @@ export const OrcaCoreService = {
     responseSerialize: (value: ResultsStats): Buffer => Buffer.from(ResultsStats.encode(value).finish()),
     responseDeserialize: (value: Buffer): ResultsStats => ResultsStats.decode(value),
   },
+  /** rpc ReadResultsForAlgorithm(AlgorithmResultsRead) returns (AlgorithmResults); */
   readResultFieldsForAlgorithm: {
     path: "/OrcaCore/ReadResultFieldsForAlgorithm",
     requestStream: false,
@@ -2856,6 +2922,7 @@ export interface OrcaCoreServer extends UntypedServiceImplementation {
   readAlgorithms: handleUnaryCall<AlgorithmsRead, Algorithms>;
   readProcessors: handleUnaryCall<ProcessorsRead, Processors>;
   readResultsStats: handleUnaryCall<ResultsStatsRead, ResultsStats>;
+  /** rpc ReadResultsForAlgorithm(AlgorithmResultsRead) returns (AlgorithmResults); */
   readResultFieldsForAlgorithm: handleUnaryCall<AlgorithmFieldsRead, AlgorithmFields>;
 }
 
@@ -2953,6 +3020,7 @@ export interface OrcaCoreClient extends Client {
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: ResultsStats) => void,
   ): ClientUnaryCall;
+  /** rpc ReadResultsForAlgorithm(AlgorithmResultsRead) returns (AlgorithmResults); */
   readResultFieldsForAlgorithm(
     request: AlgorithmFieldsRead,
     callback: (error: ServiceError | null, response: AlgorithmFields) => void,
