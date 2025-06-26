@@ -8,11 +8,20 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class ResultType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    STRUCT: _ClassVar[ResultType]
+    VALUE: _ClassVar[ResultType]
+    ARRAY: _ClassVar[ResultType]
+
 class ResultStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     RESULT_STATUS_HANDLED_FAILED: _ClassVar[ResultStatus]
     RESULT_STATUS_UNHANDLED_FAILED: _ClassVar[ResultStatus]
     RESULT_STATUS_SUCEEDED: _ClassVar[ResultStatus]
+STRUCT: ResultType
+VALUE: ResultType
+ARRAY: ResultType
 RESULT_STATUS_HANDLED_FAILED: ResultStatus
 RESULT_STATUS_UNHANDLED_FAILED: ResultStatus
 RESULT_STATUS_SUCEEDED: ResultStatus
@@ -70,16 +79,18 @@ class AlgorithmDependency(_message.Message):
     def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., processor_name: _Optional[str] = ..., processor_runtime: _Optional[str] = ...) -> None: ...
 
 class Algorithm(_message.Message):
-    __slots__ = ("name", "version", "window_type", "dependencies")
+    __slots__ = ("name", "version", "window_type", "dependencies", "result_type")
     NAME_FIELD_NUMBER: _ClassVar[int]
     VERSION_FIELD_NUMBER: _ClassVar[int]
     WINDOW_TYPE_FIELD_NUMBER: _ClassVar[int]
     DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
+    RESULT_TYPE_FIELD_NUMBER: _ClassVar[int]
     name: str
     version: str
     window_type: WindowType
     dependencies: _containers.RepeatedCompositeFieldContainer[AlgorithmDependency]
-    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., window_type: _Optional[_Union[WindowType, _Mapping]] = ..., dependencies: _Optional[_Iterable[_Union[AlgorithmDependency, _Mapping]]] = ...) -> None: ...
+    result_type: ResultType
+    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., window_type: _Optional[_Union[WindowType, _Mapping]] = ..., dependencies: _Optional[_Iterable[_Union[AlgorithmDependency, _Mapping]]] = ..., result_type: _Optional[_Union[ResultType, str]] = ...) -> None: ...
 
 class FloatArray(_message.Message):
     __slots__ = ("values",)

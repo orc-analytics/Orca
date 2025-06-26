@@ -340,3 +340,7 @@ func (d *Datalayer) ReadResultFieldsForAlgorithm(
 	}
 	return &algorithmFieldsResult, tx.Commit(ctx)
 }
+
+// func (d *Datalayer) ReadResultsForAlgoritm(
+// 	ctx context.Context,
+// )

@@ -45,10 +45,12 @@ INSERT INTO algorithm (
   name,
   version,
   processor_id,
-  window_type_id
+  window_type_id,
+  result_type
 ) VALUES (
   sqlc.arg('name'),
   sqlc.arg('version'),
+  sqlc.arg('result_type'),
   (SELECT id FROM processor_id),
   (SELECT id FROM window_type_id)
 ) ON CONFLICT DO NOTHING;

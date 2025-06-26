@@ -1,0 +1,1 @@
+DROP TYPE IF EXISTS result_type CASCADE;

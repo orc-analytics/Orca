@@ -26,6 +26,7 @@ service OrcaCore {
   rpc ReadProcessors(ProcessorsRead) returns (Processors);
   rpc ReadResultsStats(ResultsStatsRead) returns (ResultsStats);
   rpc ReadResultFieldsForAlgorithm(AlgorithmFieldsRead) returns (AlgorithmFields);
+  // rpc ReadResultsForAlgorithm(AlgorithmResultsRead) returns (AlgorithmResults);
 }
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:
@@ -131,6 +132,17 @@ message AlgorithmDependency {
   string processor_runtime = 4 [(buf.validate.field).required = true];
 }
 
+enum ResultType {
+  // the algorithm produces a struct result
+  STRUCT = 0;
+
+  // the algorithm produces a single value
+  VALUE = 1;
+  
+  // the algorithm produces an array of values
+  ARRAY = 2;
+}
+
 // Algorithm defines a processing unit that can be executed by processors.
 // Algorithms form the nodes in the processing DAG and are triggered by specific window types.
 message Algorithm {
@@ -150,6 +162,10 @@ message Algorithm {
   // The algorithm won't execute until all dependencies have completed
   // Dependencies must not form cycles - this is statically checked on processor registration
   repeated AlgorithmDependency dependencies = 4;
+  
+  // The type of result that the algorithm produces. This is specified upfront
+  // rather than introspected, to allow for validation
+  ResultType result_type = 5 [(buf.validate.field).required = true];  
 }
 
 // ResultStatus indicates the outcome of algorithm execution
@@ -348,9 +364,9 @@ message ResultsStats {
 }
 
 message AlgorithmFieldsRead {
-  int64 time_from = 1;
-  int64 time_to = 2;
-  Algorithm algorithm = 3;
+  int64 time_from = 1 [(buf.validate.field).required = true];
+  int64 time_to = 2 [(buf.validate.field).required = true];
+  Algorithm algorithm = 3 [(buf.validate.field).required = true];
 }
 
 message AlgorithmFields {
