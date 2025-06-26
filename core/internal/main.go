@@ -145,3 +145,10 @@ func (o *OrcaCoreServer) ReadResultsForAlgorithm(
 ) (*pb.ResultsForAlgorithm, error) {
 	return o.client.ReadResultsForAlgorithm(ctx, resultsForAlgorithmRead)
 }
+
+func (o *OrcaCoreServer) ReadWindows(
+	ctx context.Context,
+	windowReads *pb.WindowsRead,
+) (*pb.Windows, error) {
+	return o.client.ReadWindows(ctx, windowReads)
+}

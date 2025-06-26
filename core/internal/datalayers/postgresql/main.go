@@ -432,3 +432,46 @@ func (d *Datalayer) ReadResultsForAlgorithm(
 	}
 	return &resultsPb, tx.Commit(ctx)
 }
+
+func (d *Datalayer) ReadWindows(
+	ctx context.Context,
+	windowsRead *pb.WindowsRead,
+) (*pb.Windows, error) {
+	tx, err := d.WithTx(ctx)
+	if err != nil {
+		slog.Error("could not start a transaction", "error", err)
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+
+	readWindowsRows, err := qtx.ReadWindows(ctx, ReadWindowsParams{
+		TimeFrom:          windowsRead.GetTimeFrom(),
+		TimeTo:            windowsRead.GetTimeTo(),
+		WindowTypeName:    windowsRead.GetWindow().GetName(),
+		WindowTypeVersion: windowsRead.GetWindow().GetVersion(),
+	})
+	if err != nil {
+		return &pb.Windows{}, fmt.Errorf("could not read windows: %v", err)
+	}
+	windowsPb := pb.Windows{
+		Window: make([]*pb.Window, len(readWindowsRows)),
+	}
+
+	for ii, windowRow := range readWindowsRows {
+		metadata, err := unmarshalToStruct(windowRow.Metadata)
+		if err != nil {
+			return &pb.Windows{}, fmt.Errorf("could not unpack specific window metadata: %v", err)
+		}
+
+		windowsPb.Window[ii] = &pb.Window{
+			TimeFrom: uint64(windowRow.TimeFrom),
+			TimeTo:   uint64(windowRow.TimeTo),
+			Origin:   windowRow.Origin,
+			Metadata: metadata,
+		}
+	}
+	return &windowsPb, tx.Commit(ctx)
+}

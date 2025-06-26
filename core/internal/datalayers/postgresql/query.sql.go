@@ -867,7 +867,7 @@ func (q *Queries) ReadWindowTypes(ctx context.Context) ([]ReadWindowTypesRow, er
 }
 
 const readWindows = `-- name: ReadWindows :many
-select w.time_from, w.time_to from windows w
+select w.time_from, w.time_to, w.origin, w.metadata from windows w
 join window_type wt on w.window_type_id =wt.id
 where
 	wt."name" = $1 and wt."version" = $2
@@ -884,6 +884,8 @@ type ReadWindowsParams struct {
 type ReadWindowsRow struct {
 	TimeFrom int64
 	TimeTo   int64
+	Origin   string
+	Metadata []byte
 }
 
 func (q *Queries) ReadWindows(ctx context.Context, arg ReadWindowsParams) ([]ReadWindowsRow, error) {
@@ -900,7 +902,12 @@ func (q *Queries) ReadWindows(ctx context.Context, arg ReadWindowsParams) ([]Rea
 	var items []ReadWindowsRow
 	for rows.Next() {
 		var i ReadWindowsRow
-		if err := rows.Scan(&i.TimeFrom, &i.TimeTo); err != nil {
+		if err := rows.Scan(
+			&i.TimeFrom,
+			&i.TimeTo,
+			&i.Origin,
+			&i.Metadata,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -305,3 +305,19 @@ class ResultsForAlgorithm(_message.Message):
     RESULTS_FIELD_NUMBER: _ClassVar[int]
     results: _containers.RepeatedCompositeFieldContainer[ResultsForAlgorithm.ResultsRow]
     def __init__(self, results: _Optional[_Iterable[_Union[ResultsForAlgorithm.ResultsRow, _Mapping]]] = ...) -> None: ...
+
+class WindowsRead(_message.Message):
+    __slots__ = ("time_from", "time_to", "window")
+    TIME_FROM_FIELD_NUMBER: _ClassVar[int]
+    TIME_TO_FIELD_NUMBER: _ClassVar[int]
+    WINDOW_FIELD_NUMBER: _ClassVar[int]
+    time_from: int
+    time_to: int
+    window: WindowType
+    def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., window: _Optional[_Union[WindowType, _Mapping]] = ...) -> None: ...
+
+class Windows(_message.Message):
+    __slots__ = ("window",)
+    WINDOW_FIELD_NUMBER: _ClassVar[int]
+    window: _containers.RepeatedCompositeFieldContainer[Window]
+    def __init__(self, window: _Optional[_Iterable[_Union[Window, _Mapping]]] = ...) -> None: ...
