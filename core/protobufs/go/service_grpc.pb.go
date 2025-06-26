@@ -26,6 +26,7 @@ const (
 	OrcaCore_ReadProcessors_FullMethodName               = "/OrcaCore/ReadProcessors"
 	OrcaCore_ReadResultsStats_FullMethodName             = "/OrcaCore/ReadResultsStats"
 	OrcaCore_ReadResultFieldsForAlgorithm_FullMethodName = "/OrcaCore/ReadResultFieldsForAlgorithm"
+	OrcaCore_ReadResultsForAlgorithm_FullMethodName      = "/OrcaCore/ReadResultsForAlgorithm"
 )
 
 // OrcaCoreClient is the client API for OrcaCore service.
@@ -48,6 +49,7 @@ type OrcaCoreClient interface {
 	ReadProcessors(ctx context.Context, in *ProcessorsRead, opts ...grpc.CallOption) (*Processors, error)
 	ReadResultsStats(ctx context.Context, in *ResultsStatsRead, opts ...grpc.CallOption) (*ResultsStats, error)
 	ReadResultFieldsForAlgorithm(ctx context.Context, in *AlgorithmFieldsRead, opts ...grpc.CallOption) (*AlgorithmFields, error)
+	ReadResultsForAlgorithm(ctx context.Context, in *ResultsForAlgorithmRead, opts ...grpc.CallOption) (*ResultsForAlgorithm, error)
 }
 
 type orcaCoreClient struct {
@@ -128,6 +130,16 @@ func (c *orcaCoreClient) ReadResultFieldsForAlgorithm(ctx context.Context, in *A
 	return out, nil
 }
 
+func (c *orcaCoreClient) ReadResultsForAlgorithm(ctx context.Context, in *ResultsForAlgorithmRead, opts ...grpc.CallOption) (*ResultsForAlgorithm, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResultsForAlgorithm)
+	err := c.cc.Invoke(ctx, OrcaCore_ReadResultsForAlgorithm_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrcaCoreServer is the server API for OrcaCore service.
 // All implementations must embed UnimplementedOrcaCoreServer
 // for forward compatibility.
@@ -148,6 +160,7 @@ type OrcaCoreServer interface {
 	ReadProcessors(context.Context, *ProcessorsRead) (*Processors, error)
 	ReadResultsStats(context.Context, *ResultsStatsRead) (*ResultsStats, error)
 	ReadResultFieldsForAlgorithm(context.Context, *AlgorithmFieldsRead) (*AlgorithmFields, error)
+	ReadResultsForAlgorithm(context.Context, *ResultsForAlgorithmRead) (*ResultsForAlgorithm, error)
 	mustEmbedUnimplementedOrcaCoreServer()
 }
 
@@ -178,6 +191,9 @@ func (UnimplementedOrcaCoreServer) ReadResultsStats(context.Context, *ResultsSta
 }
 func (UnimplementedOrcaCoreServer) ReadResultFieldsForAlgorithm(context.Context, *AlgorithmFieldsRead) (*AlgorithmFields, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadResultFieldsForAlgorithm not implemented")
+}
+func (UnimplementedOrcaCoreServer) ReadResultsForAlgorithm(context.Context, *ResultsForAlgorithmRead) (*ResultsForAlgorithm, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadResultsForAlgorithm not implemented")
 }
 func (UnimplementedOrcaCoreServer) mustEmbedUnimplementedOrcaCoreServer() {}
 func (UnimplementedOrcaCoreServer) testEmbeddedByValue()                  {}
@@ -326,6 +342,24 @@ func _OrcaCore_ReadResultFieldsForAlgorithm_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrcaCore_ReadResultsForAlgorithm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResultsForAlgorithmRead)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaCoreServer).ReadResultsForAlgorithm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaCore_ReadResultsForAlgorithm_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaCoreServer).ReadResultsForAlgorithm(ctx, req.(*ResultsForAlgorithmRead))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrcaCore_ServiceDesc is the grpc.ServiceDesc for OrcaCore service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -360,6 +394,10 @@ var OrcaCore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReadResultFieldsForAlgorithm",
 			Handler:    _OrcaCore_ReadResultFieldsForAlgorithm_Handler,
+		},
+		{
+			MethodName: "ReadResultsForAlgorithm",
+			Handler:    _OrcaCore_ReadResultsForAlgorithm_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

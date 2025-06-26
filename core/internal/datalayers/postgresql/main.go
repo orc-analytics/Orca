@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/predixus/orca/core/internal/dag"
 	pb "github.com/predixus/orca/core/protobufs/go"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func (d *Datalayer) RegisterProcessor(
@@ -354,6 +356,82 @@ func (d *Datalayer) ReadResultFieldsForAlgorithm(
 	return &algorithmFieldsResult, tx.Commit(ctx)
 }
 
-// func (d *Datalayer) ReadResultsForAlgoritm(
-// 	ctx context.Context,
-// )
+func (d *Datalayer) ReadResultsForAlgoritm(
+	ctx context.Context,
+	resultsForAlgorithmRead *pb.ResultsForAlgorithmRead,
+) (*pb.ResultsForAlgorithm, error) {
+	if resultsForAlgorithmRead.GetAlgorithm().GetResultType() == pb.ResultType_NONE {
+		return &pb.ResultsForAlgorithm{}, fmt.Errorf(
+			"cannot get results for algorithm that does not produce results",
+		)
+	}
+
+	tx, err := d.WithTx(ctx)
+	if err != nil {
+		slog.Error("could not start a transaction", "error", err)
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+
+	results, err := qtx.ReadResultsForAlgorithm(ctx, ReadResultsForAlgorithmParams{
+		TimeFrom:         resultsForAlgorithmRead.TimeFrom,
+		TimeTo:           resultsForAlgorithmRead.TimeTo,
+		AlgorithmName:    resultsForAlgorithmRead.GetAlgorithm().GetName(),
+		AlgorithmVersion: resultsForAlgorithmRead.GetAlgorithm().GetName(),
+	})
+	if err != nil {
+		return &pb.ResultsForAlgorithm{}, fmt.Errorf(
+			"could not read results for algorithm: %v",
+			err,
+		)
+	}
+	resultsPb := pb.ResultsForAlgorithm{
+		Results: make([]*pb.ResultsForAlgorithm_ResultsRow, len(results)),
+	}
+
+	if resultsForAlgorithmRead.GetAlgorithm().GetResultType() == pb.ResultType_VALUE {
+		for ii, res := range results {
+			resultsPb.Results[ii] = &pb.ResultsForAlgorithm_ResultsRow{
+				TimeFrom: res.TimeFrom,
+				TimeTo:   res.TimeTo,
+				ResultData: &pb.ResultsForAlgorithm_ResultsRow_SingleValue{
+					SingleValue: float32(res.ResultValue.Float64),
+				},
+			}
+		}
+	} else if resultsForAlgorithmRead.GetAlgorithm().GetResultType() == pb.ResultType_ARRAY {
+		for ii, res := range results {
+			resultsPb.Results[ii] = &pb.ResultsForAlgorithm_ResultsRow{
+				TimeFrom: res.TimeFrom,
+				TimeTo:   res.TimeTo,
+				ResultData: &pb.ResultsForAlgorithm_ResultsRow_ArrayValues{
+					ArrayValues: &pb.FloatArray{
+						Values: convertFloat64ToFloat32(res.ResultArray),
+					},
+				},
+			}
+		}
+	} else if resultsForAlgorithmRead.GetAlgorithm().GetResultType() == pb.ResultType_STRUCT {
+		for ii, res := range results {
+			newStruct := structpb.NewNullValue().GetStructValue()
+			err := newStruct.UnmarshalJSON(res.ResultJson)
+			if err != nil {
+				return &pb.ResultsForAlgorithm{}, fmt.Errorf("unable to parse struct data for algorithm %v: ", resultsForAlgorithmRead.Algorithm, err)
+			}
+
+			resultsPb.Results[ii] = &pb.ResultsForAlgorithm_ResultsRow{
+				TimeFrom: res.TimeFrom,
+				TimeTo:   res.TimeTo,
+				ResultData: &pb.ResultsForAlgorithm_ResultsRow_StructValue{
+					StructValue: newStruct,
+				},
+			}
+		}
+	} else {
+		return &pb.ResultsForAlgorithm{}, fmt.Errorf("unhandled result type: %v", resultsForAlgorithmRead.GetAlgorithm().GetResultType())
+	}
+	return &resultsPb, nil
+}
