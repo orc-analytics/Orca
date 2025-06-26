@@ -118,6 +118,8 @@ func (d *Datalayer) addAlgorithm(
 		resultType = ResultTypeValue
 	} else if algo.GetResultType() == pb.ResultType_STRUCT {
 		resultType = ResultTypeStruct
+	} else if algo.GetResultType() == pb.ResultType_NONE {
+		resultType = ResultTypeNone
 	} else {
 		return fmt.Errorf("result type %v not supported", algo.GetResultType())
 	}

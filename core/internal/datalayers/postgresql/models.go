@@ -17,6 +17,7 @@ const (
 	ResultTypeStruct ResultType = "struct"
 	ResultTypeArray  ResultType = "array"
 	ResultTypeValue  ResultType = "value"
+	ResultTypeNone   ResultType = "none"
 )
 
 func (e *ResultType) Scan(src interface{}) error {
