@@ -3,6 +3,7 @@ package postgresql
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"slices"
 	"strconv"
@@ -108,7 +109,19 @@ func (d *Datalayer) addAlgorithm(
 ) error {
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
+
 	// create algos
+	var resultType ResultType
+	if algo.GetResultType() == pb.ResultType_ARRAY {
+		resultType = ResultTypeArray
+	} else if algo.GetResultType() == pb.ResultType_VALUE {
+		resultType = ResultTypeValue
+	} else if algo.GetResultType() == pb.ResultType_STRUCT {
+		resultType = ResultTypeStruct
+	} else {
+		return fmt.Errorf("result type %v not supported", algo.GetResultType())
+	}
+
 	params := CreateAlgorithmParams{
 		Name:              algo.GetName(),
 		Version:           algo.GetVersion(),
@@ -116,7 +129,12 @@ func (d *Datalayer) addAlgorithm(
 		ProcessorRuntime:  proc.GetRuntime(),
 		WindowTypeName:    algo.GetWindowType().GetName(),
 		WindowTypeVersion: algo.GetWindowType().GetVersion(),
+		ResultType: NullResultType{
+			ResultType: resultType,
+			Valid:      true,
+		},
 	}
+
 	err := qtx.CreateAlgorithm(ctx, params)
 	if err != nil {
 		slog.Error("error creating algorithm", "error", err)

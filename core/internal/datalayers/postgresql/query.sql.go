@@ -31,16 +31,16 @@ INSERT INTO algorithm (
 ) VALUES (
   $1,
   $2,
-  $3,
   (SELECT id FROM processor_id),
-  (SELECT id FROM window_type_id)
+  (SELECT id FROM window_type_id),
+  $3
 ) ON CONFLICT DO NOTHING
 `
 
 type CreateAlgorithmParams struct {
 	Name              string
 	Version           string
-	ResultType        int64
+	ResultType        NullResultType
 	ProcessorName     string
 	ProcessorRuntime  string
 	WindowTypeName    string

@@ -50,9 +50,9 @@ INSERT INTO algorithm (
 ) VALUES (
   sqlc.arg('name'),
   sqlc.arg('version'),
-  sqlc.arg('result_type'),
   (SELECT id FROM processor_id),
-  (SELECT id FROM window_type_id)
+  (SELECT id FROM window_type_id),
+  sqlc.arg('result_type')
 ) ON CONFLICT DO NOTHING;
 
 -- name: ReadAlgorithmsForWindow :many
