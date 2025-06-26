@@ -143,5 +143,5 @@ func (o *OrcaCoreServer) ReadResultsForAlgorithm(
 	ctx context.Context,
 	resultsForAlgorithmRead *pb.ResultsForAlgorithmRead,
 ) (*pb.ResultsForAlgorithm, error) {
-	return o.client.ReadResultsForALgorithm(ctx, resultsForAlgorithmRead)
+	return o.client.ReadResultsForAlgorithm(ctx, resultsForAlgorithmRead)
 }

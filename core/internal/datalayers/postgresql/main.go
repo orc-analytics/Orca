@@ -2,7 +2,6 @@ package postgresql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/predixus/orca/core/internal/dag"
 	pb "github.com/predixus/orca/core/protobufs/go"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func (d *Datalayer) RegisterProcessor(
@@ -356,7 +354,7 @@ func (d *Datalayer) ReadResultFieldsForAlgorithm(
 	return &algorithmFieldsResult, tx.Commit(ctx)
 }
 
-func (d *Datalayer) ReadResultsForAlgoritm(
+func (d *Datalayer) ReadResultsForAlgorithm(
 	ctx context.Context,
 	resultsForAlgorithmRead *pb.ResultsForAlgorithmRead,
 ) (*pb.ResultsForAlgorithm, error) {
@@ -380,7 +378,7 @@ func (d *Datalayer) ReadResultsForAlgoritm(
 		TimeFrom:         resultsForAlgorithmRead.TimeFrom,
 		TimeTo:           resultsForAlgorithmRead.TimeTo,
 		AlgorithmName:    resultsForAlgorithmRead.GetAlgorithm().GetName(),
-		AlgorithmVersion: resultsForAlgorithmRead.GetAlgorithm().GetName(),
+		AlgorithmVersion: resultsForAlgorithmRead.GetAlgorithm().GetVersion(),
 	})
 	if err != nil {
 		return &pb.ResultsForAlgorithm{}, fmt.Errorf(
@@ -416,10 +414,9 @@ func (d *Datalayer) ReadResultsForAlgoritm(
 		}
 	} else if resultsForAlgorithmRead.GetAlgorithm().GetResultType() == pb.ResultType_STRUCT {
 		for ii, res := range results {
-			newStruct := structpb.NewNullValue().GetStructValue()
-			err := newStruct.UnmarshalJSON(res.ResultJson)
+			newStruct, err := unmarshalToStruct(res.ResultJson)
 			if err != nil {
-				return &pb.ResultsForAlgorithm{}, fmt.Errorf("unable to parse struct data for algorithm %v: ", resultsForAlgorithmRead.Algorithm, err)
+				return &pb.ResultsForAlgorithm{}, fmt.Errorf("unable to parse struct data for algorithm %v: %v", resultsForAlgorithmRead.Algorithm, err)
 			}
 
 			resultsPb.Results[ii] = &pb.ResultsForAlgorithm_ResultsRow{
@@ -433,5 +430,5 @@ func (d *Datalayer) ReadResultsForAlgoritm(
 	} else {
 		return &pb.ResultsForAlgorithm{}, fmt.Errorf("unhandled result type: %v", resultsForAlgorithmRead.GetAlgorithm().GetResultType())
 	}
-	return &resultsPb, nil
+	return &resultsPb, tx.Commit(ctx)
 }
