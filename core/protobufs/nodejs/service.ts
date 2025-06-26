@@ -619,6 +619,16 @@ export interface ResultsForAlgorithm_ResultsRow {
     | undefined;
 }
 
+export interface WindowsRead {
+  timeFrom?: string | undefined;
+  timeTo?: string | undefined;
+  window?: WindowType | undefined;
+}
+
+export interface Windows {
+  window?: Window[] | undefined;
+}
+
 function createBaseWindow(): Window {
   return { timeFrom: "0", timeTo: "0", windowTypeName: "", windowTypeVersion: "", origin: "", metadata: undefined };
 }
@@ -3191,6 +3201,165 @@ export const ResultsForAlgorithm_ResultsRow: MessageFns<ResultsForAlgorithm_Resu
   },
 };
 
+function createBaseWindowsRead(): WindowsRead {
+  return { timeFrom: "0", timeTo: "0", window: undefined };
+}
+
+export const WindowsRead: MessageFns<WindowsRead> = {
+  encode(message: WindowsRead, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
+      writer.uint32(8).int64(message.timeFrom);
+    }
+    if (message.timeTo !== undefined && message.timeTo !== "0") {
+      writer.uint32(16).int64(message.timeTo);
+    }
+    if (message.window !== undefined) {
+      WindowType.encode(message.window, writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): WindowsRead {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWindowsRead();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.timeFrom = reader.int64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.timeTo = reader.int64().toString();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.window = WindowType.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): WindowsRead {
+    return {
+      timeFrom: isSet(object.timeFrom) ? globalThis.String(object.timeFrom) : "0",
+      timeTo: isSet(object.timeTo) ? globalThis.String(object.timeTo) : "0",
+      window: isSet(object.window) ? WindowType.fromJSON(object.window) : undefined,
+    };
+  },
+
+  toJSON(message: WindowsRead): unknown {
+    const obj: any = {};
+    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
+      obj.timeFrom = message.timeFrom;
+    }
+    if (message.timeTo !== undefined && message.timeTo !== "0") {
+      obj.timeTo = message.timeTo;
+    }
+    if (message.window !== undefined) {
+      obj.window = WindowType.toJSON(message.window);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<WindowsRead>, I>>(base?: I): WindowsRead {
+    return WindowsRead.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<WindowsRead>, I>>(object: I): WindowsRead {
+    const message = createBaseWindowsRead();
+    message.timeFrom = object.timeFrom ?? "0";
+    message.timeTo = object.timeTo ?? "0";
+    message.window = (object.window !== undefined && object.window !== null)
+      ? WindowType.fromPartial(object.window)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseWindows(): Windows {
+  return { window: [] };
+}
+
+export const Windows: MessageFns<Windows> = {
+  encode(message: Windows, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.window !== undefined && message.window.length !== 0) {
+      for (const v of message.window) {
+        Window.encode(v!, writer.uint32(10).fork()).join();
+      }
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Windows {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWindows();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          const el = Window.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.window!.push(el);
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Windows {
+    return {
+      window: globalThis.Array.isArray(object?.window) ? object.window.map((e: any) => Window.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: Windows): unknown {
+    const obj: any = {};
+    if (message.window?.length) {
+      obj.window = message.window.map((e) => Window.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Windows>, I>>(base?: I): Windows {
+    return Windows.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Windows>, I>>(object: I): Windows {
+    const message = createBaseWindows();
+    message.window = object.window?.map((e) => Window.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 /**
  * OrcaCore is the central orchestration service that:
  * - Manages the lifecycle of processing windows
@@ -3277,6 +3446,15 @@ export const OrcaCoreService = {
     responseSerialize: (value: ResultsForAlgorithm): Buffer => Buffer.from(ResultsForAlgorithm.encode(value).finish()),
     responseDeserialize: (value: Buffer): ResultsForAlgorithm => ResultsForAlgorithm.decode(value),
   },
+  readWindows: {
+    path: "/OrcaCore/ReadWindows",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: WindowsRead): Buffer => Buffer.from(WindowsRead.encode(value).finish()),
+    requestDeserialize: (value: Buffer): WindowsRead => WindowsRead.decode(value),
+    responseSerialize: (value: Windows): Buffer => Buffer.from(Windows.encode(value).finish()),
+    responseDeserialize: (value: Buffer): Windows => Windows.decode(value),
+  },
 } as const;
 
 export interface OrcaCoreServer extends UntypedServiceImplementation {
@@ -3291,6 +3469,7 @@ export interface OrcaCoreServer extends UntypedServiceImplementation {
   readResultsStats: handleUnaryCall<ResultsStatsRead, ResultsStats>;
   readResultFieldsForAlgorithm: handleUnaryCall<AlgorithmFieldsRead, AlgorithmFields>;
   readResultsForAlgorithm: handleUnaryCall<ResultsForAlgorithmRead, ResultsForAlgorithm>;
+  readWindows: handleUnaryCall<WindowsRead, Windows>;
 }
 
 export interface OrcaCoreClient extends Client {
@@ -3416,6 +3595,18 @@ export interface OrcaCoreClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: ResultsForAlgorithm) => void,
+  ): ClientUnaryCall;
+  readWindows(request: WindowsRead, callback: (error: ServiceError | null, response: Windows) => void): ClientUnaryCall;
+  readWindows(
+    request: WindowsRead,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: Windows) => void,
+  ): ClientUnaryCall;
+  readWindows(
+    request: WindowsRead,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: Windows) => void,
   ): ClientUnaryCall;
 }
 

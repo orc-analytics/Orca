@@ -33,6 +33,7 @@ type (
 			ctx context.Context,
 			resultsForAlgorithm *pb.ResultsForAlgorithmRead,
 		) (*pb.ResultsForAlgorithm, error)
+		ReadWindows(ctx context.Context, windowsRead *pb.WindowsRead) (*pb.Windows, error)
 	}
 )
 

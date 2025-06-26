@@ -27,6 +27,7 @@ service OrcaCore {
   rpc ReadResultsStats(ResultsStatsRead) returns (ResultsStats);
   rpc ReadResultFieldsForAlgorithm(AlgorithmFieldsRead) returns (AlgorithmFields);
   rpc ReadResultsForAlgorithm(ResultsForAlgorithmRead) returns (ResultsForAlgorithm);
+  rpc ReadWindows(WindowsRead) returns (Windows);
 }
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:
@@ -409,3 +410,14 @@ message ResultsForAlgorithm {
   }
   repeated ResultsRow results = 1;
 } 
+
+message WindowsRead {
+  int64 time_from = 1 [(buf.validate.field).required = true];
+  int64 time_to = 2 [(buf.validate.field).required = true];
+  WindowType window = 3 [(buf.validate.field).required = true];
+}
+
+message Windows {
+  repeated Window window = 1;
+}
+

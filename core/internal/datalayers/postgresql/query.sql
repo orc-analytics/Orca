@@ -272,7 +272,7 @@ where
 	and a."version" = sqlc.arg('algorithm_version');
 
 -- name: ReadWindows :many
-select w.time_from, w.time_to from windows w
+select w.time_from, w.time_to, w.origin, w.metadata from windows w
 join window_type wt on w.window_type_id =wt.id
 where
 	wt."name" = sqlc.arg('window_type_name') and wt."version" = sqlc.arg('window_type_version')
