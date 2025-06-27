@@ -717,6 +717,7 @@ where
 	w.time_from  >= $1 and w.time_to <= $2
 	and a."name" = $3
 	and a."version" = $4
+ORDER BY w.time_from, w.time_to ASC
 `
 
 type ReadResultsForAlgorithmParams struct {
@@ -867,11 +868,19 @@ func (q *Queries) ReadWindowTypes(ctx context.Context) ([]ReadWindowTypesRow, er
 }
 
 const readWindows = `-- name: ReadWindows :many
-select w.time_from, w.time_to, w.origin, w.metadata from windows w
+select
+  w.time_from,
+  w.time_to,
+  w.origin,
+  w.metadata,
+  wt.name,
+  wt.version
+from windows w
 join window_type wt on w.window_type_id =wt.id
 where
 	wt."name" = $1 and wt."version" = $2
 	and w.time_from  >= $3 and w.time_to <= $4
+ORDER BY w.time_from, w.time_to ASC
 `
 
 type ReadWindowsParams struct {
@@ -886,6 +895,8 @@ type ReadWindowsRow struct {
 	TimeTo   int64
 	Origin   string
 	Metadata []byte
+	Name     string
+	Version  string
 }
 
 func (q *Queries) ReadWindows(ctx context.Context, arg ReadWindowsParams) ([]ReadWindowsRow, error) {
@@ -907,6 +918,8 @@ func (q *Queries) ReadWindows(ctx context.Context, arg ReadWindowsParams) ([]Rea
 			&i.TimeTo,
 			&i.Origin,
 			&i.Metadata,
+			&i.Name,
+			&i.Version,
 		); err != nil {
 			return nil, err
 		}
