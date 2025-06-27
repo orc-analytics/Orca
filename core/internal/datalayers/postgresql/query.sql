@@ -251,7 +251,8 @@ join windows w on r.windows_id = w.id
 where
 	w.time_from  >= sqlc.arg('time_from') and w.time_to <= sqlc.arg('time_to')
 	and a."name" = sqlc.arg('algorithm_name')
-	and a."version" = sqlc.arg('algorithm_version');
+	and a."version" = sqlc.arg('algorithm_version')
+ORDER BY w.time_from, w.time_to ASC;
 
 -- name: ReadDistinctJsonResultFieldsForAlgorithm :many
 select distinct jsonb_object_keys(r.result_json) as field_names from results r
@@ -272,8 +273,16 @@ where
 	and a."version" = sqlc.arg('algorithm_version');
 
 -- name: ReadWindows :many
-select w.time_from, w.time_to, w.origin, w.metadata from windows w
+select
+  w.time_from,
+  w.time_to,
+  w.origin,
+  w.metadata,
+  wt.name,
+  wt.version
+from windows w
 join window_type wt on w.window_type_id =wt.id
 where
 	wt."name" = sqlc.arg('window_type_name') and wt."version" = sqlc.arg('window_type_version')
-	and w.time_from  >= sqlc.arg('time_from') and w.time_to <= sqlc.arg('time_to');	
+	and w.time_from  >= sqlc.arg('time_from') and w.time_to <= sqlc.arg('time_to')
+ORDER BY w.time_from, w.time_to ASC;

@@ -467,10 +467,12 @@ func (d *Datalayer) ReadWindows(
 		}
 
 		windowsPb.Window[ii] = &pb.Window{
-			TimeFrom: uint64(windowRow.TimeFrom),
-			TimeTo:   uint64(windowRow.TimeTo),
-			Origin:   windowRow.Origin,
-			Metadata: metadata,
+			TimeFrom:          uint64(windowRow.TimeFrom),
+			TimeTo:            uint64(windowRow.TimeTo),
+			Origin:            windowRow.Origin,
+			Metadata:          metadata,
+			WindowTypeName:    windowRow.Name,
+			WindowTypeVersion: windowRow.Version,
 		}
 	}
 	return &windowsPb, tx.Commit(ctx)
