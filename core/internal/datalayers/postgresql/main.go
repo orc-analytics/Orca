@@ -7,8 +7,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/predixus/orca/core/internal/dag"
 	pb "github.com/predixus/orca/core/protobufs/go"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (d *Datalayer) RegisterProcessor(
@@ -108,10 +110,16 @@ func (d *Datalayer) EmitWindow(
 	insertedWindow, err := qtx.RegisterWindow(ctx, RegisterWindowParams{
 		WindowTypeName:    window.GetWindowTypeName(),
 		WindowTypeVersion: window.GetWindowTypeVersion(),
-		TimeFrom:          int64(window.GetTimeFrom()),
-		TimeTo:            int64(window.GetTimeTo()),
-		Origin:            window.GetOrigin(),
-		Metadata:          metadataBytes,
+		TimeFrom: pgtype.Timestamp{
+			Time:  window.GetTimeFrom().AsTime().UTC(),
+			Valid: true,
+		},
+		TimeTo: pgtype.Timestamp{
+			Time:  window.GetTimeTo().AsTime().UTC(),
+			Valid: true,
+		},
+		Origin:   window.GetOrigin(),
+		Metadata: metadataBytes,
 	})
 	if err != nil {
 		slog.Error("could not insert window", "error", err)
@@ -238,16 +246,16 @@ func (d *Datalayer) ReadAlgorithms(
 
 	for ii, algorithm := range algorithms {
 		var resultType pb.ResultType
-		if algorithm.ResultType.ResultType == ResultTypeNone {
+		if algorithm.ResultType == ResultTypeNone {
 			resultType = pb.ResultType_NONE
-		} else if algorithm.ResultType.ResultType == ResultTypeArray {
+		} else if algorithm.ResultType == ResultTypeArray {
 			resultType = pb.ResultType_ARRAY
-		} else if algorithm.ResultType.ResultType == ResultTypeStruct {
+		} else if algorithm.ResultType == ResultTypeStruct {
 			resultType = pb.ResultType_STRUCT
-		} else if algorithm.ResultType.ResultType == ResultTypeValue {
+		} else if algorithm.ResultType == ResultTypeValue {
 			resultType = pb.ResultType_VALUE
 		} else {
-			return &pb.Algorithms{}, fmt.Errorf("read a result type that is not supported: %v", algorithm.ResultType.ResultType)
+			return &pb.Algorithms{}, fmt.Errorf("read a result type that is not supported: %v", algorithm.ResultType)
 		}
 
 		algorithmsPb.Algorithm[ii] = &pb.Algorithm{
@@ -336,8 +344,14 @@ func (d *Datalayer) ReadResultFieldsForAlgorithm(
 	algorithmFields, err := qtx.ReadDistinctJsonResultFieldsForAlgorithm(
 		ctx,
 		ReadDistinctJsonResultFieldsForAlgorithmParams{
-			TimeFrom:         resultFieldsRead.GetTimeFrom(),
-			TimeTo:           resultFieldsRead.GetTimeTo(),
+			TimeFrom: pgtype.Timestamp{
+				Time:  resultFieldsRead.GetTimeFrom().AsTime().UTC(),
+				Valid: true,
+			},
+			TimeTo: pgtype.Timestamp{
+				Time:  resultFieldsRead.GetTimeTo().AsTime().UTC(),
+				Valid: true,
+			},
 			AlgorithmName:    resultFieldsRead.GetAlgorithm().GetName(),
 			AlgorithmVersion: resultFieldsRead.GetAlgorithm().GetVersion(),
 		},
@@ -375,8 +389,14 @@ func (d *Datalayer) ReadResultsForAlgorithm(
 	qtx := d.queries.WithTx(pgTx.tx)
 
 	results, err := qtx.ReadResultsForAlgorithm(ctx, ReadResultsForAlgorithmParams{
-		TimeFrom:         resultsForAlgorithmRead.TimeFrom,
-		TimeTo:           resultsForAlgorithmRead.TimeTo,
+		TimeFrom: pgtype.Timestamp{
+			Time:  resultsForAlgorithmRead.GetTimeFrom().AsTime().UTC(),
+			Valid: true,
+		},
+		TimeTo: pgtype.Timestamp{
+			Time:  resultsForAlgorithmRead.GetTimeFrom().AsTime().UTC(),
+			Valid: true,
+		},
 		AlgorithmName:    resultsForAlgorithmRead.GetAlgorithm().GetName(),
 		AlgorithmVersion: resultsForAlgorithmRead.GetAlgorithm().GetVersion(),
 	})
@@ -389,12 +409,15 @@ func (d *Datalayer) ReadResultsForAlgorithm(
 	resultsPb := pb.ResultsForAlgorithm{
 		Results: make([]*pb.ResultsForAlgorithm_ResultsRow, len(results)),
 	}
-
+	var _midpointPb *timestamppb.Timestamp
 	if resultsForAlgorithmRead.GetAlgorithm().GetResultType() == pb.ResultType_VALUE {
 		for ii, res := range results {
+			_midpointPb = timestamppb.New(
+				res.TimeFrom.Time.Add(res.TimeTo.Time.Sub(res.TimeFrom.Time) / 2),
+			)
+
 			resultsPb.Results[ii] = &pb.ResultsForAlgorithm_ResultsRow{
-				TimeFrom: res.TimeFrom,
-				TimeTo:   res.TimeTo,
+				Time: _midpointPb,
 				ResultData: &pb.ResultsForAlgorithm_ResultsRow_SingleValue{
 					SingleValue: float32(res.ResultValue.Float64),
 				},
@@ -402,9 +425,11 @@ func (d *Datalayer) ReadResultsForAlgorithm(
 		}
 	} else if resultsForAlgorithmRead.GetAlgorithm().GetResultType() == pb.ResultType_ARRAY {
 		for ii, res := range results {
+			_midpointPb = timestamppb.New(
+				res.TimeFrom.Time.Add(res.TimeTo.Time.Sub(res.TimeFrom.Time) / 2),
+			)
 			resultsPb.Results[ii] = &pb.ResultsForAlgorithm_ResultsRow{
-				TimeFrom: res.TimeFrom,
-				TimeTo:   res.TimeTo,
+				Time: _midpointPb,
 				ResultData: &pb.ResultsForAlgorithm_ResultsRow_ArrayValues{
 					ArrayValues: &pb.FloatArray{
 						Values: convertFloat64ToFloat32(res.ResultArray),
@@ -414,14 +439,16 @@ func (d *Datalayer) ReadResultsForAlgorithm(
 		}
 	} else if resultsForAlgorithmRead.GetAlgorithm().GetResultType() == pb.ResultType_STRUCT {
 		for ii, res := range results {
+			_midpointPb = timestamppb.New(
+				res.TimeFrom.Time.Add(res.TimeTo.Time.Sub(res.TimeFrom.Time) / 2),
+			)
 			newStruct, err := unmarshalToStruct(res.ResultJson)
 			if err != nil {
 				return &pb.ResultsForAlgorithm{}, fmt.Errorf("unable to parse struct data for algorithm %v: %v", resultsForAlgorithmRead.Algorithm, err)
 			}
 
 			resultsPb.Results[ii] = &pb.ResultsForAlgorithm_ResultsRow{
-				TimeFrom: res.TimeFrom,
-				TimeTo:   res.TimeTo,
+				Time: _midpointPb,
 				ResultData: &pb.ResultsForAlgorithm_ResultsRow_StructValue{
 					StructValue: newStruct,
 				},
@@ -448,8 +475,14 @@ func (d *Datalayer) ReadWindows(
 	qtx := d.queries.WithTx(pgTx.tx)
 
 	readWindowsRows, err := qtx.ReadWindows(ctx, ReadWindowsParams{
-		TimeFrom:          windowsRead.GetTimeFrom(),
-		TimeTo:            windowsRead.GetTimeTo(),
+		TimeFrom: pgtype.Timestamp{
+			Time:  windowsRead.GetTimeFrom().AsTime().UTC(),
+			Valid: true,
+		},
+		TimeTo: pgtype.Timestamp{
+			Time:  windowsRead.GetTimeTo().AsTime().UTC(),
+			Valid: true,
+		},
 		WindowTypeName:    windowsRead.GetWindow().GetName(),
 		WindowTypeVersion: windowsRead.GetWindow().GetVersion(),
 	})
@@ -460,15 +493,19 @@ func (d *Datalayer) ReadWindows(
 		Window: make([]*pb.Window, len(readWindowsRows)),
 	}
 
+	var _timeFrom *timestamppb.Timestamp
+	var _timeTo *timestamppb.Timestamp
 	for ii, windowRow := range readWindowsRows {
 		metadata, err := unmarshalToStruct(windowRow.Metadata)
 		if err != nil {
 			return &pb.Windows{}, fmt.Errorf("could not unpack specific window metadata: %v", err)
 		}
+		_timeFrom = timestamppb.New(windowRow.TimeFrom.Time)
+		_timeTo = timestamppb.New(windowRow.TimeTo.Time)
 
 		windowsPb.Window[ii] = &pb.Window{
-			TimeFrom:          uint64(windowRow.TimeFrom),
-			TimeTo:            uint64(windowRow.TimeTo),
+			TimeFrom:          _timeFrom,
+			TimeTo:            _timeTo,
 			Origin:            windowRow.Origin,
 			Metadata:          metadata,
 			WindowTypeName:    windowRow.Name,

@@ -40,7 +40,7 @@ INSERT INTO algorithm (
 type CreateAlgorithmParams struct {
 	Name              string
 	Version           string
-	ResultType        NullResultType
+	ResultType        ResultType
 	ProcessorName     string
 	ProcessorRuntime  string
 	WindowTypeName    string
@@ -324,15 +324,15 @@ where
 
 type ReadAlgorithmJsonFieldParams struct {
 	FieldName        []byte
-	TimeFrom         int64
-	TimeTo           int64
+	TimeFrom         pgtype.Timestamp
+	TimeTo           pgtype.Timestamp
 	AlgorithmName    string
 	AlgorithmVersion string
 }
 
 type ReadAlgorithmJsonFieldRow struct {
-	TimeFrom int64
-	TimeTo   int64
+	TimeFrom pgtype.Timestamp
+	TimeTo   pgtype.Timestamp
 	Result   interface{}
 }
 
@@ -384,7 +384,7 @@ type ReadAlgorithmsRow struct {
 	Name             string
 	Version          string
 	Created          pgtype.Timestamp
-	ResultType       NullResultType
+	ResultType       ResultType
 	WindowName       string
 	WindowVersion    string
 	ProcessorName    string
@@ -422,7 +422,7 @@ func (q *Queries) ReadAlgorithms(ctx context.Context) ([]ReadAlgorithmsRow, erro
 }
 
 const readAlgorithmsForWindow = `-- name: ReadAlgorithmsForWindow :many
-SELECT a.id, a.name, a.version, a.processor_id, a.window_type_id, a.created, a.result_type FROM algorithm a
+SELECT a.id, a.name, a.version, a.processor_id, a.window_type_id, a.result_type, a.created FROM algorithm a
 JOIN window_type wt ON a.window_type_id = wt.id
 WHERE wt.name = $1 
 AND wt.version = $2
@@ -448,8 +448,8 @@ func (q *Queries) ReadAlgorithmsForWindow(ctx context.Context, arg ReadAlgorithm
 			&i.Version,
 			&i.ProcessorID,
 			&i.WindowTypeID,
-			&i.Created,
 			&i.ResultType,
+			&i.Created,
 		); err != nil {
 			return nil, err
 		}
@@ -509,8 +509,8 @@ where
 `
 
 type ReadDistinctJsonResultFieldsForAlgorithmParams struct {
-	TimeFrom         int64
-	TimeTo           int64
+	TimeFrom         pgtype.Timestamp
+	TimeTo           pgtype.Timestamp
 	AlgorithmName    string
 	AlgorithmVersion string
 }
@@ -546,8 +546,8 @@ where w.time_from  >= $1 and w.time_to <= $2
 `
 
 type ReadDistinctWindowMetadataParams struct {
-	TimeFrom int64
-	TimeTo   int64
+	TimeFrom pgtype.Timestamp
+	TimeTo   pgtype.Timestamp
 }
 
 func (q *Queries) ReadDistinctWindowMetadata(ctx context.Context, arg ReadDistinctWindowMetadataParams) ([][]byte, error) {
@@ -721,15 +721,15 @@ ORDER BY w.time_from, w.time_to ASC
 `
 
 type ReadResultsForAlgorithmParams struct {
-	TimeFrom         int64
-	TimeTo           int64
+	TimeFrom         pgtype.Timestamp
+	TimeTo           pgtype.Timestamp
 	AlgorithmName    string
 	AlgorithmVersion string
 }
 
 type ReadResultsForAlgorithmRow struct {
-	TimeFrom    int64
-	TimeTo      int64
+	TimeFrom    pgtype.Timestamp
+	TimeTo      pgtype.Timestamp
 	ResultValue pgtype.Float8
 	ResultArray []float64
 	ResultJson  []byte
@@ -775,7 +775,7 @@ where
 `
 
 type ReadResultsForWindowMetadataFieldParams struct {
-	TimeTo             int64
+	TimeTo             pgtype.Timestamp
 	MetadataField      []byte
 	MetadataFieldMatch []byte
 }
@@ -886,13 +886,13 @@ ORDER BY w.time_from, w.time_to ASC
 type ReadWindowsParams struct {
 	WindowTypeName    string
 	WindowTypeVersion string
-	TimeFrom          int64
-	TimeTo            int64
+	TimeFrom          pgtype.Timestamp
+	TimeTo            pgtype.Timestamp
 }
 
 type ReadWindowsRow struct {
-	TimeFrom int64
-	TimeTo   int64
+	TimeFrom pgtype.Timestamp
+	TimeTo   pgtype.Timestamp
 	Origin   string
 	Metadata []byte
 	Name     string
@@ -953,8 +953,8 @@ INSERT INTO windows (
 `
 
 type RegisterWindowParams struct {
-	TimeFrom          int64
-	TimeTo            int64
+	TimeFrom          pgtype.Timestamp
+	TimeTo            pgtype.Timestamp
 	Origin            string
 	Metadata          []byte
 	WindowTypeName    string

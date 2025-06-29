@@ -61,8 +61,8 @@ type Algorithm struct {
 	Version      string
 	ProcessorID  int64
 	WindowTypeID int64
+	ResultType   ResultType
 	Created      pgtype.Timestamp
-	ResultType   NullResultType
 }
 
 type AlgorithmDependency struct {
@@ -105,8 +105,8 @@ type Result struct {
 type Window struct {
 	ID           int64
 	WindowTypeID int64
-	TimeFrom     int64
-	TimeTo       int64
+	TimeFrom     pgtype.Timestamp
+	TimeTo       pgtype.Timestamp
 	Origin       string
 	Metadata     []byte
 	Created      pgtype.Timestamp

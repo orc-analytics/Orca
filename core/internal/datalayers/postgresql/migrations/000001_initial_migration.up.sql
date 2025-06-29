@@ -1,4 +1,5 @@
 CREATE EXTENSION ltree;
+CREATE TYPE result_type AS ENUM ('struct', 'array', 'value', 'none');
 
 -- Window types that can trigger algorithms
 CREATE TABLE window_type (
@@ -27,6 +28,7 @@ CREATE TABLE algorithm (
   version TEXT NOT NULL CHECK (version ~ '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$'),
   processor_id BIGINT NOT NULL,
   window_type_id BIGINT NOT NULL,
+  result_type result_type NOT NULL,
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (name, version),
   FOREIGN KEY (window_type_id) REFERENCES window_type(id),
@@ -59,8 +61,8 @@ CREATE TABLE algorithm_dependency (
 CREATE TABLE windows (
   id BIGSERIAL PRIMARY KEY,
   window_type_id BIGINT NOT NULL,
-  time_from BIGINT NOT NULL,
-  time_to BIGINT NOT NULL,
+  time_from TIMESTAMP NOT NULL,
+  time_to TIMESTAMP NOT NULL,
   origin TEXT NOT NULL,   -- the location that emitted the window
   metadata JSONB,         -- additional contextual information e.g. unique asset identifiers
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

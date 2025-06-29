@@ -21,6 +21,7 @@ import {
   type UntypedServiceImplementation,
 } from "@grpc/grpc-js";
 import { Struct } from "./google/protobuf/struct";
+import { Timestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "";
 
@@ -136,28 +137,23 @@ export function resultStatusToJSON(object: ResultStatus): string {
 export interface Window {
   /**
    * Time that the window starts - nanoseconds since epoch
-   * Required: Must be > 0 and < to
+   * Required: Must be > Unix epoch (1970-01-01T00:00:00Z)
    */
   timeFrom?:
-    | string
+    | Date
     | undefined;
   /**
    * Time that the window ends - nanoseconds since epoch
-   * Required: Must be > from
+   * Required: Must be > time_from (validated at message level)
    */
   timeTo?:
-    | string
+    | Date
     | undefined;
-  /**
-   * The canonical name of the window that uniquely identifies it
-   * This allows tracking of window state and results across the system
-   * Required: Must be unique within the system, and refer directly to
-   * window type
-   */
+  /** The canonical name of the window that uniquely identifies it */
   windowTypeName?:
     | string
     | undefined;
-  /** The version of the window type, as defined by WindoType */
+  /** The version of the window type */
   windowTypeVersion?:
     | string
     | undefined;
@@ -165,10 +161,7 @@ export interface Window {
   origin?:
     | string
     | undefined;
-  /**
-   * Additional metadata to attach to this window
-   * e.g. unique asset identifiers
-   */
+  /** Additional metadata to attach to this window */
   metadata?: { [key: string]: any } | undefined;
 }
 
@@ -574,8 +567,8 @@ export interface ResultsStats {
 }
 
 export interface AlgorithmFieldsRead {
-  timeFrom?: string | undefined;
-  timeTo?: string | undefined;
+  timeFrom?: Date | undefined;
+  timeTo?: Date | undefined;
   algorithm?: Algorithm | undefined;
 }
 
@@ -584,8 +577,15 @@ export interface AlgorithmFields {
 }
 
 export interface ResultsForAlgorithmRead {
-  timeFrom?: string | undefined;
-  timeTo?: string | undefined;
+  /** the time to read results from */
+  timeFrom?:
+    | Date
+    | undefined;
+  /** the time to read results to */
+  timeTo?:
+    | Date
+    | undefined;
+  /** the algorithm to read results for */
   algorithm?: Algorithm | undefined;
 }
 
@@ -594,13 +594,9 @@ export interface ResultsForAlgorithm {
 }
 
 export interface ResultsForAlgorithm_ResultsRow {
-  /** the time window from */
-  timeFrom?:
-    | string
-    | undefined;
-  /** the time window to */
-  timeTo?:
-    | string
+  /** the time of the result, being the center of the triggering window */
+  time?:
+    | Date
     | undefined;
   /** the result packet is one of these */
   resultData?:
@@ -620,26 +616,41 @@ export interface ResultsForAlgorithm_ResultsRow {
 }
 
 export interface WindowsRead {
-  timeFrom?: string | undefined;
-  timeTo?: string | undefined;
+  /** the time to read windows from */
+  timeFrom?:
+    | Date
+    | undefined;
+  /** the time to read windows to */
+  timeTo?:
+    | Date
+    | undefined;
+  /** the window */
   window?: WindowType | undefined;
 }
 
 export interface Windows {
+  /** the windows */
   window?: Window[] | undefined;
 }
 
 function createBaseWindow(): Window {
-  return { timeFrom: "0", timeTo: "0", windowTypeName: "", windowTypeVersion: "", origin: "", metadata: undefined };
+  return {
+    timeFrom: undefined,
+    timeTo: undefined,
+    windowTypeName: "",
+    windowTypeVersion: "",
+    origin: "",
+    metadata: undefined,
+  };
 }
 
 export const Window: MessageFns<Window> = {
   encode(message: Window, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
-      writer.uint32(8).uint64(message.timeFrom);
+    if (message.timeFrom !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeFrom), writer.uint32(10).fork()).join();
     }
-    if (message.timeTo !== undefined && message.timeTo !== "0") {
-      writer.uint32(16).uint64(message.timeTo);
+    if (message.timeTo !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeTo), writer.uint32(18).fork()).join();
     }
     if (message.windowTypeName !== undefined && message.windowTypeName !== "") {
       writer.uint32(26).string(message.windowTypeName);
@@ -664,19 +675,19 @@ export const Window: MessageFns<Window> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.timeFrom = reader.uint64().toString();
+          message.timeFrom = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.timeTo = reader.uint64().toString();
+          message.timeTo = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
         case 3: {
@@ -722,8 +733,8 @@ export const Window: MessageFns<Window> = {
 
   fromJSON(object: any): Window {
     return {
-      timeFrom: isSet(object.timeFrom) ? globalThis.String(object.timeFrom) : "0",
-      timeTo: isSet(object.timeTo) ? globalThis.String(object.timeTo) : "0",
+      timeFrom: isSet(object.timeFrom) ? fromJsonTimestamp(object.timeFrom) : undefined,
+      timeTo: isSet(object.timeTo) ? fromJsonTimestamp(object.timeTo) : undefined,
       windowTypeName: isSet(object.windowTypeName) ? globalThis.String(object.windowTypeName) : "",
       windowTypeVersion: isSet(object.windowTypeVersion) ? globalThis.String(object.windowTypeVersion) : "",
       origin: isSet(object.origin) ? globalThis.String(object.origin) : "",
@@ -733,11 +744,11 @@ export const Window: MessageFns<Window> = {
 
   toJSON(message: Window): unknown {
     const obj: any = {};
-    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
-      obj.timeFrom = message.timeFrom;
+    if (message.timeFrom !== undefined) {
+      obj.timeFrom = message.timeFrom.toISOString();
     }
-    if (message.timeTo !== undefined && message.timeTo !== "0") {
-      obj.timeTo = message.timeTo;
+    if (message.timeTo !== undefined) {
+      obj.timeTo = message.timeTo.toISOString();
     }
     if (message.windowTypeName !== undefined && message.windowTypeName !== "") {
       obj.windowTypeName = message.windowTypeName;
@@ -759,8 +770,8 @@ export const Window: MessageFns<Window> = {
   },
   fromPartial<I extends Exact<DeepPartial<Window>, I>>(object: I): Window {
     const message = createBaseWindow();
-    message.timeFrom = object.timeFrom ?? "0";
-    message.timeTo = object.timeTo ?? "0";
+    message.timeFrom = object.timeFrom ?? undefined;
+    message.timeTo = object.timeTo ?? undefined;
     message.windowTypeName = object.windowTypeName ?? "";
     message.windowTypeVersion = object.windowTypeVersion ?? "";
     message.origin = object.origin ?? "";
@@ -2737,16 +2748,16 @@ export const ResultsStats: MessageFns<ResultsStats> = {
 };
 
 function createBaseAlgorithmFieldsRead(): AlgorithmFieldsRead {
-  return { timeFrom: "0", timeTo: "0", algorithm: undefined };
+  return { timeFrom: undefined, timeTo: undefined, algorithm: undefined };
 }
 
 export const AlgorithmFieldsRead: MessageFns<AlgorithmFieldsRead> = {
   encode(message: AlgorithmFieldsRead, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
-      writer.uint32(8).int64(message.timeFrom);
+    if (message.timeFrom !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeFrom), writer.uint32(10).fork()).join();
     }
-    if (message.timeTo !== undefined && message.timeTo !== "0") {
-      writer.uint32(16).int64(message.timeTo);
+    if (message.timeTo !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeTo), writer.uint32(18).fork()).join();
     }
     if (message.algorithm !== undefined) {
       Algorithm.encode(message.algorithm, writer.uint32(26).fork()).join();
@@ -2762,19 +2773,19 @@ export const AlgorithmFieldsRead: MessageFns<AlgorithmFieldsRead> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.timeFrom = reader.int64().toString();
+          message.timeFrom = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.timeTo = reader.int64().toString();
+          message.timeTo = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
         case 3: {
@@ -2796,19 +2807,19 @@ export const AlgorithmFieldsRead: MessageFns<AlgorithmFieldsRead> = {
 
   fromJSON(object: any): AlgorithmFieldsRead {
     return {
-      timeFrom: isSet(object.timeFrom) ? globalThis.String(object.timeFrom) : "0",
-      timeTo: isSet(object.timeTo) ? globalThis.String(object.timeTo) : "0",
+      timeFrom: isSet(object.timeFrom) ? fromJsonTimestamp(object.timeFrom) : undefined,
+      timeTo: isSet(object.timeTo) ? fromJsonTimestamp(object.timeTo) : undefined,
       algorithm: isSet(object.algorithm) ? Algorithm.fromJSON(object.algorithm) : undefined,
     };
   },
 
   toJSON(message: AlgorithmFieldsRead): unknown {
     const obj: any = {};
-    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
-      obj.timeFrom = message.timeFrom;
+    if (message.timeFrom !== undefined) {
+      obj.timeFrom = message.timeFrom.toISOString();
     }
-    if (message.timeTo !== undefined && message.timeTo !== "0") {
-      obj.timeTo = message.timeTo;
+    if (message.timeTo !== undefined) {
+      obj.timeTo = message.timeTo.toISOString();
     }
     if (message.algorithm !== undefined) {
       obj.algorithm = Algorithm.toJSON(message.algorithm);
@@ -2821,8 +2832,8 @@ export const AlgorithmFieldsRead: MessageFns<AlgorithmFieldsRead> = {
   },
   fromPartial<I extends Exact<DeepPartial<AlgorithmFieldsRead>, I>>(object: I): AlgorithmFieldsRead {
     const message = createBaseAlgorithmFieldsRead();
-    message.timeFrom = object.timeFrom ?? "0";
-    message.timeTo = object.timeTo ?? "0";
+    message.timeFrom = object.timeFrom ?? undefined;
+    message.timeTo = object.timeTo ?? undefined;
     message.algorithm = (object.algorithm !== undefined && object.algorithm !== null)
       ? Algorithm.fromPartial(object.algorithm)
       : undefined;
@@ -2894,16 +2905,16 @@ export const AlgorithmFields: MessageFns<AlgorithmFields> = {
 };
 
 function createBaseResultsForAlgorithmRead(): ResultsForAlgorithmRead {
-  return { timeFrom: "0", timeTo: "0", algorithm: undefined };
+  return { timeFrom: undefined, timeTo: undefined, algorithm: undefined };
 }
 
 export const ResultsForAlgorithmRead: MessageFns<ResultsForAlgorithmRead> = {
   encode(message: ResultsForAlgorithmRead, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
-      writer.uint32(8).int64(message.timeFrom);
+    if (message.timeFrom !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeFrom), writer.uint32(10).fork()).join();
     }
-    if (message.timeTo !== undefined && message.timeTo !== "0") {
-      writer.uint32(16).int64(message.timeTo);
+    if (message.timeTo !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeTo), writer.uint32(18).fork()).join();
     }
     if (message.algorithm !== undefined) {
       Algorithm.encode(message.algorithm, writer.uint32(26).fork()).join();
@@ -2919,19 +2930,19 @@ export const ResultsForAlgorithmRead: MessageFns<ResultsForAlgorithmRead> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.timeFrom = reader.int64().toString();
+          message.timeFrom = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.timeTo = reader.int64().toString();
+          message.timeTo = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
         case 3: {
@@ -2953,19 +2964,19 @@ export const ResultsForAlgorithmRead: MessageFns<ResultsForAlgorithmRead> = {
 
   fromJSON(object: any): ResultsForAlgorithmRead {
     return {
-      timeFrom: isSet(object.timeFrom) ? globalThis.String(object.timeFrom) : "0",
-      timeTo: isSet(object.timeTo) ? globalThis.String(object.timeTo) : "0",
+      timeFrom: isSet(object.timeFrom) ? fromJsonTimestamp(object.timeFrom) : undefined,
+      timeTo: isSet(object.timeTo) ? fromJsonTimestamp(object.timeTo) : undefined,
       algorithm: isSet(object.algorithm) ? Algorithm.fromJSON(object.algorithm) : undefined,
     };
   },
 
   toJSON(message: ResultsForAlgorithmRead): unknown {
     const obj: any = {};
-    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
-      obj.timeFrom = message.timeFrom;
+    if (message.timeFrom !== undefined) {
+      obj.timeFrom = message.timeFrom.toISOString();
     }
-    if (message.timeTo !== undefined && message.timeTo !== "0") {
-      obj.timeTo = message.timeTo;
+    if (message.timeTo !== undefined) {
+      obj.timeTo = message.timeTo.toISOString();
     }
     if (message.algorithm !== undefined) {
       obj.algorithm = Algorithm.toJSON(message.algorithm);
@@ -2978,8 +2989,8 @@ export const ResultsForAlgorithmRead: MessageFns<ResultsForAlgorithmRead> = {
   },
   fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithmRead>, I>>(object: I): ResultsForAlgorithmRead {
     const message = createBaseResultsForAlgorithmRead();
-    message.timeFrom = object.timeFrom ?? "0";
-    message.timeTo = object.timeTo ?? "0";
+    message.timeFrom = object.timeFrom ?? undefined;
+    message.timeTo = object.timeTo ?? undefined;
     message.algorithm = (object.algorithm !== undefined && object.algorithm !== null)
       ? Algorithm.fromPartial(object.algorithm)
       : undefined;
@@ -3055,26 +3066,23 @@ export const ResultsForAlgorithm: MessageFns<ResultsForAlgorithm> = {
 };
 
 function createBaseResultsForAlgorithm_ResultsRow(): ResultsForAlgorithm_ResultsRow {
-  return { timeFrom: "0", timeTo: "0", resultData: undefined };
+  return { time: undefined, resultData: undefined };
 }
 
 export const ResultsForAlgorithm_ResultsRow: MessageFns<ResultsForAlgorithm_ResultsRow> = {
   encode(message: ResultsForAlgorithm_ResultsRow, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
-      writer.uint32(8).int64(message.timeFrom);
-    }
-    if (message.timeTo !== undefined && message.timeTo !== "0") {
-      writer.uint32(16).int64(message.timeTo);
+    if (message.time !== undefined) {
+      Timestamp.encode(toTimestamp(message.time), writer.uint32(10).fork()).join();
     }
     switch (message.resultData?.$case) {
       case "singleValue":
-        writer.uint32(29).float(message.resultData.value);
+        writer.uint32(21).float(message.resultData.value);
         break;
       case "arrayValues":
-        FloatArray.encode(message.resultData.value, writer.uint32(34).fork()).join();
+        FloatArray.encode(message.resultData.value, writer.uint32(26).fork()).join();
         break;
       case "structValue":
-        Struct.encode(Struct.wrap(message.resultData.value), writer.uint32(42).fork()).join();
+        Struct.encode(Struct.wrap(message.resultData.value), writer.uint32(34).fork()).join();
         break;
     }
     return writer;
@@ -3088,39 +3096,31 @@ export const ResultsForAlgorithm_ResultsRow: MessageFns<ResultsForAlgorithm_Resu
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.timeFrom = reader.int64().toString();
+          message.time = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
         case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.timeTo = reader.int64().toString();
-          continue;
-        }
-        case 3: {
-          if (tag !== 29) {
+          if (tag !== 21) {
             break;
           }
 
           message.resultData = { $case: "singleValue", value: reader.float() };
           continue;
         }
-        case 4: {
-          if (tag !== 34) {
+        case 3: {
+          if (tag !== 26) {
             break;
           }
 
           message.resultData = { $case: "arrayValues", value: FloatArray.decode(reader, reader.uint32()) };
           continue;
         }
-        case 5: {
-          if (tag !== 42) {
+        case 4: {
+          if (tag !== 34) {
             break;
           }
 
@@ -3138,8 +3138,7 @@ export const ResultsForAlgorithm_ResultsRow: MessageFns<ResultsForAlgorithm_Resu
 
   fromJSON(object: any): ResultsForAlgorithm_ResultsRow {
     return {
-      timeFrom: isSet(object.timeFrom) ? globalThis.String(object.timeFrom) : "0",
-      timeTo: isSet(object.timeTo) ? globalThis.String(object.timeTo) : "0",
+      time: isSet(object.time) ? fromJsonTimestamp(object.time) : undefined,
       resultData: isSet(object.singleValue)
         ? { $case: "singleValue", value: globalThis.Number(object.singleValue) }
         : isSet(object.arrayValues)
@@ -3152,11 +3151,8 @@ export const ResultsForAlgorithm_ResultsRow: MessageFns<ResultsForAlgorithm_Resu
 
   toJSON(message: ResultsForAlgorithm_ResultsRow): unknown {
     const obj: any = {};
-    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
-      obj.timeFrom = message.timeFrom;
-    }
-    if (message.timeTo !== undefined && message.timeTo !== "0") {
-      obj.timeTo = message.timeTo;
+    if (message.time !== undefined) {
+      obj.time = message.time.toISOString();
     }
     if (message.resultData?.$case === "singleValue") {
       obj.singleValue = message.resultData.value;
@@ -3175,8 +3171,7 @@ export const ResultsForAlgorithm_ResultsRow: MessageFns<ResultsForAlgorithm_Resu
     object: I,
   ): ResultsForAlgorithm_ResultsRow {
     const message = createBaseResultsForAlgorithm_ResultsRow();
-    message.timeFrom = object.timeFrom ?? "0";
-    message.timeTo = object.timeTo ?? "0";
+    message.time = object.time ?? undefined;
     switch (object.resultData?.$case) {
       case "singleValue": {
         if (object.resultData?.value !== undefined && object.resultData?.value !== null) {
@@ -3202,16 +3197,16 @@ export const ResultsForAlgorithm_ResultsRow: MessageFns<ResultsForAlgorithm_Resu
 };
 
 function createBaseWindowsRead(): WindowsRead {
-  return { timeFrom: "0", timeTo: "0", window: undefined };
+  return { timeFrom: undefined, timeTo: undefined, window: undefined };
 }
 
 export const WindowsRead: MessageFns<WindowsRead> = {
   encode(message: WindowsRead, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
-      writer.uint32(8).int64(message.timeFrom);
+    if (message.timeFrom !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeFrom), writer.uint32(10).fork()).join();
     }
-    if (message.timeTo !== undefined && message.timeTo !== "0") {
-      writer.uint32(16).int64(message.timeTo);
+    if (message.timeTo !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeTo), writer.uint32(18).fork()).join();
     }
     if (message.window !== undefined) {
       WindowType.encode(message.window, writer.uint32(26).fork()).join();
@@ -3227,19 +3222,19 @@ export const WindowsRead: MessageFns<WindowsRead> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.timeFrom = reader.int64().toString();
+          message.timeFrom = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.timeTo = reader.int64().toString();
+          message.timeTo = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
         case 3: {
@@ -3261,19 +3256,19 @@ export const WindowsRead: MessageFns<WindowsRead> = {
 
   fromJSON(object: any): WindowsRead {
     return {
-      timeFrom: isSet(object.timeFrom) ? globalThis.String(object.timeFrom) : "0",
-      timeTo: isSet(object.timeTo) ? globalThis.String(object.timeTo) : "0",
+      timeFrom: isSet(object.timeFrom) ? fromJsonTimestamp(object.timeFrom) : undefined,
+      timeTo: isSet(object.timeTo) ? fromJsonTimestamp(object.timeTo) : undefined,
       window: isSet(object.window) ? WindowType.fromJSON(object.window) : undefined,
     };
   },
 
   toJSON(message: WindowsRead): unknown {
     const obj: any = {};
-    if (message.timeFrom !== undefined && message.timeFrom !== "0") {
-      obj.timeFrom = message.timeFrom;
+    if (message.timeFrom !== undefined) {
+      obj.timeFrom = message.timeFrom.toISOString();
     }
-    if (message.timeTo !== undefined && message.timeTo !== "0") {
-      obj.timeTo = message.timeTo;
+    if (message.timeTo !== undefined) {
+      obj.timeTo = message.timeTo.toISOString();
     }
     if (message.window !== undefined) {
       obj.window = WindowType.toJSON(message.window);
@@ -3286,8 +3281,8 @@ export const WindowsRead: MessageFns<WindowsRead> = {
   },
   fromPartial<I extends Exact<DeepPartial<WindowsRead>, I>>(object: I): WindowsRead {
     const message = createBaseWindowsRead();
-    message.timeFrom = object.timeFrom ?? "0";
-    message.timeTo = object.timeTo ?? "0";
+    message.timeFrom = object.timeFrom ?? undefined;
+    message.timeTo = object.timeTo ?? undefined;
     message.window = (object.window !== undefined && object.window !== null)
       ? WindowType.fromPartial(object.window)
       : undefined;
@@ -3708,6 +3703,28 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = Math.trunc(date.getTime() / 1_000).toString();
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = (globalThis.Number(t.seconds) || 0) * 1_000;
+  millis += (t.nanos || 0) / 1_000_000;
+  return new globalThis.Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof globalThis.Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new globalThis.Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
 
 function isObject(value: any): boolean {
   return typeof value === "object" && value !== null;
