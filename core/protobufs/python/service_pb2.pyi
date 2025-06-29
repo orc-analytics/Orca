@@ -1,4 +1,5 @@
 from google.protobuf import struct_pb2 as _struct_pb2
+from google.protobuf import timestamp_pb2 as _timestamp_pb2
 from vendor import validate_pb2 as _validate_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
@@ -38,13 +39,13 @@ class Window(_message.Message):
     WINDOW_TYPE_VERSION_FIELD_NUMBER: _ClassVar[int]
     ORIGIN_FIELD_NUMBER: _ClassVar[int]
     METADATA_FIELD_NUMBER: _ClassVar[int]
-    time_from: int
-    time_to: int
+    time_from: _timestamp_pb2.Timestamp
+    time_to: _timestamp_pb2.Timestamp
     window_type_name: str
     window_type_version: str
     origin: str
     metadata: _struct_pb2.Struct
-    def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., window_type_name: _Optional[str] = ..., window_type_version: _Optional[str] = ..., origin: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+    def __init__(self, time_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., time_to: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., window_type_name: _Optional[str] = ..., window_type_version: _Optional[str] = ..., origin: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
 class WindowType(_message.Message):
     __slots__ = ("name", "version", "description")
@@ -266,10 +267,10 @@ class AlgorithmFieldsRead(_message.Message):
     TIME_FROM_FIELD_NUMBER: _ClassVar[int]
     TIME_TO_FIELD_NUMBER: _ClassVar[int]
     ALGORITHM_FIELD_NUMBER: _ClassVar[int]
-    time_from: int
-    time_to: int
+    time_from: _timestamp_pb2.Timestamp
+    time_to: _timestamp_pb2.Timestamp
     algorithm: Algorithm
-    def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., algorithm: _Optional[_Union[Algorithm, _Mapping]] = ...) -> None: ...
+    def __init__(self, time_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., time_to: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., algorithm: _Optional[_Union[Algorithm, _Mapping]] = ...) -> None: ...
 
 class AlgorithmFields(_message.Message):
     __slots__ = ("field",)
@@ -282,26 +283,24 @@ class ResultsForAlgorithmRead(_message.Message):
     TIME_FROM_FIELD_NUMBER: _ClassVar[int]
     TIME_TO_FIELD_NUMBER: _ClassVar[int]
     ALGORITHM_FIELD_NUMBER: _ClassVar[int]
-    time_from: int
-    time_to: int
+    time_from: _timestamp_pb2.Timestamp
+    time_to: _timestamp_pb2.Timestamp
     algorithm: Algorithm
-    def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., algorithm: _Optional[_Union[Algorithm, _Mapping]] = ...) -> None: ...
+    def __init__(self, time_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., time_to: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., algorithm: _Optional[_Union[Algorithm, _Mapping]] = ...) -> None: ...
 
 class ResultsForAlgorithm(_message.Message):
     __slots__ = ("results",)
     class ResultsRow(_message.Message):
-        __slots__ = ("time_from", "time_to", "single_value", "array_values", "struct_value")
-        TIME_FROM_FIELD_NUMBER: _ClassVar[int]
-        TIME_TO_FIELD_NUMBER: _ClassVar[int]
+        __slots__ = ("time", "single_value", "array_values", "struct_value")
+        TIME_FIELD_NUMBER: _ClassVar[int]
         SINGLE_VALUE_FIELD_NUMBER: _ClassVar[int]
         ARRAY_VALUES_FIELD_NUMBER: _ClassVar[int]
         STRUCT_VALUE_FIELD_NUMBER: _ClassVar[int]
-        time_from: int
-        time_to: int
+        time: _timestamp_pb2.Timestamp
         single_value: float
         array_values: FloatArray
         struct_value: _struct_pb2.Struct
-        def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., single_value: _Optional[float] = ..., array_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+        def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., single_value: _Optional[float] = ..., array_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
     RESULTS_FIELD_NUMBER: _ClassVar[int]
     results: _containers.RepeatedCompositeFieldContainer[ResultsForAlgorithm.ResultsRow]
     def __init__(self, results: _Optional[_Iterable[_Union[ResultsForAlgorithm.ResultsRow, _Mapping]]] = ...) -> None: ...
@@ -311,10 +310,10 @@ class WindowsRead(_message.Message):
     TIME_FROM_FIELD_NUMBER: _ClassVar[int]
     TIME_TO_FIELD_NUMBER: _ClassVar[int]
     WINDOW_FIELD_NUMBER: _ClassVar[int]
-    time_from: int
-    time_to: int
+    time_from: _timestamp_pb2.Timestamp
+    time_to: _timestamp_pb2.Timestamp
     window: WindowType
-    def __init__(self, time_from: _Optional[int] = ..., time_to: _Optional[int] = ..., window: _Optional[_Union[WindowType, _Mapping]] = ...) -> None: ...
+    def __init__(self, time_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., time_to: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., window: _Optional[_Union[WindowType, _Mapping]] = ...) -> None: ...
 
 class Windows(_message.Message):
     __slots__ = ("window",)

@@ -18,3 +18,4 @@ DROP TABLE IF EXISTS window_type;
 
 -- Drop extension
 DROP EXTENSION IF EXISTS ltree;
+DROP TYPE IF EXISTS result_type;

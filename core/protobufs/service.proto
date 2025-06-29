@@ -4,6 +4,7 @@ syntax="proto3";
 option go_package = "github.com/predixus/orca/protobufs/go";
 
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 import "vendor/validate.proto";
 
 // OrcaCore is the central orchestration service that:
@@ -47,42 +48,51 @@ service OrcaProcessor {
 // Window represents a time-bounded processing context that triggers algorithm execution. Windows are the primary input that start DAG processing flows.
 message Window {
   // Time that the window starts - nanoseconds since epoch
-  // Required: Must be > 0 and < to
-  uint64 time_from = 1 [(buf.validate.field) = {
+  // Required: Must be > Unix epoch (1970-01-01T00:00:00Z)
+  google.protobuf.Timestamp time_from = 1 [(buf.validate.field) = {
     required: true,
-    uint64: {
-      gt: 0
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}  // Unix epoch
     }
   }];
 
   // Time that the window ends - nanoseconds since epoch
-  // Required: Must be > from
-  uint64 time_to = 2 [(buf.validate.field).required = true];
+  // Required: Must be > time_from (validated at message level)
+  google.protobuf.Timestamp time_to = 2 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}  // Also must be > Unix epoch
+    }
+  }];
   
   // The canonical name of the window that uniquely identifies it
-  // This allows tracking of window state and results across the system
-  // Required: Must be unique within the system, and refer directly to
-  // window type
-  string window_type_name = 3 [(buf.validate.field).required = true];
+  string window_type_name = 3 [(buf.validate.field) = {
+    required: true,
+    string: {min_len: 1}  // Ensure non-empty
+  }];
 
-  // The version of the window type, as defined by WindoType
-  string window_type_version = 4 [(buf.validate.field).required = true];
+  // The version of the window type
+  string window_type_version = 4 [(buf.validate.field) = {
+    required: true,
+    string: {min_len: 1}  // Ensure non-empty
+  }];
 
   // A unique identifier that defines where the window came from
-  string origin = 5 [(buf.validate.field).required = true];
+  string origin = 5 [(buf.validate.field) = {
+    required: true,
+    string: {min_len: 1}  // Ensure non-empty
+  }];
   
   // Additional metadata to attach to this window
-  // e.g. unique asset identifiers
   google.protobuf.Struct metadata = 6;
 
+  // Ensure time_to is after time_from
   option (buf.validate.message).cel = {
-      id: "window.time_to",
-      message: "`time_to` must be greater than or equal to `time_from`",
-      expression: "this.time_to >= this.time_from",
-    };
-
+    id: "window.time_ordering",
+    message: "time_to must be greater than time_from",
+    expression: "this.time_to > this.time_from"
+  };
 }
-
 // WindowType defines a category of window that can trigger algorithms.
 // Algorithms subscribe to window types to indicate when they should be executed.
 message WindowType {
@@ -371,8 +381,20 @@ message ResultsStats {
 }
 
 message AlgorithmFieldsRead {
-  int64 time_from = 1 [(buf.validate.field).required = true];
-  int64 time_to = 2 [(buf.validate.field).required = true];
+  google.protobuf.Timestamp time_from = 1 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+
+  google.protobuf.Timestamp time_to = 2 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+
   Algorithm algorithm = 3 [(buf.validate.field).required = true];
 }
 
@@ -381,43 +403,78 @@ message AlgorithmFields {
 };
 
 message ResultsForAlgorithmRead {
-  int64 time_from = 1 [(buf.validate.field).required = true];
-  int64 time_to = 2 [(buf.validate.field).required = true];
+
+  // the time to read results from
+  google.protobuf.Timestamp time_from = 1 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+
+  // the time to read results to
+  google.protobuf.Timestamp time_to = 2 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+  
+  // the algorithm to read results for
   Algorithm algorithm = 3 [(buf.validate.field).required = true];
 }
 
 message ResultsForAlgorithm {
   message ResultsRow {
     
-    // the time window from
-    int64 time_from = 1 [(buf.validate.field).required = true];
-  
-    // the time window to
-    int64 time_to = 2 [(buf.validate.field).required = true];
-    
+    // the time of the result, being the center of the triggering window
+    google.protobuf.Timestamp time = 1 [(buf.validate.field) = {
+      required: true,
+      timestamp: {
+        gt: {seconds: 0, nanos: 0}
+      }
+    }];
+
     // the result packet is one of these
     oneof result_data {
       // for single number results
-      float single_value = 3;
+      float single_value = 2;
 
       // For numeric array results
-      FloatArray array_values = 4;
+      FloatArray array_values = 3;
       
       // For structured data results (JSON-like)
       // Must follow a map<string, value> schema where value corresponds to https://protobuf.dev/reference/protobuf/google.protobuf/#value
-      google.protobuf.Struct struct_value = 5;
+      google.protobuf.Struct struct_value = 4;
     }
   }
   repeated ResultsRow results = 1;
 } 
 
 message WindowsRead {
-  int64 time_from = 1 [(buf.validate.field).required = true];
-  int64 time_to = 2 [(buf.validate.field).required = true];
+  
+  // the time to read windows from
+  google.protobuf.Timestamp time_from = 1 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+  
+  // the time to read windows to
+  google.protobuf.Timestamp time_to = 2 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+  
+  // the window
   WindowType window = 3 [(buf.validate.field).required = true];
 }
 
 message Windows {
+  // the windows
   repeated Window window = 1;
 }
 

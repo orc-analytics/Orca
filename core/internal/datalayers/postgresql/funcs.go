@@ -131,10 +131,7 @@ func (d *Datalayer) addAlgorithm(
 		ProcessorRuntime:  proc.GetRuntime(),
 		WindowTypeName:    algo.GetWindowType().GetName(),
 		WindowTypeVersion: algo.GetWindowType().GetVersion(),
-		ResultType: NullResultType{
-			ResultType: resultType,
-			Valid:      true,
-		},
+		ResultType:        resultType,
 	}
 
 	err := qtx.CreateAlgorithm(ctx, params)
