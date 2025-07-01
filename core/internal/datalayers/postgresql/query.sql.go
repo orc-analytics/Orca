@@ -541,17 +541,29 @@ func (q *Queries) ReadDistinctJsonResultFieldsForAlgorithm(ctx context.Context, 
 }
 
 const readDistinctWindowMetadata = `-- name: ReadDistinctWindowMetadata :many
-select distinct w.metadata from windows w
-where w.time_from  >= $1 and w.time_to <= $2
+SELECT DISTINCT w.metadata FROM windows w
+JOIN window_type wt ON w.window_type_id = wt.id 
+WHERE
+  w.time_from  >= $1
+  AND w.time_to <= $2
+  AND wt.name = $3
+  AND wt.version = $4
 `
 
 type ReadDistinctWindowMetadataParams struct {
-	TimeFrom pgtype.Timestamp
-	TimeTo   pgtype.Timestamp
+	TimeFrom          pgtype.Timestamp
+	TimeTo            pgtype.Timestamp
+	WindowTypeName    string
+	WindowTypeVersion string
 }
 
 func (q *Queries) ReadDistinctWindowMetadata(ctx context.Context, arg ReadDistinctWindowMetadataParams) ([][]byte, error) {
-	rows, err := q.db.Query(ctx, readDistinctWindowMetadata, arg.TimeFrom, arg.TimeTo)
+	rows, err := q.db.Query(ctx, readDistinctWindowMetadata,
+		arg.TimeFrom,
+		arg.TimeTo,
+		arg.WindowTypeName,
+		arg.WindowTypeVersion,
+	)
 	if err != nil {
 		return nil, err
 	}

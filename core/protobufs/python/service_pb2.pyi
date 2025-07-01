@@ -320,3 +320,19 @@ class Windows(_message.Message):
     WINDOW_FIELD_NUMBER: _ClassVar[int]
     window: _containers.RepeatedCompositeFieldContainer[Window]
     def __init__(self, window: _Optional[_Iterable[_Union[Window, _Mapping]]] = ...) -> None: ...
+
+class DistinctMetadataForWindowTypeRead(_message.Message):
+    __slots__ = ("time_from", "time_to", "window_type")
+    TIME_FROM_FIELD_NUMBER: _ClassVar[int]
+    TIME_TO_FIELD_NUMBER: _ClassVar[int]
+    WINDOW_TYPE_FIELD_NUMBER: _ClassVar[int]
+    time_from: _timestamp_pb2.Timestamp
+    time_to: _timestamp_pb2.Timestamp
+    window_type: WindowType
+    def __init__(self, time_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., time_to: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., window_type: _Optional[_Union[WindowType, _Mapping]] = ...) -> None: ...
+
+class DistinctMetadataForWindowType(_message.Message):
+    __slots__ = ("metadata",)
+    METADATA_FIELD_NUMBER: _ClassVar[int]
+    metadata: _struct_pb2.ListValue
+    def __init__(self, metadata: _Optional[_Union[_struct_pb2.ListValue, _Mapping]] = ...) -> None: ...

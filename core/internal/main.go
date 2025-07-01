@@ -152,3 +152,10 @@ func (o *OrcaCoreServer) ReadWindows(
 ) (*pb.Windows, error) {
 	return o.client.ReadWindows(ctx, windowReads)
 }
+
+func (o *OrcaCoreServer) ReadDistinctMetadataForWindowType(
+	ctx context.Context,
+	windowMetadataRead *pb.DistinctMetadataForWindowTypeRead,
+) (*pb.DistinctMetadataForWindowType, error) {
+	return o.client.ReadDistinctMetadataForWindowType(ctx, windowMetadataRead)
+}

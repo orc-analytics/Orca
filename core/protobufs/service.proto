@@ -29,6 +29,7 @@ service OrcaCore {
   rpc ReadResultFieldsForAlgorithm(AlgorithmFieldsRead) returns (AlgorithmFields);
   rpc ReadResultsForAlgorithm(ResultsForAlgorithmRead) returns (ResultsForAlgorithm);
   rpc ReadWindows(WindowsRead) returns (Windows);
+  rpc ReadDistinctMetadataForWindowType(DistinctMetadataForWindowTypeRead) returns (DistinctMetadataForWindowType);
 }
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:
@@ -478,3 +479,28 @@ message Windows {
   repeated Window window = 1;
 }
 
+
+message DistinctMetadataForWindowTypeRead {
+  // the time to read windows from
+  google.protobuf.Timestamp time_from = 1 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+  
+  // the time to read windows to
+  google.protobuf.Timestamp time_to = 2 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+
+  // the window type to read
+  WindowType window_type = 3;
+}
+
+message DistinctMetadataForWindowType {
+  google.protobuf.ListValue metadata = 1;
+}

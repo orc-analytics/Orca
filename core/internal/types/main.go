@@ -34,6 +34,10 @@ type (
 			resultsForAlgorithm *pb.ResultsForAlgorithmRead,
 		) (*pb.ResultsForAlgorithm, error)
 		ReadWindows(ctx context.Context, windowsRead *pb.WindowsRead) (*pb.Windows, error)
+		ReadDistinctMetadataForWindowType(
+			ctx context.Context,
+			windowMetadataRead *pb.DistinctMetadataForWindowTypeRead,
+		) (*pb.DistinctMetadataForWindowType, error)
 	}
 )
 
