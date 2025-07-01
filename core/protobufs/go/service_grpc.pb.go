@@ -19,15 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrcaCore_RegisterProcessor_FullMethodName            = "/OrcaCore/RegisterProcessor"
-	OrcaCore_EmitWindow_FullMethodName                   = "/OrcaCore/EmitWindow"
-	OrcaCore_ReadWindowTypes_FullMethodName              = "/OrcaCore/ReadWindowTypes"
-	OrcaCore_ReadAlgorithms_FullMethodName               = "/OrcaCore/ReadAlgorithms"
-	OrcaCore_ReadProcessors_FullMethodName               = "/OrcaCore/ReadProcessors"
-	OrcaCore_ReadResultsStats_FullMethodName             = "/OrcaCore/ReadResultsStats"
-	OrcaCore_ReadResultFieldsForAlgorithm_FullMethodName = "/OrcaCore/ReadResultFieldsForAlgorithm"
-	OrcaCore_ReadResultsForAlgorithm_FullMethodName      = "/OrcaCore/ReadResultsForAlgorithm"
-	OrcaCore_ReadWindows_FullMethodName                  = "/OrcaCore/ReadWindows"
+	OrcaCore_RegisterProcessor_FullMethodName                 = "/OrcaCore/RegisterProcessor"
+	OrcaCore_EmitWindow_FullMethodName                        = "/OrcaCore/EmitWindow"
+	OrcaCore_ReadWindowTypes_FullMethodName                   = "/OrcaCore/ReadWindowTypes"
+	OrcaCore_ReadAlgorithms_FullMethodName                    = "/OrcaCore/ReadAlgorithms"
+	OrcaCore_ReadProcessors_FullMethodName                    = "/OrcaCore/ReadProcessors"
+	OrcaCore_ReadResultsStats_FullMethodName                  = "/OrcaCore/ReadResultsStats"
+	OrcaCore_ReadResultFieldsForAlgorithm_FullMethodName      = "/OrcaCore/ReadResultFieldsForAlgorithm"
+	OrcaCore_ReadResultsForAlgorithm_FullMethodName           = "/OrcaCore/ReadResultsForAlgorithm"
+	OrcaCore_ReadWindows_FullMethodName                       = "/OrcaCore/ReadWindows"
+	OrcaCore_ReadDistinctMetadataForWindowType_FullMethodName = "/OrcaCore/ReadDistinctMetadataForWindowType"
 )
 
 // OrcaCoreClient is the client API for OrcaCore service.
@@ -52,6 +53,7 @@ type OrcaCoreClient interface {
 	ReadResultFieldsForAlgorithm(ctx context.Context, in *AlgorithmFieldsRead, opts ...grpc.CallOption) (*AlgorithmFields, error)
 	ReadResultsForAlgorithm(ctx context.Context, in *ResultsForAlgorithmRead, opts ...grpc.CallOption) (*ResultsForAlgorithm, error)
 	ReadWindows(ctx context.Context, in *WindowsRead, opts ...grpc.CallOption) (*Windows, error)
+	ReadDistinctMetadataForWindowType(ctx context.Context, in *DistinctMetadataForWindowTypeRead, opts ...grpc.CallOption) (*DistinctMetadataForWindowType, error)
 }
 
 type orcaCoreClient struct {
@@ -152,6 +154,16 @@ func (c *orcaCoreClient) ReadWindows(ctx context.Context, in *WindowsRead, opts 
 	return out, nil
 }
 
+func (c *orcaCoreClient) ReadDistinctMetadataForWindowType(ctx context.Context, in *DistinctMetadataForWindowTypeRead, opts ...grpc.CallOption) (*DistinctMetadataForWindowType, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DistinctMetadataForWindowType)
+	err := c.cc.Invoke(ctx, OrcaCore_ReadDistinctMetadataForWindowType_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrcaCoreServer is the server API for OrcaCore service.
 // All implementations must embed UnimplementedOrcaCoreServer
 // for forward compatibility.
@@ -174,6 +186,7 @@ type OrcaCoreServer interface {
 	ReadResultFieldsForAlgorithm(context.Context, *AlgorithmFieldsRead) (*AlgorithmFields, error)
 	ReadResultsForAlgorithm(context.Context, *ResultsForAlgorithmRead) (*ResultsForAlgorithm, error)
 	ReadWindows(context.Context, *WindowsRead) (*Windows, error)
+	ReadDistinctMetadataForWindowType(context.Context, *DistinctMetadataForWindowTypeRead) (*DistinctMetadataForWindowType, error)
 	mustEmbedUnimplementedOrcaCoreServer()
 }
 
@@ -210,6 +223,9 @@ func (UnimplementedOrcaCoreServer) ReadResultsForAlgorithm(context.Context, *Res
 }
 func (UnimplementedOrcaCoreServer) ReadWindows(context.Context, *WindowsRead) (*Windows, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadWindows not implemented")
+}
+func (UnimplementedOrcaCoreServer) ReadDistinctMetadataForWindowType(context.Context, *DistinctMetadataForWindowTypeRead) (*DistinctMetadataForWindowType, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadDistinctMetadataForWindowType not implemented")
 }
 func (UnimplementedOrcaCoreServer) mustEmbedUnimplementedOrcaCoreServer() {}
 func (UnimplementedOrcaCoreServer) testEmbeddedByValue()                  {}
@@ -394,6 +410,24 @@ func _OrcaCore_ReadWindows_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrcaCore_ReadDistinctMetadataForWindowType_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DistinctMetadataForWindowTypeRead)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaCoreServer).ReadDistinctMetadataForWindowType(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaCore_ReadDistinctMetadataForWindowType_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaCoreServer).ReadDistinctMetadataForWindowType(ctx, req.(*DistinctMetadataForWindowTypeRead))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrcaCore_ServiceDesc is the grpc.ServiceDesc for OrcaCore service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -436,6 +470,10 @@ var OrcaCore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReadWindows",
 			Handler:    _OrcaCore_ReadWindows_Handler,
+		},
+		{
+			MethodName: "ReadDistinctMetadataForWindowType",
+			Handler:    _OrcaCore_ReadDistinctMetadataForWindowType_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

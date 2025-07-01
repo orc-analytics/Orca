@@ -20,7 +20,7 @@ import {
   type ServiceError,
   type UntypedServiceImplementation,
 } from "@grpc/grpc-js";
-import { Struct } from "./google/protobuf/struct";
+import { ListValue, Struct } from "./google/protobuf/struct";
 import { Timestamp } from "./google/protobuf/timestamp";
 
 export const protobufPackage = "";
@@ -631,6 +631,23 @@ export interface WindowsRead {
 export interface Windows {
   /** the windows */
   window?: Window[] | undefined;
+}
+
+export interface DistinctMetadataForWindowTypeRead {
+  /** the time to read windows from */
+  timeFrom?:
+    | Date
+    | undefined;
+  /** the time to read windows to */
+  timeTo?:
+    | Date
+    | undefined;
+  /** the window type to read */
+  windowType?: WindowType | undefined;
+}
+
+export interface DistinctMetadataForWindowType {
+  metadata?: Array<any> | undefined;
 }
 
 function createBaseWindow(): Window {
@@ -3355,6 +3372,164 @@ export const Windows: MessageFns<Windows> = {
   },
 };
 
+function createBaseDistinctMetadataForWindowTypeRead(): DistinctMetadataForWindowTypeRead {
+  return { timeFrom: undefined, timeTo: undefined, windowType: undefined };
+}
+
+export const DistinctMetadataForWindowTypeRead: MessageFns<DistinctMetadataForWindowTypeRead> = {
+  encode(message: DistinctMetadataForWindowTypeRead, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.timeFrom !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeFrom), writer.uint32(10).fork()).join();
+    }
+    if (message.timeTo !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeTo), writer.uint32(18).fork()).join();
+    }
+    if (message.windowType !== undefined) {
+      WindowType.encode(message.windowType, writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DistinctMetadataForWindowTypeRead {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDistinctMetadataForWindowTypeRead();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.timeFrom = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.timeTo = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.windowType = WindowType.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DistinctMetadataForWindowTypeRead {
+    return {
+      timeFrom: isSet(object.timeFrom) ? fromJsonTimestamp(object.timeFrom) : undefined,
+      timeTo: isSet(object.timeTo) ? fromJsonTimestamp(object.timeTo) : undefined,
+      windowType: isSet(object.windowType) ? WindowType.fromJSON(object.windowType) : undefined,
+    };
+  },
+
+  toJSON(message: DistinctMetadataForWindowTypeRead): unknown {
+    const obj: any = {};
+    if (message.timeFrom !== undefined) {
+      obj.timeFrom = message.timeFrom.toISOString();
+    }
+    if (message.timeTo !== undefined) {
+      obj.timeTo = message.timeTo.toISOString();
+    }
+    if (message.windowType !== undefined) {
+      obj.windowType = WindowType.toJSON(message.windowType);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DistinctMetadataForWindowTypeRead>, I>>(
+    base?: I,
+  ): DistinctMetadataForWindowTypeRead {
+    return DistinctMetadataForWindowTypeRead.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DistinctMetadataForWindowTypeRead>, I>>(
+    object: I,
+  ): DistinctMetadataForWindowTypeRead {
+    const message = createBaseDistinctMetadataForWindowTypeRead();
+    message.timeFrom = object.timeFrom ?? undefined;
+    message.timeTo = object.timeTo ?? undefined;
+    message.windowType = (object.windowType !== undefined && object.windowType !== null)
+      ? WindowType.fromPartial(object.windowType)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseDistinctMetadataForWindowType(): DistinctMetadataForWindowType {
+  return { metadata: undefined };
+}
+
+export const DistinctMetadataForWindowType: MessageFns<DistinctMetadataForWindowType> = {
+  encode(message: DistinctMetadataForWindowType, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.metadata !== undefined) {
+      ListValue.encode(ListValue.wrap(message.metadata), writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DistinctMetadataForWindowType {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDistinctMetadataForWindowType();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.metadata = ListValue.unwrap(ListValue.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DistinctMetadataForWindowType {
+    return { metadata: globalThis.Array.isArray(object.metadata) ? [...object.metadata] : undefined };
+  },
+
+  toJSON(message: DistinctMetadataForWindowType): unknown {
+    const obj: any = {};
+    if (message.metadata !== undefined) {
+      obj.metadata = message.metadata;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DistinctMetadataForWindowType>, I>>(base?: I): DistinctMetadataForWindowType {
+    return DistinctMetadataForWindowType.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DistinctMetadataForWindowType>, I>>(
+    object: I,
+  ): DistinctMetadataForWindowType {
+    const message = createBaseDistinctMetadataForWindowType();
+    message.metadata = object.metadata ?? undefined;
+    return message;
+  },
+};
+
 /**
  * OrcaCore is the central orchestration service that:
  * - Manages the lifecycle of processing windows
@@ -3450,6 +3625,18 @@ export const OrcaCoreService = {
     responseSerialize: (value: Windows): Buffer => Buffer.from(Windows.encode(value).finish()),
     responseDeserialize: (value: Buffer): Windows => Windows.decode(value),
   },
+  readDistinctMetadataForWindowType: {
+    path: "/OrcaCore/ReadDistinctMetadataForWindowType",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: DistinctMetadataForWindowTypeRead): Buffer =>
+      Buffer.from(DistinctMetadataForWindowTypeRead.encode(value).finish()),
+    requestDeserialize: (value: Buffer): DistinctMetadataForWindowTypeRead =>
+      DistinctMetadataForWindowTypeRead.decode(value),
+    responseSerialize: (value: DistinctMetadataForWindowType): Buffer =>
+      Buffer.from(DistinctMetadataForWindowType.encode(value).finish()),
+    responseDeserialize: (value: Buffer): DistinctMetadataForWindowType => DistinctMetadataForWindowType.decode(value),
+  },
 } as const;
 
 export interface OrcaCoreServer extends UntypedServiceImplementation {
@@ -3465,6 +3652,7 @@ export interface OrcaCoreServer extends UntypedServiceImplementation {
   readResultFieldsForAlgorithm: handleUnaryCall<AlgorithmFieldsRead, AlgorithmFields>;
   readResultsForAlgorithm: handleUnaryCall<ResultsForAlgorithmRead, ResultsForAlgorithm>;
   readWindows: handleUnaryCall<WindowsRead, Windows>;
+  readDistinctMetadataForWindowType: handleUnaryCall<DistinctMetadataForWindowTypeRead, DistinctMetadataForWindowType>;
 }
 
 export interface OrcaCoreClient extends Client {
@@ -3602,6 +3790,21 @@ export interface OrcaCoreClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: Windows) => void,
+  ): ClientUnaryCall;
+  readDistinctMetadataForWindowType(
+    request: DistinctMetadataForWindowTypeRead,
+    callback: (error: ServiceError | null, response: DistinctMetadataForWindowType) => void,
+  ): ClientUnaryCall;
+  readDistinctMetadataForWindowType(
+    request: DistinctMetadataForWindowTypeRead,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: DistinctMetadataForWindowType) => void,
+  ): ClientUnaryCall;
+  readDistinctMetadataForWindowType(
+    request: DistinctMetadataForWindowTypeRead,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: DistinctMetadataForWindowType) => void,
   ): ClientUnaryCall;
 }
 

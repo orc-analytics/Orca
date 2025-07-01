@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/predixus/orca/core/internal/dag"
 	pb "github.com/predixus/orca/core/protobufs/go"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -70,8 +72,7 @@ func (d *Datalayer) RegisterProcessor(
 					"algorithm",
 					algo,
 					"depends_on",
-					algoDependentOn,
-					"error",
+					algoDependentOn, "error",
 					err,
 				)
 				return err
@@ -513,4 +514,55 @@ func (d *Datalayer) ReadWindows(
 		}
 	}
 	return &windowsPb, tx.Commit(ctx)
+}
+
+func (d *Datalayer) ReadDistinctMetadataForWindowType(
+	ctx context.Context,
+	windowMetadataRead *pb.DistinctMetadataForWindowTypeRead,
+) (*pb.DistinctMetadataForWindowType, error) {
+	tx, err := d.WithTx(ctx)
+	if err != nil {
+		slog.Error("could not start a transaction", "error", err)
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+
+	windowMetadata, err := qtx.ReadDistinctWindowMetadata(ctx, ReadDistinctWindowMetadataParams{
+		TimeFrom: pgtype.Timestamp{
+			Time:  windowMetadataRead.GetTimeFrom().AsTime(),
+			Valid: true,
+		},
+		TimeTo: pgtype.Timestamp{
+			Time:  windowMetadataRead.GetTimeTo().AsTime(),
+			Valid: true,
+		},
+		WindowTypeName:    windowMetadataRead.GetWindowType().GetName(),
+		WindowTypeVersion: windowMetadataRead.GetWindowType().GetVersion(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not read window metadata: %w", err)
+	}
+
+	// Convert raw JSON blobs into []any of map[string]any
+	metadataList := make([]any, len(windowMetadata))
+	for i, raw := range windowMetadata {
+		var m map[string]any
+		if err := json.Unmarshal(raw, &m); err != nil {
+			return nil, fmt.Errorf("could not unmarshal metadata at index %d: %w", i, err)
+		}
+		metadataList[i] = m
+	}
+
+	// Build a protobuf ListValue directly from []any
+	listValue, err := structpb.NewList(metadataList)
+	if err != nil {
+		return nil, fmt.Errorf("could not convert metadata list to protobuf ListValue: %w", err)
+	}
+
+	return &pb.DistinctMetadataForWindowType{
+		Metadata: listValue,
+	}, tx.Commit(ctx)
 }

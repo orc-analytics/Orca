@@ -228,8 +228,13 @@ SELECT
 FROM results r;
 
 -- name: ReadDistinctWindowMetadata :many
-select distinct w.metadata from windows w
-where w.time_from  >= sqlc.arg('time_from') and w.time_to <= sqlc.arg('time_to');
+SELECT DISTINCT w.metadata FROM windows w
+JOIN window_type wt ON w.window_type_id = wt.id 
+WHERE
+  w.time_from  >= sqlc.arg('time_from')
+  AND w.time_to <= sqlc.arg('time_to')
+  AND wt.name = sqlc.arg('window_type_name')
+  AND wt.version = sqlc.arg('window_type_version');
 
 -- name: ReadResultsForWindowMetadataField :many
 select r.* from results r
