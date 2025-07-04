@@ -22,7 +22,11 @@ func (d *Datalayer) RegisterProcessor(
 	slog.Debug("creating processor", "protobuf", proc)
 	tx, err := d.WithTx(ctx)
 
-	defer tx.Rollback(ctx)
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	if err != nil {
 		slog.Error("could not start a transaction", "error", err)
@@ -91,7 +95,11 @@ func (d *Datalayer) EmitWindow(
 
 	tx, err := d.WithTx(ctx)
 
-	defer tx.Rollback(ctx)
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	if err != nil {
 		slog.Error("could not start a transaction", "error", err)
@@ -199,7 +207,11 @@ func (d *Datalayer) ReadWindowTypes(
 		return nil, err
 	}
 
-	defer tx.Rollback(ctx)
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -231,7 +243,11 @@ func (d *Datalayer) ReadAlgorithms(
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -280,7 +296,11 @@ func (d *Datalayer) ReadProcessors(
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -311,7 +331,11 @@ func (d *Datalayer) ReadResultsStats(
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -337,7 +361,11 @@ func (d *Datalayer) ReadResultFieldsForAlgorithm(
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -384,7 +412,11 @@ func (d *Datalayer) ReadResultsForAlgorithm(
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -395,7 +427,7 @@ func (d *Datalayer) ReadResultsForAlgorithm(
 			Valid: true,
 		},
 		TimeTo: pgtype.Timestamp{
-			Time:  resultsForAlgorithmRead.GetTimeFrom().AsTime().UTC(),
+			Time:  resultsForAlgorithmRead.GetTimeTo().AsTime().UTC(),
 			Valid: true,
 		},
 		AlgorithmName:    resultsForAlgorithmRead.GetAlgorithm().GetName(),
@@ -470,7 +502,11 @@ func (d *Datalayer) ReadWindows(
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -525,7 +561,11 @@ func (d *Datalayer) ReadDistinctMetadataForWindowType(
 		slog.Error("could not start a transaction", "error", err)
 		return nil, err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
@@ -565,4 +605,170 @@ func (d *Datalayer) ReadDistinctMetadataForWindowType(
 	return &pb.DistinctMetadataForWindowType{
 		Metadata: listValue,
 	}, tx.Commit(ctx)
+}
+
+func (d *Datalayer) ReadWindowsForMetadata(
+	ctx context.Context,
+	windowsForMetadataRead *pb.WindowsForMetadataRead,
+) (*pb.WindowsForMetadata, error) {
+	tx, err := d.WithTx(ctx)
+	if err != nil {
+		slog.Error("could not start a transaction", "error", err)
+		return nil, err
+	}
+
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
+
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+
+	metadataFields := windowsForMetadataRead.GetMetadata()
+	metadata := make(map[string]any, len(metadataFields))
+
+	for _, m := range metadataFields {
+		switch m.GetValue().GetKind().(type) {
+		case *structpb.Value_BoolValue:
+			metadata[m.Field] = m.Value.GetBoolValue()
+		case *structpb.Value_NumberValue:
+			metadata[m.Field] = m.Value.GetNumberValue()
+		case *structpb.Value_StringValue:
+			metadata[m.Field] = m.Value.GetStringValue()
+		case *structpb.Value_NullValue:
+			metadata[m.Field] = nil
+		case *structpb.Value_ListValue:
+			metadata[m.Field] = m.Value.GetListValue()
+		case *structpb.Value_StructValue:
+			metadata[m.Field] = m.Value.GetStructValue()
+		}
+	}
+	metadataJson, err := json.Marshal(metadata)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse metadata as json: %v", err)
+	}
+
+	rows, err := qtx.ReadWindowsForMetadata(ctx, ReadWindowsForMetadataParams{
+		WindowTypeName:    windowsForMetadataRead.GetWindow().GetName(),
+		WindowTypeVersion: windowsForMetadataRead.GetWindow().GetVersion(),
+		TimeFrom: pgtype.Timestamp{
+			Time:  windowsForMetadataRead.GetTimeFrom().AsTime(),
+			Valid: true,
+		},
+		TimeTo: pgtype.Timestamp{
+			Time:  windowsForMetadataRead.GetTimeTo().AsTime(),
+			Valid: true,
+		},
+		MetadataFilter: metadataJson,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not read rows: %v", err)
+	}
+	result := pb.WindowsForMetadata{
+		Window: make([]*pb.Window, len(rows)),
+	}
+	for ii, row := range rows {
+		metadataStructPb, err := unmarshalToStruct(row.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"could not unmarshal postgres metadata jsonb to structpb: %v",
+				err,
+			)
+		}
+		result.Window[ii] = &pb.Window{
+			TimeFrom:          timestamppb.New(row.TimeFrom.Time),
+			TimeTo:            timestamppb.New(row.TimeTo.Time),
+			Origin:            row.Origin,
+			WindowTypeName:    row.Name,
+			WindowTypeVersion: row.Version,
+			Metadata:          metadataStructPb,
+		}
+	}
+
+	return &result, tx.Commit(ctx)
+}
+
+func (d *Datalayer) ReadResultsForAlgorithmAndMetadata(
+	ctx context.Context,
+	resultsForAlgorithmAndMetadata *pb.ResultsForAlgorithmAndMetadataRead,
+) (*pb.ResultsForAlgorithmAndMetadata, error) {
+	tx, err := d.WithTx(ctx)
+	if err != nil {
+		slog.Error("could not start a transaction", "error", err)
+		return nil, err
+	}
+
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	}()
+
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+
+	metadataFields := windowsForMetadataRead.GetMetadata()
+	metadata := make(map[string]any, len(metadataFields))
+
+	for _, m := range metadataFields {
+		switch m.GetValue().GetKind().(type) {
+		case *structpb.Value_BoolValue:
+			metadata[m.Field] = m.Value.GetBoolValue()
+		case *structpb.Value_NumberValue:
+			metadata[m.Field] = m.Value.GetNumberValue()
+		case *structpb.Value_StringValue:
+			metadata[m.Field] = m.Value.GetStringValue()
+		case *structpb.Value_NullValue:
+			metadata[m.Field] = nil
+		case *structpb.Value_ListValue:
+			metadata[m.Field] = m.Value.GetListValue()
+		case *structpb.Value_StructValue:
+			metadata[m.Field] = m.Value.GetStructValue()
+		}
+	}
+	metadataJson, err := json.Marshal(metadata)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse metadata as json: %v", err)
+	}
+
+	rows, err := qtx.ReadWindowsForMetadata(ctx, ReadWindowsForMetadataParams{
+		WindowTypeName:    windowsForMetadataRead.GetWindow().GetName(),
+		WindowTypeVersion: windowsForMetadataRead.GetWindow().GetVersion(),
+		TimeFrom: pgtype.Timestamp{
+			Time:  windowsForMetadataRead.GetTimeFrom().AsTime(),
+			Valid: true,
+		},
+		TimeTo: pgtype.Timestamp{
+			Time:  windowsForMetadataRead.GetTimeTo().AsTime(),
+			Valid: true,
+		},
+		MetadataFilter: metadataJson,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not read rows: %v", err)
+	}
+	result := pb.WindowsForMetadata{
+		Window: make([]*pb.Window, len(rows)),
+	}
+	for ii, row := range rows {
+		metadataStructPb, err := unmarshalToStruct(row.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"could not unmarshal postgres metadata jsonb to structpb: %v",
+				err,
+			)
+		}
+		result.Window[ii] = &pb.Window{
+			TimeFrom:          timestamppb.New(row.TimeFrom.Time),
+			TimeTo:            timestamppb.New(row.TimeTo.Time),
+			Origin:            row.Origin,
+			WindowTypeName:    row.Name,
+			WindowTypeVersion: row.Version,
+			Metadata:          metadataStructPb,
+		}
+	}
+
+	return &result, tx.Commit(ctx)
 }

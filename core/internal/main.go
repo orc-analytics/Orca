@@ -159,3 +159,10 @@ func (o *OrcaCoreServer) ReadDistinctMetadataForWindowType(
 ) (*pb.DistinctMetadataForWindowType, error) {
 	return o.client.ReadDistinctMetadataForWindowType(ctx, windowMetadataRead)
 }
+
+func (o *OrcaCoreServer) ReadWindowsForMetadata(
+	ctx context.Context,
+	windowsForMetadataRead *pb.WindowsForMetadataRead,
+) (*pb.WindowsForMetadata, error) {
+	return o.client.ReadWindowsForMetadata(ctx, windowsForMetadataRead)
+}

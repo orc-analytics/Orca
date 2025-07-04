@@ -778,34 +778,69 @@ func (q *Queries) ReadResultsForAlgorithm(ctx context.Context, arg ReadResultsFo
 	return items, nil
 }
 
-const readResultsForWindowMetadataField = `-- name: ReadResultsForWindowMetadataField :many
-select r.id, r.windows_id, r.window_type_id, r.algorithm_id, r.result_value, r.result_array, r.result_json from results r
-join windows w on r.windows_id = w.id
+const readResultsForAlgorithmAndMetadata = `-- name: ReadResultsForAlgorithmAndMetadata :many
+select
+  w.time_from,
+  w.time_to,
+  a."name",
+  a."version",
+  r.result_value, 
+  r.result_array,
+  r.result_json
+from windows w
+join window_type wt on w.window_type_id = wt.id
+join results r on r.window_type_id = wt.id
+join algorithm a on a.id = r.algorithm_id
 where
-	w.time_from  >= sql.arg('time_from') and w.time_to <= $1
-	and (w.metadata::json->>$2) = $3
+	wt."name" = $1 and wt."version" = $2
+	and w.time_from  >= $3 and w.time_to <= $4
+	and w.metadata::jsonb @> $5::jsonb
+	and a."name" = $6 and a."version" = $7
+ORDER BY w.time_from, w.time_to ASC
 `
 
-type ReadResultsForWindowMetadataFieldParams struct {
-	TimeTo             pgtype.Timestamp
-	MetadataField      []byte
-	MetadataFieldMatch []byte
+type ReadResultsForAlgorithmAndMetadataParams struct {
+	WindowTypeName    string
+	WindowTypeVersion string
+	TimeFrom          pgtype.Timestamp
+	TimeTo            pgtype.Timestamp
+	MetadataFilter    []byte
+	AlgorithmName     string
+	AlgorithmVersion  string
 }
 
-func (q *Queries) ReadResultsForWindowMetadataField(ctx context.Context, arg ReadResultsForWindowMetadataFieldParams) ([]Result, error) {
-	rows, err := q.db.Query(ctx, readResultsForWindowMetadataField, arg.TimeTo, arg.MetadataField, arg.MetadataFieldMatch)
+type ReadResultsForAlgorithmAndMetadataRow struct {
+	TimeFrom    pgtype.Timestamp
+	TimeTo      pgtype.Timestamp
+	Name        string
+	Version     string
+	ResultValue pgtype.Float8
+	ResultArray []float64
+	ResultJson  []byte
+}
+
+func (q *Queries) ReadResultsForAlgorithmAndMetadata(ctx context.Context, arg ReadResultsForAlgorithmAndMetadataParams) ([]ReadResultsForAlgorithmAndMetadataRow, error) {
+	rows, err := q.db.Query(ctx, readResultsForAlgorithmAndMetadata,
+		arg.WindowTypeName,
+		arg.WindowTypeVersion,
+		arg.TimeFrom,
+		arg.TimeTo,
+		arg.MetadataFilter,
+		arg.AlgorithmName,
+		arg.AlgorithmVersion,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Result
+	var items []ReadResultsForAlgorithmAndMetadataRow
 	for rows.Next() {
-		var i Result
+		var i ReadResultsForAlgorithmAndMetadataRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.WindowsID,
-			&i.WindowTypeID,
-			&i.AlgorithmID,
+			&i.TimeFrom,
+			&i.TimeTo,
+			&i.Name,
+			&i.Version,
 			&i.ResultValue,
 			&i.ResultArray,
 			&i.ResultJson,
@@ -925,6 +960,73 @@ func (q *Queries) ReadWindows(ctx context.Context, arg ReadWindowsParams) ([]Rea
 	var items []ReadWindowsRow
 	for rows.Next() {
 		var i ReadWindowsRow
+		if err := rows.Scan(
+			&i.TimeFrom,
+			&i.TimeTo,
+			&i.Origin,
+			&i.Metadata,
+			&i.Name,
+			&i.Version,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const readWindowsForMetadata = `-- name: ReadWindowsForMetadata :many
+select
+  w.time_from,
+  w.time_to,
+  w.origin,
+  w.metadata,
+  wt.name,
+  wt.version
+from windows w
+join window_type wt on w.window_type_id =wt.id
+where
+	wt."name" = $1 and wt."version" = $2
+	and w.time_from  >= $3 and w.time_to <= $4
+	and w.metadata::jsonb @> $5::jsonb
+ORDER BY w.time_from, w.time_to ASC
+`
+
+type ReadWindowsForMetadataParams struct {
+	WindowTypeName    string
+	WindowTypeVersion string
+	TimeFrom          pgtype.Timestamp
+	TimeTo            pgtype.Timestamp
+	MetadataFilter    []byte
+}
+
+type ReadWindowsForMetadataRow struct {
+	TimeFrom pgtype.Timestamp
+	TimeTo   pgtype.Timestamp
+	Origin   string
+	Metadata []byte
+	Name     string
+	Version  string
+}
+
+func (q *Queries) ReadWindowsForMetadata(ctx context.Context, arg ReadWindowsForMetadataParams) ([]ReadWindowsForMetadataRow, error) {
+	rows, err := q.db.Query(ctx, readWindowsForMetadata,
+		arg.WindowTypeName,
+		arg.WindowTypeVersion,
+		arg.TimeFrom,
+		arg.TimeTo,
+		arg.MetadataFilter,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReadWindowsForMetadataRow
+	for rows.Next() {
+		var i ReadWindowsForMetadataRow
 		if err := rows.Scan(
 			&i.TimeFrom,
 			&i.TimeTo,
