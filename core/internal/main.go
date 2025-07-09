@@ -24,7 +24,6 @@ var (
 	processors     = make(
 		[]grpc.ServerStreamingServer[pb.ProcessingTask],
 		MAX_PROCESSORS,
-		MAX_PROCESSORS,
 	)
 )
 
@@ -165,4 +164,9 @@ func (o *OrcaCoreServer) ReadWindowsForMetadata(
 	windowsForMetadataRead *pb.WindowsForMetadataRead,
 ) (*pb.WindowsForMetadata, error) {
 	return o.client.ReadWindowsForMetadata(ctx, windowsForMetadataRead)
+}
+
+
+func (o *OrcaCoreServer) ReadResultsForAlgorithmAndMetadata(ctx context.Context, resultsForAlgorithmAndMetadata *pb.ResultsForAlgorithmAndMetadataRead) (*pb.ResultsForAlgorithmAndMetadata, error) {
+  return o.client.ReadResultsForAlgorithmAndMetadata(ctx, resultsForAlgorithmAndMetadata)
 }

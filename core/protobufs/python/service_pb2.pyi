@@ -305,42 +305,6 @@ class ResultsForAlgorithm(_message.Message):
     results: _containers.RepeatedCompositeFieldContainer[ResultsForAlgorithm.ResultsRow]
     def __init__(self, results: _Optional[_Iterable[_Union[ResultsForAlgorithm.ResultsRow, _Mapping]]] = ...) -> None: ...
 
-class ResultsForAlgorithmAndMetadataRead(_message.Message):
-    __slots__ = ("time_from", "time_to", "algorithm", "metadata")
-    class Metadata(_message.Message):
-        __slots__ = ("field", "value")
-        FIELD_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        field: str
-        value: _struct_pb2.Value
-        def __init__(self, field: _Optional[str] = ..., value: _Optional[_Union[_struct_pb2.Value, _Mapping]] = ...) -> None: ...
-    TIME_FROM_FIELD_NUMBER: _ClassVar[int]
-    TIME_TO_FIELD_NUMBER: _ClassVar[int]
-    ALGORITHM_FIELD_NUMBER: _ClassVar[int]
-    METADATA_FIELD_NUMBER: _ClassVar[int]
-    time_from: _timestamp_pb2.Timestamp
-    time_to: _timestamp_pb2.Timestamp
-    algorithm: Algorithm
-    metadata: _containers.RepeatedCompositeFieldContainer[ResultsForAlgorithmAndMetadataRead.Metadata]
-    def __init__(self, time_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., time_to: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., algorithm: _Optional[_Union[Algorithm, _Mapping]] = ..., metadata: _Optional[_Iterable[_Union[ResultsForAlgorithmAndMetadataRead.Metadata, _Mapping]]] = ...) -> None: ...
-
-class ResultsForAlgorithmAndMetadata(_message.Message):
-    __slots__ = ("results",)
-    class ResultsRow(_message.Message):
-        __slots__ = ("time", "single_value", "array_values", "struct_value")
-        TIME_FIELD_NUMBER: _ClassVar[int]
-        SINGLE_VALUE_FIELD_NUMBER: _ClassVar[int]
-        ARRAY_VALUES_FIELD_NUMBER: _ClassVar[int]
-        STRUCT_VALUE_FIELD_NUMBER: _ClassVar[int]
-        time: _timestamp_pb2.Timestamp
-        single_value: float
-        array_values: FloatArray
-        struct_value: _struct_pb2.Struct
-        def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., single_value: _Optional[float] = ..., array_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
-    RESULTS_FIELD_NUMBER: _ClassVar[int]
-    results: _containers.RepeatedCompositeFieldContainer[ResultsForAlgorithmAndMetadata.ResultsRow]
-    def __init__(self, results: _Optional[_Iterable[_Union[ResultsForAlgorithmAndMetadata.ResultsRow, _Mapping]]] = ...) -> None: ...
-
 class WindowsRead(_message.Message):
     __slots__ = ("time_from", "time_to", "window")
     TIME_FROM_FIELD_NUMBER: _ClassVar[int]
@@ -397,3 +361,39 @@ class WindowsForMetadata(_message.Message):
     WINDOW_FIELD_NUMBER: _ClassVar[int]
     window: _containers.RepeatedCompositeFieldContainer[Window]
     def __init__(self, window: _Optional[_Iterable[_Union[Window, _Mapping]]] = ...) -> None: ...
+
+class ResultsForAlgorithmAndMetadataRead(_message.Message):
+    __slots__ = ("time_from", "time_to", "algorithm", "metadata")
+    class Metadata(_message.Message):
+        __slots__ = ("field", "value")
+        FIELD_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        field: str
+        value: _struct_pb2.Value
+        def __init__(self, field: _Optional[str] = ..., value: _Optional[_Union[_struct_pb2.Value, _Mapping]] = ...) -> None: ...
+    TIME_FROM_FIELD_NUMBER: _ClassVar[int]
+    TIME_TO_FIELD_NUMBER: _ClassVar[int]
+    ALGORITHM_FIELD_NUMBER: _ClassVar[int]
+    METADATA_FIELD_NUMBER: _ClassVar[int]
+    time_from: _timestamp_pb2.Timestamp
+    time_to: _timestamp_pb2.Timestamp
+    algorithm: Algorithm
+    metadata: _containers.RepeatedCompositeFieldContainer[ResultsForAlgorithmAndMetadataRead.Metadata]
+    def __init__(self, time_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., time_to: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., algorithm: _Optional[_Union[Algorithm, _Mapping]] = ..., metadata: _Optional[_Iterable[_Union[ResultsForAlgorithmAndMetadataRead.Metadata, _Mapping]]] = ...) -> None: ...
+
+class ResultsForAlgorithmAndMetadata(_message.Message):
+    __slots__ = ("results",)
+    class ResultsRow(_message.Message):
+        __slots__ = ("time", "single_value", "array_values", "struct_value")
+        TIME_FIELD_NUMBER: _ClassVar[int]
+        SINGLE_VALUE_FIELD_NUMBER: _ClassVar[int]
+        ARRAY_VALUES_FIELD_NUMBER: _ClassVar[int]
+        STRUCT_VALUE_FIELD_NUMBER: _ClassVar[int]
+        time: _timestamp_pb2.Timestamp
+        single_value: float
+        array_values: FloatArray
+        struct_value: _struct_pb2.Struct
+        def __init__(self, time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., single_value: _Optional[float] = ..., array_values: _Optional[_Union[FloatArray, _Mapping]] = ..., struct_value: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
+    RESULTS_FIELD_NUMBER: _ClassVar[int]
+    results: _containers.RepeatedCompositeFieldContainer[ResultsForAlgorithmAndMetadata.ResultsRow]
+    def __init__(self, results: _Optional[_Iterable[_Union[ResultsForAlgorithmAndMetadata.ResultsRow, _Mapping]]] = ...) -> None: ...

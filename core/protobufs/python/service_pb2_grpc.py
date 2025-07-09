@@ -80,11 +80,6 @@ class OrcaCoreStub(object):
                 request_serializer=service__pb2.ResultsForAlgorithmRead.SerializeToString,
                 response_deserializer=service__pb2.ResultsForAlgorithm.FromString,
                 _registered_method=True)
-        self.ReadResultsForAlgorithmAndMetadata = channel.unary_unary(
-                '/OrcaCore/ReadResultsForAlgorithmAndMetadata',
-                request_serializer=service__pb2.ResultsForAlgorithmRead.SerializeToString,
-                response_deserializer=service__pb2.ResultsForAlgorithm.FromString,
-                _registered_method=True)
         self.ReadWindows = channel.unary_unary(
                 '/OrcaCore/ReadWindows',
                 request_serializer=service__pb2.WindowsRead.SerializeToString,
@@ -99,6 +94,11 @@ class OrcaCoreStub(object):
                 '/OrcaCore/ReadWindowsForMetadata',
                 request_serializer=service__pb2.WindowsForMetadataRead.SerializeToString,
                 response_deserializer=service__pb2.WindowsForMetadata.FromString,
+                _registered_method=True)
+        self.ReadResultsForAlgorithmAndMetadata = channel.unary_unary(
+                '/OrcaCore/ReadResultsForAlgorithmAndMetadata',
+                request_serializer=service__pb2.ResultsForAlgorithmAndMetadataRead.SerializeToString,
+                response_deserializer=service__pb2.ResultsForAlgorithmAndMetadata.FromString,
                 _registered_method=True)
 
 
@@ -162,12 +162,6 @@ class OrcaCoreServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def ReadResultsForAlgorithmAndMetadata(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
     def ReadWindows(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -181,6 +175,12 @@ class OrcaCoreServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def ReadWindowsForMetadata(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReadResultsForAlgorithmAndMetadata(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -229,11 +229,6 @@ def add_OrcaCoreServicer_to_server(servicer, server):
                     request_deserializer=service__pb2.ResultsForAlgorithmRead.FromString,
                     response_serializer=service__pb2.ResultsForAlgorithm.SerializeToString,
             ),
-            'ReadResultsForAlgorithmAndMetadata': grpc.unary_unary_rpc_method_handler(
-                    servicer.ReadResultsForAlgorithmAndMetadata,
-                    request_deserializer=service__pb2.ResultsForAlgorithmRead.FromString,
-                    response_serializer=service__pb2.ResultsForAlgorithm.SerializeToString,
-            ),
             'ReadWindows': grpc.unary_unary_rpc_method_handler(
                     servicer.ReadWindows,
                     request_deserializer=service__pb2.WindowsRead.FromString,
@@ -248,6 +243,11 @@ def add_OrcaCoreServicer_to_server(servicer, server):
                     servicer.ReadWindowsForMetadata,
                     request_deserializer=service__pb2.WindowsForMetadataRead.FromString,
                     response_serializer=service__pb2.WindowsForMetadata.SerializeToString,
+            ),
+            'ReadResultsForAlgorithmAndMetadata': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReadResultsForAlgorithmAndMetadata,
+                    request_deserializer=service__pb2.ResultsForAlgorithmAndMetadataRead.FromString,
+                    response_serializer=service__pb2.ResultsForAlgorithmAndMetadata.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -483,33 +483,6 @@ class OrcaCore(object):
             _registered_method=True)
 
     @staticmethod
-    def ReadResultsForAlgorithmAndMetadata(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/OrcaCore/ReadResultsForAlgorithmAndMetadata',
-            service__pb2.ResultsForAlgorithmRead.SerializeToString,
-            service__pb2.ResultsForAlgorithm.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
     def ReadWindows(request,
             target,
             options=(),
@@ -580,6 +553,33 @@ class OrcaCore(object):
             '/OrcaCore/ReadWindowsForMetadata',
             service__pb2.WindowsForMetadataRead.SerializeToString,
             service__pb2.WindowsForMetadata.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ReadResultsForAlgorithmAndMetadata(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/OrcaCore/ReadResultsForAlgorithmAndMetadata',
+            service__pb2.ResultsForAlgorithmAndMetadataRead.SerializeToString,
+            service__pb2.ResultsForAlgorithmAndMetadata.FromString,
             options,
             channel_credentials,
             insecure,

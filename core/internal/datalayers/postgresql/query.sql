@@ -303,21 +303,21 @@ ORDER BY w.time_from, w.time_to ASC;
 
 
 -- name: ReadResultsForAlgorithmAndMetadata :many
-select
+WITH algorithmId AS (
+  SELECT id FROM algorithm WHERE name = sqlc.arg('algorithm_name') AND version = sqlc.arg('algorithm_version')
+)
+SELECT
   w.time_from,
   w.time_to,
-  a."name",
-  a."version",
-  r.result_value, 
+  w.metadata,
+  r.result_value,
   r.result_array,
   r.result_json
-from windows w
-join window_type wt on w.window_type_id = wt.id
-join results r on r.window_type_id = wt.id
-join algorithm a on a.id = r.algorithm_id
-where
-	wt."name" = sqlc.arg('window_type_name') and wt."version" = sqlc.arg('window_type_version')
-	and w.time_from  >= sqlc.arg('time_from') and w.time_to <= sqlc.arg('time_to')
-	and w.metadata::jsonb @> sqlc.arg('metadata_filter')::jsonb
-	and a."name" = sqlc.arg('algorithm_name') and a."version" = sqlc.arg('algorithm_version')
+FROM results r
+JOIN windows w ON r.windows_id  = w.id
+WHERE
+  w.time_from >= sqlc.arg('time_from') AND
+  w.time_to <= sqlc.arg('time_to') AND
+  w.metadata::jsonb @> sqlc.arg('metadata_filter')::jsonb AND
+  r.algorithm_id = (SELECT id FROM algorithmId)
 ORDER BY w.time_from, w.time_to ASC;
