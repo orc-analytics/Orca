@@ -615,51 +615,6 @@ export interface ResultsForAlgorithm_ResultsRow {
     | undefined;
 }
 
-export interface ResultsForAlgorithmAndMetadataRead {
-  /** the time to read results from */
-  timeFrom?:
-    | Date
-    | undefined;
-  /** the time to read results to */
-  timeTo?:
-    | Date
-    | undefined;
-  /** the algorithm to read results for */
-  algorithm?: Algorithm | undefined;
-  metadata?: ResultsForAlgorithmAndMetadataRead_Metadata[] | undefined;
-}
-
-export interface ResultsForAlgorithmAndMetadataRead_Metadata {
-  field?: string | undefined;
-  value?: any | undefined;
-}
-
-export interface ResultsForAlgorithmAndMetadata {
-  results?: ResultsForAlgorithmAndMetadata_ResultsRow[] | undefined;
-}
-
-export interface ResultsForAlgorithmAndMetadata_ResultsRow {
-  /** the time of the result, being the center of the triggering window */
-  time?:
-    | Date
-    | undefined;
-  /** the result packet is one of these */
-  resultData?:
-    | //
-    /** for single number results */
-    { $case: "singleValue"; value: number }
-    | //
-    /** For numeric array results */
-    { $case: "arrayValues"; value: FloatArray }
-    | //
-    /**
-     * For structured data results (JSON-like)
-     * Must follow a map<string, value> schema where value corresponds to https://protobuf.dev/reference/protobuf/google.protobuf/#value
-     */
-    { $case: "structValue"; value: { [key: string]: any } | undefined }
-    | undefined;
-}
-
 export interface WindowsRead {
   /** the time to read windows from */
   timeFrom?:
@@ -718,6 +673,51 @@ export interface WindowsForMetadataRead_Metadata {
 export interface WindowsForMetadata {
   /** the windows */
   window?: Window[] | undefined;
+}
+
+export interface ResultsForAlgorithmAndMetadataRead {
+  /** the time to read results from */
+  timeFrom?:
+    | Date
+    | undefined;
+  /** the time to read results to */
+  timeTo?:
+    | Date
+    | undefined;
+  /** the algorithm to read results for */
+  algorithm?: Algorithm | undefined;
+  metadata?: ResultsForAlgorithmAndMetadataRead_Metadata[] | undefined;
+}
+
+export interface ResultsForAlgorithmAndMetadataRead_Metadata {
+  field?: string | undefined;
+  value?: any | undefined;
+}
+
+export interface ResultsForAlgorithmAndMetadata {
+  results?: ResultsForAlgorithmAndMetadata_ResultsRow[] | undefined;
+}
+
+export interface ResultsForAlgorithmAndMetadata_ResultsRow {
+  /** the time of the result, being the center of the triggering window */
+  time?:
+    | Date
+    | undefined;
+  /** the result packet is one of these */
+  resultData?:
+    | //
+    /** for single number results */
+    { $case: "singleValue"; value: number }
+    | //
+    /** For numeric array results */
+    { $case: "arrayValues"; value: FloatArray }
+    | //
+    /**
+     * For structured data results (JSON-like)
+     * Must follow a map<string, value> schema where value corresponds to https://protobuf.dev/reference/protobuf/google.protobuf/#value
+     */
+    { $case: "structValue"; value: { [key: string]: any } | undefined }
+    | undefined;
 }
 
 function createBaseWindow(): Window {
@@ -3283,412 +3283,6 @@ export const ResultsForAlgorithm_ResultsRow: MessageFns<ResultsForAlgorithm_Resu
   },
 };
 
-function createBaseResultsForAlgorithmAndMetadataRead(): ResultsForAlgorithmAndMetadataRead {
-  return { timeFrom: undefined, timeTo: undefined, algorithm: undefined, metadata: [] };
-}
-
-export const ResultsForAlgorithmAndMetadataRead: MessageFns<ResultsForAlgorithmAndMetadataRead> = {
-  encode(message: ResultsForAlgorithmAndMetadataRead, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.timeFrom !== undefined) {
-      Timestamp.encode(toTimestamp(message.timeFrom), writer.uint32(10).fork()).join();
-    }
-    if (message.timeTo !== undefined) {
-      Timestamp.encode(toTimestamp(message.timeTo), writer.uint32(18).fork()).join();
-    }
-    if (message.algorithm !== undefined) {
-      Algorithm.encode(message.algorithm, writer.uint32(26).fork()).join();
-    }
-    if (message.metadata !== undefined && message.metadata.length !== 0) {
-      for (const v of message.metadata) {
-        ResultsForAlgorithmAndMetadataRead_Metadata.encode(v!, writer.uint32(34).fork()).join();
-      }
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithmAndMetadataRead {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseResultsForAlgorithmAndMetadataRead();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.timeFrom = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.timeTo = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.algorithm = Algorithm.decode(reader, reader.uint32());
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          const el = ResultsForAlgorithmAndMetadataRead_Metadata.decode(reader, reader.uint32());
-          if (el !== undefined) {
-            message.metadata!.push(el);
-          }
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ResultsForAlgorithmAndMetadataRead {
-    return {
-      timeFrom: isSet(object.timeFrom) ? fromJsonTimestamp(object.timeFrom) : undefined,
-      timeTo: isSet(object.timeTo) ? fromJsonTimestamp(object.timeTo) : undefined,
-      algorithm: isSet(object.algorithm) ? Algorithm.fromJSON(object.algorithm) : undefined,
-      metadata: globalThis.Array.isArray(object?.metadata)
-        ? object.metadata.map((e: any) => ResultsForAlgorithmAndMetadataRead_Metadata.fromJSON(e))
-        : [],
-    };
-  },
-
-  toJSON(message: ResultsForAlgorithmAndMetadataRead): unknown {
-    const obj: any = {};
-    if (message.timeFrom !== undefined) {
-      obj.timeFrom = message.timeFrom.toISOString();
-    }
-    if (message.timeTo !== undefined) {
-      obj.timeTo = message.timeTo.toISOString();
-    }
-    if (message.algorithm !== undefined) {
-      obj.algorithm = Algorithm.toJSON(message.algorithm);
-    }
-    if (message.metadata?.length) {
-      obj.metadata = message.metadata.map((e) => ResultsForAlgorithmAndMetadataRead_Metadata.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadataRead>, I>>(
-    base?: I,
-  ): ResultsForAlgorithmAndMetadataRead {
-    return ResultsForAlgorithmAndMetadataRead.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadataRead>, I>>(
-    object: I,
-  ): ResultsForAlgorithmAndMetadataRead {
-    const message = createBaseResultsForAlgorithmAndMetadataRead();
-    message.timeFrom = object.timeFrom ?? undefined;
-    message.timeTo = object.timeTo ?? undefined;
-    message.algorithm = (object.algorithm !== undefined && object.algorithm !== null)
-      ? Algorithm.fromPartial(object.algorithm)
-      : undefined;
-    message.metadata = object.metadata?.map((e) => ResultsForAlgorithmAndMetadataRead_Metadata.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseResultsForAlgorithmAndMetadataRead_Metadata(): ResultsForAlgorithmAndMetadataRead_Metadata {
-  return { field: "", value: undefined };
-}
-
-export const ResultsForAlgorithmAndMetadataRead_Metadata: MessageFns<ResultsForAlgorithmAndMetadataRead_Metadata> = {
-  encode(
-    message: ResultsForAlgorithmAndMetadataRead_Metadata,
-    writer: BinaryWriter = new BinaryWriter(),
-  ): BinaryWriter {
-    if (message.field !== undefined && message.field !== "") {
-      writer.uint32(10).string(message.field);
-    }
-    if (message.value !== undefined) {
-      Value.encode(Value.wrap(message.value), writer.uint32(18).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithmAndMetadataRead_Metadata {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseResultsForAlgorithmAndMetadataRead_Metadata();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.field = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.value = Value.unwrap(Value.decode(reader, reader.uint32()));
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ResultsForAlgorithmAndMetadataRead_Metadata {
-    return {
-      field: isSet(object.field) ? globalThis.String(object.field) : "",
-      value: isSet(object?.value) ? object.value : undefined,
-    };
-  },
-
-  toJSON(message: ResultsForAlgorithmAndMetadataRead_Metadata): unknown {
-    const obj: any = {};
-    if (message.field !== undefined && message.field !== "") {
-      obj.field = message.field;
-    }
-    if (message.value !== undefined) {
-      obj.value = message.value;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadataRead_Metadata>, I>>(
-    base?: I,
-  ): ResultsForAlgorithmAndMetadataRead_Metadata {
-    return ResultsForAlgorithmAndMetadataRead_Metadata.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadataRead_Metadata>, I>>(
-    object: I,
-  ): ResultsForAlgorithmAndMetadataRead_Metadata {
-    const message = createBaseResultsForAlgorithmAndMetadataRead_Metadata();
-    message.field = object.field ?? "";
-    message.value = object.value ?? undefined;
-    return message;
-  },
-};
-
-function createBaseResultsForAlgorithmAndMetadata(): ResultsForAlgorithmAndMetadata {
-  return { results: [] };
-}
-
-export const ResultsForAlgorithmAndMetadata: MessageFns<ResultsForAlgorithmAndMetadata> = {
-  encode(message: ResultsForAlgorithmAndMetadata, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.results !== undefined && message.results.length !== 0) {
-      for (const v of message.results) {
-        ResultsForAlgorithmAndMetadata_ResultsRow.encode(v!, writer.uint32(10).fork()).join();
-      }
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithmAndMetadata {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseResultsForAlgorithmAndMetadata();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          const el = ResultsForAlgorithmAndMetadata_ResultsRow.decode(reader, reader.uint32());
-          if (el !== undefined) {
-            message.results!.push(el);
-          }
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ResultsForAlgorithmAndMetadata {
-    return {
-      results: globalThis.Array.isArray(object?.results)
-        ? object.results.map((e: any) => ResultsForAlgorithmAndMetadata_ResultsRow.fromJSON(e))
-        : [],
-    };
-  },
-
-  toJSON(message: ResultsForAlgorithmAndMetadata): unknown {
-    const obj: any = {};
-    if (message.results?.length) {
-      obj.results = message.results.map((e) => ResultsForAlgorithmAndMetadata_ResultsRow.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadata>, I>>(base?: I): ResultsForAlgorithmAndMetadata {
-    return ResultsForAlgorithmAndMetadata.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadata>, I>>(
-    object: I,
-  ): ResultsForAlgorithmAndMetadata {
-    const message = createBaseResultsForAlgorithmAndMetadata();
-    message.results = object.results?.map((e) => ResultsForAlgorithmAndMetadata_ResultsRow.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseResultsForAlgorithmAndMetadata_ResultsRow(): ResultsForAlgorithmAndMetadata_ResultsRow {
-  return { time: undefined, resultData: undefined };
-}
-
-export const ResultsForAlgorithmAndMetadata_ResultsRow: MessageFns<ResultsForAlgorithmAndMetadata_ResultsRow> = {
-  encode(message: ResultsForAlgorithmAndMetadata_ResultsRow, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.time !== undefined) {
-      Timestamp.encode(toTimestamp(message.time), writer.uint32(10).fork()).join();
-    }
-    switch (message.resultData?.$case) {
-      case "singleValue":
-        writer.uint32(21).float(message.resultData.value);
-        break;
-      case "arrayValues":
-        FloatArray.encode(message.resultData.value, writer.uint32(26).fork()).join();
-        break;
-      case "structValue":
-        Struct.encode(Struct.wrap(message.resultData.value), writer.uint32(34).fork()).join();
-        break;
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithmAndMetadata_ResultsRow {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseResultsForAlgorithmAndMetadata_ResultsRow();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.time = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 2: {
-          if (tag !== 21) {
-            break;
-          }
-
-          message.resultData = { $case: "singleValue", value: reader.float() };
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.resultData = { $case: "arrayValues", value: FloatArray.decode(reader, reader.uint32()) };
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.resultData = { $case: "structValue", value: Struct.unwrap(Struct.decode(reader, reader.uint32())) };
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ResultsForAlgorithmAndMetadata_ResultsRow {
-    return {
-      time: isSet(object.time) ? fromJsonTimestamp(object.time) : undefined,
-      resultData: isSet(object.singleValue)
-        ? { $case: "singleValue", value: globalThis.Number(object.singleValue) }
-        : isSet(object.arrayValues)
-        ? { $case: "arrayValues", value: FloatArray.fromJSON(object.arrayValues) }
-        : isSet(object.structValue)
-        ? { $case: "structValue", value: object.structValue }
-        : undefined,
-    };
-  },
-
-  toJSON(message: ResultsForAlgorithmAndMetadata_ResultsRow): unknown {
-    const obj: any = {};
-    if (message.time !== undefined) {
-      obj.time = message.time.toISOString();
-    }
-    if (message.resultData?.$case === "singleValue") {
-      obj.singleValue = message.resultData.value;
-    } else if (message.resultData?.$case === "arrayValues") {
-      obj.arrayValues = FloatArray.toJSON(message.resultData.value);
-    } else if (message.resultData?.$case === "structValue") {
-      obj.structValue = message.resultData.value;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadata_ResultsRow>, I>>(
-    base?: I,
-  ): ResultsForAlgorithmAndMetadata_ResultsRow {
-    return ResultsForAlgorithmAndMetadata_ResultsRow.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadata_ResultsRow>, I>>(
-    object: I,
-  ): ResultsForAlgorithmAndMetadata_ResultsRow {
-    const message = createBaseResultsForAlgorithmAndMetadata_ResultsRow();
-    message.time = object.time ?? undefined;
-    switch (object.resultData?.$case) {
-      case "singleValue": {
-        if (object.resultData?.value !== undefined && object.resultData?.value !== null) {
-          message.resultData = { $case: "singleValue", value: object.resultData.value };
-        }
-        break;
-      }
-      case "arrayValues": {
-        if (object.resultData?.value !== undefined && object.resultData?.value !== null) {
-          message.resultData = { $case: "arrayValues", value: FloatArray.fromPartial(object.resultData.value) };
-        }
-        break;
-      }
-      case "structValue": {
-        if (object.resultData?.value !== undefined && object.resultData?.value !== null) {
-          message.resultData = { $case: "structValue", value: object.resultData.value };
-        }
-        break;
-      }
-    }
-    return message;
-  },
-};
-
 function createBaseWindowsRead(): WindowsRead {
   return { timeFrom: undefined, timeTo: undefined, window: undefined };
 }
@@ -4266,6 +3860,412 @@ export const WindowsForMetadata: MessageFns<WindowsForMetadata> = {
   },
 };
 
+function createBaseResultsForAlgorithmAndMetadataRead(): ResultsForAlgorithmAndMetadataRead {
+  return { timeFrom: undefined, timeTo: undefined, algorithm: undefined, metadata: [] };
+}
+
+export const ResultsForAlgorithmAndMetadataRead: MessageFns<ResultsForAlgorithmAndMetadataRead> = {
+  encode(message: ResultsForAlgorithmAndMetadataRead, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.timeFrom !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeFrom), writer.uint32(10).fork()).join();
+    }
+    if (message.timeTo !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeTo), writer.uint32(18).fork()).join();
+    }
+    if (message.algorithm !== undefined) {
+      Algorithm.encode(message.algorithm, writer.uint32(26).fork()).join();
+    }
+    if (message.metadata !== undefined && message.metadata.length !== 0) {
+      for (const v of message.metadata) {
+        ResultsForAlgorithmAndMetadataRead_Metadata.encode(v!, writer.uint32(34).fork()).join();
+      }
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithmAndMetadataRead {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResultsForAlgorithmAndMetadataRead();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.timeFrom = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.timeTo = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.algorithm = Algorithm.decode(reader, reader.uint32());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          const el = ResultsForAlgorithmAndMetadataRead_Metadata.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.metadata!.push(el);
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResultsForAlgorithmAndMetadataRead {
+    return {
+      timeFrom: isSet(object.timeFrom) ? fromJsonTimestamp(object.timeFrom) : undefined,
+      timeTo: isSet(object.timeTo) ? fromJsonTimestamp(object.timeTo) : undefined,
+      algorithm: isSet(object.algorithm) ? Algorithm.fromJSON(object.algorithm) : undefined,
+      metadata: globalThis.Array.isArray(object?.metadata)
+        ? object.metadata.map((e: any) => ResultsForAlgorithmAndMetadataRead_Metadata.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ResultsForAlgorithmAndMetadataRead): unknown {
+    const obj: any = {};
+    if (message.timeFrom !== undefined) {
+      obj.timeFrom = message.timeFrom.toISOString();
+    }
+    if (message.timeTo !== undefined) {
+      obj.timeTo = message.timeTo.toISOString();
+    }
+    if (message.algorithm !== undefined) {
+      obj.algorithm = Algorithm.toJSON(message.algorithm);
+    }
+    if (message.metadata?.length) {
+      obj.metadata = message.metadata.map((e) => ResultsForAlgorithmAndMetadataRead_Metadata.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadataRead>, I>>(
+    base?: I,
+  ): ResultsForAlgorithmAndMetadataRead {
+    return ResultsForAlgorithmAndMetadataRead.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadataRead>, I>>(
+    object: I,
+  ): ResultsForAlgorithmAndMetadataRead {
+    const message = createBaseResultsForAlgorithmAndMetadataRead();
+    message.timeFrom = object.timeFrom ?? undefined;
+    message.timeTo = object.timeTo ?? undefined;
+    message.algorithm = (object.algorithm !== undefined && object.algorithm !== null)
+      ? Algorithm.fromPartial(object.algorithm)
+      : undefined;
+    message.metadata = object.metadata?.map((e) => ResultsForAlgorithmAndMetadataRead_Metadata.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseResultsForAlgorithmAndMetadataRead_Metadata(): ResultsForAlgorithmAndMetadataRead_Metadata {
+  return { field: "", value: undefined };
+}
+
+export const ResultsForAlgorithmAndMetadataRead_Metadata: MessageFns<ResultsForAlgorithmAndMetadataRead_Metadata> = {
+  encode(
+    message: ResultsForAlgorithmAndMetadataRead_Metadata,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
+    if (message.field !== undefined && message.field !== "") {
+      writer.uint32(10).string(message.field);
+    }
+    if (message.value !== undefined) {
+      Value.encode(Value.wrap(message.value), writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithmAndMetadataRead_Metadata {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResultsForAlgorithmAndMetadataRead_Metadata();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.field = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = Value.unwrap(Value.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResultsForAlgorithmAndMetadataRead_Metadata {
+    return {
+      field: isSet(object.field) ? globalThis.String(object.field) : "",
+      value: isSet(object?.value) ? object.value : undefined,
+    };
+  },
+
+  toJSON(message: ResultsForAlgorithmAndMetadataRead_Metadata): unknown {
+    const obj: any = {};
+    if (message.field !== undefined && message.field !== "") {
+      obj.field = message.field;
+    }
+    if (message.value !== undefined) {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadataRead_Metadata>, I>>(
+    base?: I,
+  ): ResultsForAlgorithmAndMetadataRead_Metadata {
+    return ResultsForAlgorithmAndMetadataRead_Metadata.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadataRead_Metadata>, I>>(
+    object: I,
+  ): ResultsForAlgorithmAndMetadataRead_Metadata {
+    const message = createBaseResultsForAlgorithmAndMetadataRead_Metadata();
+    message.field = object.field ?? "";
+    message.value = object.value ?? undefined;
+    return message;
+  },
+};
+
+function createBaseResultsForAlgorithmAndMetadata(): ResultsForAlgorithmAndMetadata {
+  return { results: [] };
+}
+
+export const ResultsForAlgorithmAndMetadata: MessageFns<ResultsForAlgorithmAndMetadata> = {
+  encode(message: ResultsForAlgorithmAndMetadata, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.results !== undefined && message.results.length !== 0) {
+      for (const v of message.results) {
+        ResultsForAlgorithmAndMetadata_ResultsRow.encode(v!, writer.uint32(10).fork()).join();
+      }
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithmAndMetadata {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResultsForAlgorithmAndMetadata();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          const el = ResultsForAlgorithmAndMetadata_ResultsRow.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.results!.push(el);
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResultsForAlgorithmAndMetadata {
+    return {
+      results: globalThis.Array.isArray(object?.results)
+        ? object.results.map((e: any) => ResultsForAlgorithmAndMetadata_ResultsRow.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ResultsForAlgorithmAndMetadata): unknown {
+    const obj: any = {};
+    if (message.results?.length) {
+      obj.results = message.results.map((e) => ResultsForAlgorithmAndMetadata_ResultsRow.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadata>, I>>(base?: I): ResultsForAlgorithmAndMetadata {
+    return ResultsForAlgorithmAndMetadata.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadata>, I>>(
+    object: I,
+  ): ResultsForAlgorithmAndMetadata {
+    const message = createBaseResultsForAlgorithmAndMetadata();
+    message.results = object.results?.map((e) => ResultsForAlgorithmAndMetadata_ResultsRow.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseResultsForAlgorithmAndMetadata_ResultsRow(): ResultsForAlgorithmAndMetadata_ResultsRow {
+  return { time: undefined, resultData: undefined };
+}
+
+export const ResultsForAlgorithmAndMetadata_ResultsRow: MessageFns<ResultsForAlgorithmAndMetadata_ResultsRow> = {
+  encode(message: ResultsForAlgorithmAndMetadata_ResultsRow, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.time !== undefined) {
+      Timestamp.encode(toTimestamp(message.time), writer.uint32(10).fork()).join();
+    }
+    switch (message.resultData?.$case) {
+      case "singleValue":
+        writer.uint32(21).float(message.resultData.value);
+        break;
+      case "arrayValues":
+        FloatArray.encode(message.resultData.value, writer.uint32(26).fork()).join();
+        break;
+      case "structValue":
+        Struct.encode(Struct.wrap(message.resultData.value), writer.uint32(34).fork()).join();
+        break;
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResultsForAlgorithmAndMetadata_ResultsRow {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResultsForAlgorithmAndMetadata_ResultsRow();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.time = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 21) {
+            break;
+          }
+
+          message.resultData = { $case: "singleValue", value: reader.float() };
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.resultData = { $case: "arrayValues", value: FloatArray.decode(reader, reader.uint32()) };
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.resultData = { $case: "structValue", value: Struct.unwrap(Struct.decode(reader, reader.uint32())) };
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResultsForAlgorithmAndMetadata_ResultsRow {
+    return {
+      time: isSet(object.time) ? fromJsonTimestamp(object.time) : undefined,
+      resultData: isSet(object.singleValue)
+        ? { $case: "singleValue", value: globalThis.Number(object.singleValue) }
+        : isSet(object.arrayValues)
+        ? { $case: "arrayValues", value: FloatArray.fromJSON(object.arrayValues) }
+        : isSet(object.structValue)
+        ? { $case: "structValue", value: object.structValue }
+        : undefined,
+    };
+  },
+
+  toJSON(message: ResultsForAlgorithmAndMetadata_ResultsRow): unknown {
+    const obj: any = {};
+    if (message.time !== undefined) {
+      obj.time = message.time.toISOString();
+    }
+    if (message.resultData?.$case === "singleValue") {
+      obj.singleValue = message.resultData.value;
+    } else if (message.resultData?.$case === "arrayValues") {
+      obj.arrayValues = FloatArray.toJSON(message.resultData.value);
+    } else if (message.resultData?.$case === "structValue") {
+      obj.structValue = message.resultData.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadata_ResultsRow>, I>>(
+    base?: I,
+  ): ResultsForAlgorithmAndMetadata_ResultsRow {
+    return ResultsForAlgorithmAndMetadata_ResultsRow.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResultsForAlgorithmAndMetadata_ResultsRow>, I>>(
+    object: I,
+  ): ResultsForAlgorithmAndMetadata_ResultsRow {
+    const message = createBaseResultsForAlgorithmAndMetadata_ResultsRow();
+    message.time = object.time ?? undefined;
+    switch (object.resultData?.$case) {
+      case "singleValue": {
+        if (object.resultData?.value !== undefined && object.resultData?.value !== null) {
+          message.resultData = { $case: "singleValue", value: object.resultData.value };
+        }
+        break;
+      }
+      case "arrayValues": {
+        if (object.resultData?.value !== undefined && object.resultData?.value !== null) {
+          message.resultData = { $case: "arrayValues", value: FloatArray.fromPartial(object.resultData.value) };
+        }
+        break;
+      }
+      case "structValue": {
+        if (object.resultData?.value !== undefined && object.resultData?.value !== null) {
+          message.resultData = { $case: "structValue", value: object.resultData.value };
+        }
+        break;
+      }
+    }
+    return message;
+  },
+};
+
 /**
  * OrcaCore is the central orchestration service that:
  * - Manages the lifecycle of processing windows
@@ -4352,16 +4352,6 @@ export const OrcaCoreService = {
     responseSerialize: (value: ResultsForAlgorithm): Buffer => Buffer.from(ResultsForAlgorithm.encode(value).finish()),
     responseDeserialize: (value: Buffer): ResultsForAlgorithm => ResultsForAlgorithm.decode(value),
   },
-  readResultsForAlgorithmAndMetadata: {
-    path: "/OrcaCore/ReadResultsForAlgorithmAndMetadata",
-    requestStream: false,
-    responseStream: false,
-    requestSerialize: (value: ResultsForAlgorithmRead): Buffer =>
-      Buffer.from(ResultsForAlgorithmRead.encode(value).finish()),
-    requestDeserialize: (value: Buffer): ResultsForAlgorithmRead => ResultsForAlgorithmRead.decode(value),
-    responseSerialize: (value: ResultsForAlgorithm): Buffer => Buffer.from(ResultsForAlgorithm.encode(value).finish()),
-    responseDeserialize: (value: Buffer): ResultsForAlgorithm => ResultsForAlgorithm.decode(value),
-  },
   readWindows: {
     path: "/OrcaCore/ReadWindows",
     requestStream: false,
@@ -4393,6 +4383,19 @@ export const OrcaCoreService = {
     responseSerialize: (value: WindowsForMetadata): Buffer => Buffer.from(WindowsForMetadata.encode(value).finish()),
     responseDeserialize: (value: Buffer): WindowsForMetadata => WindowsForMetadata.decode(value),
   },
+  readResultsForAlgorithmAndMetadata: {
+    path: "/OrcaCore/ReadResultsForAlgorithmAndMetadata",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: ResultsForAlgorithmAndMetadataRead): Buffer =>
+      Buffer.from(ResultsForAlgorithmAndMetadataRead.encode(value).finish()),
+    requestDeserialize: (value: Buffer): ResultsForAlgorithmAndMetadataRead =>
+      ResultsForAlgorithmAndMetadataRead.decode(value),
+    responseSerialize: (value: ResultsForAlgorithmAndMetadata): Buffer =>
+      Buffer.from(ResultsForAlgorithmAndMetadata.encode(value).finish()),
+    responseDeserialize: (value: Buffer): ResultsForAlgorithmAndMetadata =>
+      ResultsForAlgorithmAndMetadata.decode(value),
+  },
 } as const;
 
 export interface OrcaCoreServer extends UntypedServiceImplementation {
@@ -4407,10 +4410,13 @@ export interface OrcaCoreServer extends UntypedServiceImplementation {
   readResultsStats: handleUnaryCall<ResultsStatsRead, ResultsStats>;
   readResultFieldsForAlgorithm: handleUnaryCall<AlgorithmFieldsRead, AlgorithmFields>;
   readResultsForAlgorithm: handleUnaryCall<ResultsForAlgorithmRead, ResultsForAlgorithm>;
-  readResultsForAlgorithmAndMetadata: handleUnaryCall<ResultsForAlgorithmRead, ResultsForAlgorithm>;
   readWindows: handleUnaryCall<WindowsRead, Windows>;
   readDistinctMetadataForWindowType: handleUnaryCall<DistinctMetadataForWindowTypeRead, DistinctMetadataForWindowType>;
   readWindowsForMetadata: handleUnaryCall<WindowsForMetadataRead, WindowsForMetadata>;
+  readResultsForAlgorithmAndMetadata: handleUnaryCall<
+    ResultsForAlgorithmAndMetadataRead,
+    ResultsForAlgorithmAndMetadata
+  >;
 }
 
 export interface OrcaCoreClient extends Client {
@@ -4537,21 +4543,6 @@ export interface OrcaCoreClient extends Client {
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: ResultsForAlgorithm) => void,
   ): ClientUnaryCall;
-  readResultsForAlgorithmAndMetadata(
-    request: ResultsForAlgorithmRead,
-    callback: (error: ServiceError | null, response: ResultsForAlgorithm) => void,
-  ): ClientUnaryCall;
-  readResultsForAlgorithmAndMetadata(
-    request: ResultsForAlgorithmRead,
-    metadata: Metadata,
-    callback: (error: ServiceError | null, response: ResultsForAlgorithm) => void,
-  ): ClientUnaryCall;
-  readResultsForAlgorithmAndMetadata(
-    request: ResultsForAlgorithmRead,
-    metadata: Metadata,
-    options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: ResultsForAlgorithm) => void,
-  ): ClientUnaryCall;
   readWindows(request: WindowsRead, callback: (error: ServiceError | null, response: Windows) => void): ClientUnaryCall;
   readWindows(
     request: WindowsRead,
@@ -4593,6 +4584,21 @@ export interface OrcaCoreClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: WindowsForMetadata) => void,
+  ): ClientUnaryCall;
+  readResultsForAlgorithmAndMetadata(
+    request: ResultsForAlgorithmAndMetadataRead,
+    callback: (error: ServiceError | null, response: ResultsForAlgorithmAndMetadata) => void,
+  ): ClientUnaryCall;
+  readResultsForAlgorithmAndMetadata(
+    request: ResultsForAlgorithmAndMetadataRead,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: ResultsForAlgorithmAndMetadata) => void,
+  ): ClientUnaryCall;
+  readResultsForAlgorithmAndMetadata(
+    request: ResultsForAlgorithmAndMetadataRead,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: ResultsForAlgorithmAndMetadata) => void,
   ): ClientUnaryCall;
 }
 

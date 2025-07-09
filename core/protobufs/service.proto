@@ -28,10 +28,10 @@ service OrcaCore {
   rpc ReadResultsStats(ResultsStatsRead) returns (ResultsStats);
   rpc ReadResultFieldsForAlgorithm(AlgorithmFieldsRead) returns (AlgorithmFields);
   rpc ReadResultsForAlgorithm(ResultsForAlgorithmRead) returns (ResultsForAlgorithm);
-  rpc ReadResultsForAlgorithmAndMetadata(ResultsForAlgorithmRead) returns (ResultsForAlgorithm);
   rpc ReadWindows(WindowsRead) returns (Windows);
   rpc ReadDistinctMetadataForWindowType(DistinctMetadataForWindowTypeRead) returns (DistinctMetadataForWindowType);
   rpc ReadWindowsForMetadata(WindowsForMetadataRead) returns (WindowsForMetadata);
+  rpc ReadResultsForAlgorithmAndMetadata(ResultsForAlgorithmAndMetadataRead) returns (ResultsForAlgorithmAndMetadata);
 }
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:
@@ -454,61 +454,6 @@ message ResultsForAlgorithm {
   repeated ResultsRow results = 1;
 } 
 
-message ResultsForAlgorithmAndMetadataRead {
-
-  // the time to read results from
-  google.protobuf.Timestamp time_from = 1 [(buf.validate.field) = {
-    required: true,
-    timestamp: {
-      gt: {seconds: 0, nanos: 0}
-    }
-  }];
-
-  // the time to read results to
-  google.protobuf.Timestamp time_to = 2 [(buf.validate.field) = {
-    required: true,
-    timestamp: {
-      gt: {seconds: 0, nanos: 0}
-    }
-  }];
-  
-  // the algorithm to read results for
-  Algorithm algorithm = 3 [(buf.validate.field).required = true];
-
-  message Metadata {
-    string field = 1;
-    google.protobuf.Value value = 2;
-  }
-
-  repeated Metadata metadata = 4 [(buf.validate.field).required = true];
-}
-
-message ResultsForAlgorithmAndMetadata {
-  message ResultsRow {
-    
-    // the time of the result, being the center of the triggering window
-    google.protobuf.Timestamp time = 1 [(buf.validate.field) = {
-      required: true,
-      timestamp: {
-        gt: {seconds: 0, nanos: 0}
-      }
-    }];
-
-    // the result packet is one of these
-    oneof result_data {
-      // for single number results
-      float single_value = 2;
-
-      // For numeric array results
-      FloatArray array_values = 3;
-      
-      // For structured data results (JSON-like)
-      // Must follow a map<string, value> schema where value corresponds to https://protobuf.dev/reference/protobuf/google.protobuf/#value
-      google.protobuf.Struct struct_value = 4;
-    }
-  }
-  repeated ResultsRow results = 1;
-} 
 
 message WindowsRead {
   
@@ -598,3 +543,60 @@ message WindowsForMetadata {
   // the windows
   repeated Window window = 1;
 }
+
+
+message ResultsForAlgorithmAndMetadataRead {
+
+  // the time to read results from
+  google.protobuf.Timestamp time_from = 1 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+
+  // the time to read results to
+  google.protobuf.Timestamp time_to = 2 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+  
+  // the algorithm to read results for
+  Algorithm algorithm = 3 [(buf.validate.field).required = true];
+
+  message Metadata {
+    string field = 1;
+    google.protobuf.Value value = 2;
+  }
+
+  repeated Metadata metadata = 4 [(buf.validate.field).required = true];
+}
+
+message ResultsForAlgorithmAndMetadata {
+  message ResultsRow {
+    
+    // the time of the result, being the center of the triggering window
+    google.protobuf.Timestamp time = 1 [(buf.validate.field) = {
+      required: true,
+      timestamp: {
+        gt: {seconds: 0, nanos: 0}
+      }
+    }];
+
+    // the result packet is one of these
+    oneof result_data {
+      // for single number results
+      float single_value = 2;
+
+      // For numeric array results
+      FloatArray array_values = 3;
+      
+      // For structured data results (JSON-like)
+      // Must follow a map<string, value> schema where value corresponds to https://protobuf.dev/reference/protobuf/google.protobuf/#value
+      google.protobuf.Struct struct_value = 4;
+    }
+  }
+  repeated ResultsRow results = 1;
+} 

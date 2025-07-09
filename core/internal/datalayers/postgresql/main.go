@@ -263,17 +263,18 @@ func (d *Datalayer) ReadAlgorithms(
 
 	for ii, algorithm := range algorithms {
 		var resultType pb.ResultType
-		if algorithm.ResultType == ResultTypeNone {
+		switch algorithm.ResultType {
+    case ResultTypeNone:
 			resultType = pb.ResultType_NONE
-		} else if algorithm.ResultType == ResultTypeArray {
+    case ResultTypeArray:
 			resultType = pb.ResultType_ARRAY
-		} else if algorithm.ResultType == ResultTypeStruct {
+    case ResultTypeStruct:
 			resultType = pb.ResultType_STRUCT
-		} else if algorithm.ResultType == ResultTypeValue {
+    case ResultTypeValue:
 			resultType = pb.ResultType_VALUE
-		} else {
+	  default:	
 			return &pb.Algorithms{}, fmt.Errorf("read a result type that is not supported: %v", algorithm.ResultType)
-		}
+  }
 
 		algorithmsPb.Algorithm[ii] = &pb.Algorithm{
 			Name:    algorithm.Name,
@@ -391,9 +392,7 @@ func (d *Datalayer) ReadResultFieldsForAlgorithm(
 	algorithmFieldsResult := pb.AlgorithmFields{
 		Field: make([]string, len(algorithmFields)),
 	}
-	for ii, algoField := range algorithmFields {
-		algorithmFieldsResult.Field[ii] = algoField
-	}
+  copy(algorithmFieldsResult.Field, algorithmFields)
 	return &algorithmFieldsResult, tx.Commit(ctx)
 }
 
@@ -709,7 +708,7 @@ func (d *Datalayer) ReadResultsForAlgorithmAndMetadata(
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
 
-	metadataFields := windowsForMetadataRead.GetMetadata()
+	metadataFields := resultsForAlgorithmAndMetadata.GetMetadata()
 	metadata := make(map[string]any, len(metadataFields))
 
 	for _, m := range metadataFields {
@@ -733,42 +732,77 @@ func (d *Datalayer) ReadResultsForAlgorithmAndMetadata(
 		return nil, fmt.Errorf("could not parse metadata as json: %v", err)
 	}
 
-	rows, err := qtx.ReadWindowsForMetadata(ctx, ReadWindowsForMetadataParams{
-		WindowTypeName:    windowsForMetadataRead.GetWindow().GetName(),
-		WindowTypeVersion: windowsForMetadataRead.GetWindow().GetVersion(),
-		TimeFrom: pgtype.Timestamp{
-			Time:  windowsForMetadataRead.GetTimeFrom().AsTime(),
-			Valid: true,
-		},
-		TimeTo: pgtype.Timestamp{
-			Time:  windowsForMetadataRead.GetTimeTo().AsTime(),
-			Valid: true,
-		},
-		MetadataFilter: metadataJson,
+	rows, err := qtx.ReadResultsForAlgorithmAndMetadata(ctx, ReadResultsForAlgorithmAndMetadataParams{
+    TimeFrom: pgtype.Timestamp{
+      Time: resultsForAlgorithmAndMetadata.GetTimeFrom().AsTime(),
+      Valid:true,
+    },
+    TimeTo: pgtype.Timestamp{
+      Time: resultsForAlgorithmAndMetadata.GetTimeTo().AsTime(),
+      Valid: true,
+    },
+    MetadataFilter: metadataJson,
+    AlgorithmName: resultsForAlgorithmAndMetadata.GetAlgorithm().GetName(),
+    AlgorithmVersion: resultsForAlgorithmAndMetadata.GetAlgorithm().GetVersion(),
 	})
+
 	if err != nil {
-		return nil, fmt.Errorf("could not read rows: %v", err)
-	}
-	result := pb.WindowsForMetadata{
-		Window: make([]*pb.Window, len(rows)),
-	}
-	for ii, row := range rows {
-		metadataStructPb, err := unmarshalToStruct(row.Metadata)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"could not unmarshal postgres metadata jsonb to structpb: %v",
-				err,
-			)
-		}
-		result.Window[ii] = &pb.Window{
-			TimeFrom:          timestamppb.New(row.TimeFrom.Time),
-			TimeTo:            timestamppb.New(row.TimeTo.Time),
-			Origin:            row.Origin,
-			WindowTypeName:    row.Name,
-			WindowTypeVersion: row.Version,
-			Metadata:          metadataStructPb,
-		}
+		return nil, fmt.Errorf(
+      "could not read results for algorithm: %v",
+			err,
+		)
 	}
 
-	return &result, tx.Commit(ctx)
+	resultsPb := pb.ResultsForAlgorithmAndMetadata{
+		Results: make([]*pb.ResultsForAlgorithmAndMetadata_ResultsRow, len(rows)),
+	}
+	var _midpointPb *timestamppb.Timestamp
+	if resultsForAlgorithmAndMetadata.GetAlgorithm().GetResultType() == pb.ResultType_VALUE {
+		for ii, res := range rows {
+			_midpointPb = timestamppb.New(
+				res.TimeFrom.Time.Add(res.TimeTo.Time.Sub(res.TimeFrom.Time) / 2),
+			)
+
+			resultsPb.Results[ii] = &pb.ResultsForAlgorithmAndMetadata_ResultsRow{
+				Time: _midpointPb,
+				ResultData: &pb.ResultsForAlgorithmAndMetadata_ResultsRow_SingleValue{
+					SingleValue: float32(res.ResultValue.Float64),
+				},
+			}
+		}
+	} else if resultsForAlgorithmAndMetadata.GetAlgorithm().GetResultType() == pb.ResultType_ARRAY {
+		for ii, res := range rows {
+			_midpointPb = timestamppb.New(
+				res.TimeFrom.Time.Add(res.TimeTo.Time.Sub(res.TimeFrom.Time) / 2),
+			)
+			resultsPb.Results[ii] = &pb.ResultsForAlgorithmAndMetadata_ResultsRow{
+				Time: _midpointPb,
+				ResultData: &pb.ResultsForAlgorithmAndMetadata_ResultsRow_ArrayValues{
+					ArrayValues: &pb.FloatArray{
+						Values: convertFloat64ToFloat32(res.ResultArray),
+					},
+				},
+			}
+		}
+	} else if resultsForAlgorithmAndMetadata.GetAlgorithm().GetResultType() == pb.ResultType_STRUCT {
+		for ii, res := range rows {
+			_midpointPb = timestamppb.New(
+				res.TimeFrom.Time.Add(res.TimeTo.Time.Sub(res.TimeFrom.Time) / 2),
+			)
+			newStruct, err := unmarshalToStruct(res.ResultJson)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse struct data for algorithm %v: %v", resultsForAlgorithmAndMetadata.GetAlgorithm(), err)
+			}
+
+			resultsPb.Results[ii] = &pb.ResultsForAlgorithmAndMetadata_ResultsRow{
+				Time: _midpointPb,
+				ResultData: &pb.ResultsForAlgorithmAndMetadata_ResultsRow_StructValue{
+					StructValue: newStruct,
+				},
+			}
+		}
+	} else {
+		return nil, fmt.Errorf("unhandled result type: %v", resultsForAlgorithmAndMetadata.GetAlgorithm().GetResultType())
+	}
+	return &resultsPb, tx.Commit(ctx)
 }
