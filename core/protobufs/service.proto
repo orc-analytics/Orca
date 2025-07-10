@@ -32,7 +32,11 @@ service OrcaCore {
   rpc ReadDistinctMetadataForWindowType(DistinctMetadataForWindowTypeRead) returns (DistinctMetadataForWindowType);
   rpc ReadWindowsForMetadata(WindowsForMetadataRead) returns (WindowsForMetadata);
   rpc ReadResultsForAlgorithmAndMetadata(ResultsForAlgorithmAndMetadataRead) returns (ResultsForAlgorithmAndMetadata);
+
+  // ------------------ Annotation operations ----------------- 
+  rpc Annotate(AnnotateWrite) returns (AnnotateResponse);
 }
+
 // OrcaProcessor defines the interface that each processing node must implement.
 // Processors are language-agnostic services that:
 // - Execute individual algorithms
@@ -600,3 +604,41 @@ message ResultsForAlgorithmAndMetadata {
   }
   repeated ResultsRow results = 1;
 } 
+
+
+// ------------------------ Annotation Messages ------------------------
+message AnnotateWrite {
+  
+  // the time to annotate from
+  google.protobuf.Timestamp time_from = 1 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+  
+  // the time to annotate to
+  google.protobuf.Timestamp time_to = 2 [(buf.validate.field) = {
+    required: true,
+    timestamp: {
+      gt: {seconds: 0, nanos: 0}
+    }
+  }];
+  
+  // the algorithms within the annotation 
+  repeated Algorithm captured_algorithms = 3 [(buf.validate.field) = {required: true}];
+
+  // the windows within the annotation
+  repeated WindowType captured_windows = 4 [(buf.validate.field) = {required: true}];
+
+  // the traces captured within the annotation
+  repeated string captured_traces = 5 [(buf.validate.field) = {required: true}];
+
+  option (buf.validate.message).cel = {
+    id: "window.time_ordering",
+    message: "time_to must be greater than time_from",
+    expression: "this.time_to > this.time_from"
+  };
+}
+
+message AnnotateResponse {}
