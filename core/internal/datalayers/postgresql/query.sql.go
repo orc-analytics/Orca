@@ -124,6 +124,53 @@ func (q *Queries) CreateAlgorithmDependency(ctx context.Context, arg CreateAlgor
 	return err
 }
 
+const createAnnotation = `-- name: CreateAnnotation :exec
+WITH new_annotation AS (
+  INSERT INTO annotations (time_from, time_to, description) 
+  VALUES ($3, $4, $5)
+  RETURNING id
+),
+algorithm_inserts AS (
+  INSERT INTO annotation_algorithms (annotation_id, algorithm_id)
+  SELECT na.id, a.id
+  FROM new_annotation na
+  CROSS JOIN algorithm a
+  WHERE a.name IN ($6)
+    AND a.version IN ($7)
+  RETURNING annotation_id
+)
+INSERT INTO annotation_window_types (annotation_id, window_type_id)
+SELECT na.id, wt.id
+FROM new_annotation na
+CROSS JOIN window_type wt
+WHERE wt.name IN ($1)
+  AND wt.version IN ($2)
+`
+
+type CreateAnnotationParams struct {
+	CapturedWindowNames       []string
+	CapturedWindowVersions    []string
+	TimeFrom                  pgtype.Timestamp
+	TimeTo                    pgtype.Timestamp
+	Description               pgtype.Text
+	CapturedAlgorithmNames    []string
+	CapturedAlgorithmVersions []string
+}
+
+// -------------------- Annotation operations ----------------------
+func (q *Queries) CreateAnnotation(ctx context.Context, arg CreateAnnotationParams) error {
+	_, err := q.db.Exec(ctx, createAnnotation,
+		arg.CapturedWindowNames,
+		arg.CapturedWindowVersions,
+		arg.TimeFrom,
+		arg.TimeTo,
+		arg.Description,
+		arg.CapturedAlgorithmNames,
+		arg.CapturedAlgorithmVersions,
+	)
+	return err
+}
+
 const createProcessorAndPurgeAlgos = `-- name: CreateProcessorAndPurgeAlgos :exec
 INSERT INTO processor (
   name,
