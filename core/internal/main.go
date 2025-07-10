@@ -166,7 +166,17 @@ func (o *OrcaCoreServer) ReadWindowsForMetadata(
 	return o.client.ReadWindowsForMetadata(ctx, windowsForMetadataRead)
 }
 
+func (o *OrcaCoreServer) ReadResultsForAlgorithmAndMetadata(
+	ctx context.Context,
+	resultsForAlgorithmAndMetadata *pb.ResultsForAlgorithmAndMetadataRead,
+) (*pb.ResultsForAlgorithmAndMetadata, error) {
+	return o.client.ReadResultsForAlgorithmAndMetadata(ctx, resultsForAlgorithmAndMetadata)
+}
 
-func (o *OrcaCoreServer) ReadResultsForAlgorithmAndMetadata(ctx context.Context, resultsForAlgorithmAndMetadata *pb.ResultsForAlgorithmAndMetadataRead) (*pb.ResultsForAlgorithmAndMetadata, error) {
-  return o.client.ReadResultsForAlgorithmAndMetadata(ctx, resultsForAlgorithmAndMetadata)
+// ---------------------- Labelling Operations ----------------------
+func (o *OrcaCoreServer) Annotate(
+	ctx context.Context,
+	annotateWrite *pb.AnnotateWrite,
+) (*pb.AnnotateResponse, error) {
+	o.client.Annotate(ctx, annotateWrite)
 }

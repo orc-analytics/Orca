@@ -321,3 +321,28 @@ WHERE
   w.metadata::jsonb @> sqlc.arg('metadata_filter')::jsonb AND
   r.algorithm_id = (SELECT id FROM algorithmId)
 ORDER BY w.time_from, w.time_to ASC;
+
+
+
+---------------------- Annotation operations ---------------------- 
+-- name: CreateAnnotation :exec
+WITH new_annotation AS (
+  INSERT INTO annotations (time_from, time_to, description) 
+  VALUES (sqlc.arg('time_from'), sqlc.arg('time_to'), sqlc.arg('description'))
+  RETURNING id
+),
+algorithm_inserts AS (
+  INSERT INTO annotation_algorithms (annotation_id, algorithm_id)
+  SELECT na.id, a.id
+  FROM new_annotation na
+  CROSS JOIN algorithm a
+  WHERE a.name IN (sqlc.slice('captured_algorithm_names'))
+    AND a.version IN (sqlc.slice('captured_algorithm_versions'))
+  RETURNING annotation_id
+)
+INSERT INTO annotation_window_types (annotation_id, window_type_id)
+SELECT na.id, wt.id
+FROM new_annotation na
+CROSS JOIN window_type wt
+WHERE wt.name IN (sqlc.slice('captured_window_names'))
+  AND wt.version IN (sqlc.slice('captured_window_versions'));

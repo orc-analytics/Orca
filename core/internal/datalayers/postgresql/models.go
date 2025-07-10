@@ -84,6 +84,30 @@ type AlgorithmExecutionPath struct {
 	ProcIDPath       string
 }
 
+// Plot annotations with time ranges and metadata
+type Annotation struct {
+	ID int64
+	// Start time of the annotation time window
+	TimeFrom pgtype.Timestamp
+	// End time of the annotation time window
+	TimeTo pgtype.Timestamp
+	// Detailed description of the annotation
+	Description pgtype.Text
+	CreatedAt   pgtype.Timestamp
+}
+
+// Junction table linking annotations to algorithms
+type AnnotationAlgorithm struct {
+	AnnotationID int64
+	AlgorithmID  int64
+}
+
+// Junction table linking annotations to window types
+type AnnotationWindowType struct {
+	AnnotationID int64
+	WindowTypeID int64
+}
+
 type Processor struct {
 	ID               int64
 	Name             string
