@@ -31,6 +31,7 @@ const (
 	OrcaCore_ReadDistinctMetadataForWindowType_FullMethodName  = "/OrcaCore/ReadDistinctMetadataForWindowType"
 	OrcaCore_ReadWindowsForMetadata_FullMethodName             = "/OrcaCore/ReadWindowsForMetadata"
 	OrcaCore_ReadResultsForAlgorithmAndMetadata_FullMethodName = "/OrcaCore/ReadResultsForAlgorithmAndMetadata"
+	OrcaCore_Annotate_FullMethodName                           = "/OrcaCore/Annotate"
 )
 
 // OrcaCoreClient is the client API for OrcaCore service.
@@ -58,6 +59,8 @@ type OrcaCoreClient interface {
 	ReadDistinctMetadataForWindowType(ctx context.Context, in *DistinctMetadataForWindowTypeRead, opts ...grpc.CallOption) (*DistinctMetadataForWindowType, error)
 	ReadWindowsForMetadata(ctx context.Context, in *WindowsForMetadataRead, opts ...grpc.CallOption) (*WindowsForMetadata, error)
 	ReadResultsForAlgorithmAndMetadata(ctx context.Context, in *ResultsForAlgorithmAndMetadataRead, opts ...grpc.CallOption) (*ResultsForAlgorithmAndMetadata, error)
+	// ------------------ Annotation operations -----------------
+	Annotate(ctx context.Context, in *AnnotateWrite, opts ...grpc.CallOption) (*AnnotateResponse, error)
 }
 
 type orcaCoreClient struct {
@@ -188,6 +191,16 @@ func (c *orcaCoreClient) ReadResultsForAlgorithmAndMetadata(ctx context.Context,
 	return out, nil
 }
 
+func (c *orcaCoreClient) Annotate(ctx context.Context, in *AnnotateWrite, opts ...grpc.CallOption) (*AnnotateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AnnotateResponse)
+	err := c.cc.Invoke(ctx, OrcaCore_Annotate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrcaCoreServer is the server API for OrcaCore service.
 // All implementations must embed UnimplementedOrcaCoreServer
 // for forward compatibility.
@@ -213,6 +226,8 @@ type OrcaCoreServer interface {
 	ReadDistinctMetadataForWindowType(context.Context, *DistinctMetadataForWindowTypeRead) (*DistinctMetadataForWindowType, error)
 	ReadWindowsForMetadata(context.Context, *WindowsForMetadataRead) (*WindowsForMetadata, error)
 	ReadResultsForAlgorithmAndMetadata(context.Context, *ResultsForAlgorithmAndMetadataRead) (*ResultsForAlgorithmAndMetadata, error)
+	// ------------------ Annotation operations -----------------
+	Annotate(context.Context, *AnnotateWrite) (*AnnotateResponse, error)
 	mustEmbedUnimplementedOrcaCoreServer()
 }
 
@@ -258,6 +273,9 @@ func (UnimplementedOrcaCoreServer) ReadWindowsForMetadata(context.Context, *Wind
 }
 func (UnimplementedOrcaCoreServer) ReadResultsForAlgorithmAndMetadata(context.Context, *ResultsForAlgorithmAndMetadataRead) (*ResultsForAlgorithmAndMetadata, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadResultsForAlgorithmAndMetadata not implemented")
+}
+func (UnimplementedOrcaCoreServer) Annotate(context.Context, *AnnotateWrite) (*AnnotateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Annotate not implemented")
 }
 func (UnimplementedOrcaCoreServer) mustEmbedUnimplementedOrcaCoreServer() {}
 func (UnimplementedOrcaCoreServer) testEmbeddedByValue()                  {}
@@ -496,6 +514,24 @@ func _OrcaCore_ReadResultsForAlgorithmAndMetadata_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrcaCore_Annotate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AnnotateWrite)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrcaCoreServer).Annotate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrcaCore_Annotate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrcaCoreServer).Annotate(ctx, req.(*AnnotateWrite))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrcaCore_ServiceDesc is the grpc.ServiceDesc for OrcaCore service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -550,6 +586,10 @@ var OrcaCore_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReadResultsForAlgorithmAndMetadata",
 			Handler:    _OrcaCore_ReadResultsForAlgorithmAndMetadata_Handler,
+		},
+		{
+			MethodName: "Annotate",
+			Handler:    _OrcaCore_Annotate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

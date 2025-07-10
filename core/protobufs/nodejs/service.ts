@@ -720,6 +720,31 @@ export interface ResultsForAlgorithmAndMetadata_ResultsRow {
     | undefined;
 }
 
+/** ------------------------ Annotation Messages ------------------------ */
+export interface AnnotateWrite {
+  /** the time to annotate from */
+  timeFrom?:
+    | Date
+    | undefined;
+  /** the time to annotate to */
+  timeTo?:
+    | Date
+    | undefined;
+  /** the algorithms within the annotation */
+  capturedAlgorithms?:
+    | Algorithm[]
+    | undefined;
+  /** the windows within the annotation */
+  capturedWindows?:
+    | WindowType[]
+    | undefined;
+  /** the traces captured within the annotation */
+  capturedTraces?: string[] | undefined;
+}
+
+export interface AnnotateResponse {
+}
+
 function createBaseWindow(): Window {
   return {
     timeFrom: undefined,
@@ -4266,6 +4291,194 @@ export const ResultsForAlgorithmAndMetadata_ResultsRow: MessageFns<ResultsForAlg
   },
 };
 
+function createBaseAnnotateWrite(): AnnotateWrite {
+  return { timeFrom: undefined, timeTo: undefined, capturedAlgorithms: [], capturedWindows: [], capturedTraces: [] };
+}
+
+export const AnnotateWrite: MessageFns<AnnotateWrite> = {
+  encode(message: AnnotateWrite, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.timeFrom !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeFrom), writer.uint32(10).fork()).join();
+    }
+    if (message.timeTo !== undefined) {
+      Timestamp.encode(toTimestamp(message.timeTo), writer.uint32(18).fork()).join();
+    }
+    if (message.capturedAlgorithms !== undefined && message.capturedAlgorithms.length !== 0) {
+      for (const v of message.capturedAlgorithms) {
+        Algorithm.encode(v!, writer.uint32(26).fork()).join();
+      }
+    }
+    if (message.capturedWindows !== undefined && message.capturedWindows.length !== 0) {
+      for (const v of message.capturedWindows) {
+        WindowType.encode(v!, writer.uint32(34).fork()).join();
+      }
+    }
+    if (message.capturedTraces !== undefined && message.capturedTraces.length !== 0) {
+      for (const v of message.capturedTraces) {
+        writer.uint32(42).string(v!);
+      }
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AnnotateWrite {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAnnotateWrite();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.timeFrom = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.timeTo = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          const el = Algorithm.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.capturedAlgorithms!.push(el);
+          }
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          const el = WindowType.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.capturedWindows!.push(el);
+          }
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          const el = reader.string();
+          if (el !== undefined) {
+            message.capturedTraces!.push(el);
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AnnotateWrite {
+    return {
+      timeFrom: isSet(object.timeFrom) ? fromJsonTimestamp(object.timeFrom) : undefined,
+      timeTo: isSet(object.timeTo) ? fromJsonTimestamp(object.timeTo) : undefined,
+      capturedAlgorithms: globalThis.Array.isArray(object?.capturedAlgorithms)
+        ? object.capturedAlgorithms.map((e: any) => Algorithm.fromJSON(e))
+        : [],
+      capturedWindows: globalThis.Array.isArray(object?.capturedWindows)
+        ? object.capturedWindows.map((e: any) => WindowType.fromJSON(e))
+        : [],
+      capturedTraces: globalThis.Array.isArray(object?.capturedTraces)
+        ? object.capturedTraces.map((e: any) => globalThis.String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: AnnotateWrite): unknown {
+    const obj: any = {};
+    if (message.timeFrom !== undefined) {
+      obj.timeFrom = message.timeFrom.toISOString();
+    }
+    if (message.timeTo !== undefined) {
+      obj.timeTo = message.timeTo.toISOString();
+    }
+    if (message.capturedAlgorithms?.length) {
+      obj.capturedAlgorithms = message.capturedAlgorithms.map((e) => Algorithm.toJSON(e));
+    }
+    if (message.capturedWindows?.length) {
+      obj.capturedWindows = message.capturedWindows.map((e) => WindowType.toJSON(e));
+    }
+    if (message.capturedTraces?.length) {
+      obj.capturedTraces = message.capturedTraces;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AnnotateWrite>, I>>(base?: I): AnnotateWrite {
+    return AnnotateWrite.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AnnotateWrite>, I>>(object: I): AnnotateWrite {
+    const message = createBaseAnnotateWrite();
+    message.timeFrom = object.timeFrom ?? undefined;
+    message.timeTo = object.timeTo ?? undefined;
+    message.capturedAlgorithms = object.capturedAlgorithms?.map((e) => Algorithm.fromPartial(e)) || [];
+    message.capturedWindows = object.capturedWindows?.map((e) => WindowType.fromPartial(e)) || [];
+    message.capturedTraces = object.capturedTraces?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseAnnotateResponse(): AnnotateResponse {
+  return {};
+}
+
+export const AnnotateResponse: MessageFns<AnnotateResponse> = {
+  encode(_: AnnotateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AnnotateResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAnnotateResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): AnnotateResponse {
+    return {};
+  },
+
+  toJSON(_: AnnotateResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AnnotateResponse>, I>>(base?: I): AnnotateResponse {
+    return AnnotateResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AnnotateResponse>, I>>(_: I): AnnotateResponse {
+    const message = createBaseAnnotateResponse();
+    return message;
+  },
+};
+
 /**
  * OrcaCore is the central orchestration service that:
  * - Manages the lifecycle of processing windows
@@ -4396,6 +4609,16 @@ export const OrcaCoreService = {
     responseDeserialize: (value: Buffer): ResultsForAlgorithmAndMetadata =>
       ResultsForAlgorithmAndMetadata.decode(value),
   },
+  /** ------------------ Annotation operations ----------------- */
+  annotate: {
+    path: "/OrcaCore/Annotate",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: AnnotateWrite): Buffer => Buffer.from(AnnotateWrite.encode(value).finish()),
+    requestDeserialize: (value: Buffer): AnnotateWrite => AnnotateWrite.decode(value),
+    responseSerialize: (value: AnnotateResponse): Buffer => Buffer.from(AnnotateResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): AnnotateResponse => AnnotateResponse.decode(value),
+  },
 } as const;
 
 export interface OrcaCoreServer extends UntypedServiceImplementation {
@@ -4417,6 +4640,8 @@ export interface OrcaCoreServer extends UntypedServiceImplementation {
     ResultsForAlgorithmAndMetadataRead,
     ResultsForAlgorithmAndMetadata
   >;
+  /** ------------------ Annotation operations ----------------- */
+  annotate: handleUnaryCall<AnnotateWrite, AnnotateResponse>;
 }
 
 export interface OrcaCoreClient extends Client {
@@ -4599,6 +4824,22 @@ export interface OrcaCoreClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: ResultsForAlgorithmAndMetadata) => void,
+  ): ClientUnaryCall;
+  /** ------------------ Annotation operations ----------------- */
+  annotate(
+    request: AnnotateWrite,
+    callback: (error: ServiceError | null, response: AnnotateResponse) => void,
+  ): ClientUnaryCall;
+  annotate(
+    request: AnnotateWrite,
+    metadata: Metadata,
+    callback: (error: ServiceError | null, response: AnnotateResponse) => void,
+  ): ClientUnaryCall;
+  annotate(
+    request: AnnotateWrite,
+    metadata: Metadata,
+    options: Partial<CallOptions>,
+    callback: (error: ServiceError | null, response: AnnotateResponse) => void,
   ): ClientUnaryCall;
 }
 
