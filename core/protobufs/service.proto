@@ -631,8 +631,8 @@ message AnnotateWrite {
   // the windows within the annotation
   repeated WindowType captured_windows = 4 [(buf.validate.field) = {required: true}];
 
-  // the traces captured within the annotation
-  repeated string captured_traces = 5 [(buf.validate.field) = {required: true}];
+  // the description of the annotation
+  string description = 5 [(buf.validate.field) = {required: true}];
 
   option (buf.validate.message).cel = {
     id: "window.time_ordering",

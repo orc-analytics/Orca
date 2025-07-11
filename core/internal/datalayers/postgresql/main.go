@@ -264,17 +264,20 @@ func (d *Datalayer) ReadAlgorithms(
 	for ii, algorithm := range algorithms {
 		var resultType pb.ResultType
 		switch algorithm.ResultType {
-    case ResultTypeNone:
+		case ResultTypeNone:
 			resultType = pb.ResultType_NONE
-    case ResultTypeArray:
+		case ResultTypeArray:
 			resultType = pb.ResultType_ARRAY
-    case ResultTypeStruct:
+		case ResultTypeStruct:
 			resultType = pb.ResultType_STRUCT
-    case ResultTypeValue:
+		case ResultTypeValue:
 			resultType = pb.ResultType_VALUE
-	  default:	
-			return &pb.Algorithms{}, fmt.Errorf("read a result type that is not supported: %v", algorithm.ResultType)
-  }
+		default:
+			return &pb.Algorithms{}, fmt.Errorf(
+				"read a result type that is not supported: %v",
+				algorithm.ResultType,
+			)
+		}
 
 		algorithmsPb.Algorithm[ii] = &pb.Algorithm{
 			Name:    algorithm.Name,
@@ -392,7 +395,7 @@ func (d *Datalayer) ReadResultFieldsForAlgorithm(
 	algorithmFieldsResult := pb.AlgorithmFields{
 		Field: make([]string, len(algorithmFields)),
 	}
-  copy(algorithmFieldsResult.Field, algorithmFields)
+	copy(algorithmFieldsResult.Field, algorithmFields)
 	return &algorithmFieldsResult, tx.Commit(ctx)
 }
 
@@ -732,23 +735,25 @@ func (d *Datalayer) ReadResultsForAlgorithmAndMetadata(
 		return nil, fmt.Errorf("could not parse metadata as json: %v", err)
 	}
 
-	rows, err := qtx.ReadResultsForAlgorithmAndMetadata(ctx, ReadResultsForAlgorithmAndMetadataParams{
-    TimeFrom: pgtype.Timestamp{
-      Time: resultsForAlgorithmAndMetadata.GetTimeFrom().AsTime(),
-      Valid:true,
-    },
-    TimeTo: pgtype.Timestamp{
-      Time: resultsForAlgorithmAndMetadata.GetTimeTo().AsTime(),
-      Valid: true,
-    },
-    MetadataFilter: metadataJson,
-    AlgorithmName: resultsForAlgorithmAndMetadata.GetAlgorithm().GetName(),
-    AlgorithmVersion: resultsForAlgorithmAndMetadata.GetAlgorithm().GetVersion(),
-	})
-
+	rows, err := qtx.ReadResultsForAlgorithmAndMetadata(
+		ctx,
+		ReadResultsForAlgorithmAndMetadataParams{
+			TimeFrom: pgtype.Timestamp{
+				Time:  resultsForAlgorithmAndMetadata.GetTimeFrom().AsTime(),
+				Valid: true,
+			},
+			TimeTo: pgtype.Timestamp{
+				Time:  resultsForAlgorithmAndMetadata.GetTimeTo().AsTime(),
+				Valid: true,
+			},
+			MetadataFilter:   metadataJson,
+			AlgorithmName:    resultsForAlgorithmAndMetadata.GetAlgorithm().GetName(),
+			AlgorithmVersion: resultsForAlgorithmAndMetadata.GetAlgorithm().GetVersion(),
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf(
-      "could not read results for algorithm: %v",
+			"could not read results for algorithm: %v",
 			err,
 		)
 	}
@@ -805,4 +810,72 @@ func (d *Datalayer) ReadResultsForAlgorithmAndMetadata(
 		return nil, fmt.Errorf("unhandled result type: %v", resultsForAlgorithmAndMetadata.GetAlgorithm().GetResultType())
 	}
 	return &resultsPb, tx.Commit(ctx)
+}
+
+func (d *Datalayer) Annotate(
+	ctx context.Context,
+	annotateWrite *pb.AnnotateWrite,
+) (*pb.AnnotateResponse, error) {
+	tx, err := d.WithTx(ctx)
+	if err != nil {
+		slog.Error("could not start a transaction", "error", err)
+		return nil, err
+	}
+
+	defer func() {
+		if tx != nil {
+			tx.Rollback(ctx)
+		}
+	} ()
+
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+  
+  
+  // insert annotation
+  annotationId, err := qtx.CreateAnnotation(ctx, CreateAnnotationParams{
+    TimeFrom                 : pgtype.Timestamp{
+      Time: annotateWrite.GetTimeFrom().AsTime(),
+      Valid: true,
+    },
+    TimeTo                    :pgtype.Timestamp{
+      Time: annotateWrite.GetTimeTo().AsTime(),
+      Valid: true,
+    },
+    Description               : pgtype.Text{
+      String: annotateWrite.GetDescription(),
+      Valid: true,
+    },
+  })
+  if (err != nil) {
+    return nil, fmt.Errorf("could not create annotation: %v", err)
+  }
+
+  // link annotation to window type
+  for _, capturedWindow := range annotateWrite.GetCapturedWindows() {
+    
+    err := qtx.LinkAnnotationToWindowType(ctx, LinkAnnotationToWindowTypeParams{
+      AnnotationID: annotationId,
+      WindowName: capturedWindow.GetName(),
+      WindowVersion: capturedWindow.GetVersion(),
+    })
+
+    if (err != nil) {
+      return nil, fmt.Errorf("could not link annotation to window: %v", err)
+    }
+  }
+
+  // link annotation to algorithm type
+  for _, capturedAlgorithm := range annotateWrite.GetCapturedAlgorithms() {
+    err:= qtx.LinkAnnotationToAlgorithm(ctx, LinkAnnotationToAlgorithmParams{
+      AnnotationID: annotationId,
+      AlgorithmName: capturedAlgorithm.GetName(),
+      AlgorithmVersion: capturedAlgorithm.GetVersion(),
+    })
+    if err != nil {
+      return nil, fmt.Errorf("could not link annotation to algorithm: %v", err)
+    }
+  }
+
+  return &pb.AnnotateResponse{},tx.Commit(ctx)
 }
