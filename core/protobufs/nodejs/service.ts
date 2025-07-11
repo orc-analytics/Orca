@@ -738,8 +738,8 @@ export interface AnnotateWrite {
   capturedWindows?:
     | WindowType[]
     | undefined;
-  /** the traces captured within the annotation */
-  capturedTraces?: string[] | undefined;
+  /** the description of the annotation */
+  description?: string | undefined;
 }
 
 export interface AnnotateResponse {
@@ -4292,7 +4292,7 @@ export const ResultsForAlgorithmAndMetadata_ResultsRow: MessageFns<ResultsForAlg
 };
 
 function createBaseAnnotateWrite(): AnnotateWrite {
-  return { timeFrom: undefined, timeTo: undefined, capturedAlgorithms: [], capturedWindows: [], capturedTraces: [] };
+  return { timeFrom: undefined, timeTo: undefined, capturedAlgorithms: [], capturedWindows: [], description: "" };
 }
 
 export const AnnotateWrite: MessageFns<AnnotateWrite> = {
@@ -4313,10 +4313,8 @@ export const AnnotateWrite: MessageFns<AnnotateWrite> = {
         WindowType.encode(v!, writer.uint32(34).fork()).join();
       }
     }
-    if (message.capturedTraces !== undefined && message.capturedTraces.length !== 0) {
-      for (const v of message.capturedTraces) {
-        writer.uint32(42).string(v!);
-      }
+    if (message.description !== undefined && message.description !== "") {
+      writer.uint32(42).string(message.description);
     }
     return writer;
   },
@@ -4371,10 +4369,7 @@ export const AnnotateWrite: MessageFns<AnnotateWrite> = {
             break;
           }
 
-          const el = reader.string();
-          if (el !== undefined) {
-            message.capturedTraces!.push(el);
-          }
+          message.description = reader.string();
           continue;
         }
       }
@@ -4396,9 +4391,7 @@ export const AnnotateWrite: MessageFns<AnnotateWrite> = {
       capturedWindows: globalThis.Array.isArray(object?.capturedWindows)
         ? object.capturedWindows.map((e: any) => WindowType.fromJSON(e))
         : [],
-      capturedTraces: globalThis.Array.isArray(object?.capturedTraces)
-        ? object.capturedTraces.map((e: any) => globalThis.String(e))
-        : [],
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
     };
   },
 
@@ -4416,8 +4409,8 @@ export const AnnotateWrite: MessageFns<AnnotateWrite> = {
     if (message.capturedWindows?.length) {
       obj.capturedWindows = message.capturedWindows.map((e) => WindowType.toJSON(e));
     }
-    if (message.capturedTraces?.length) {
-      obj.capturedTraces = message.capturedTraces;
+    if (message.description !== undefined && message.description !== "") {
+      obj.description = message.description;
     }
     return obj;
   },
@@ -4431,7 +4424,7 @@ export const AnnotateWrite: MessageFns<AnnotateWrite> = {
     message.timeTo = object.timeTo ?? undefined;
     message.capturedAlgorithms = object.capturedAlgorithms?.map((e) => Algorithm.fromPartial(e)) || [];
     message.capturedWindows = object.capturedWindows?.map((e) => WindowType.fromPartial(e)) || [];
-    message.capturedTraces = object.capturedTraces?.map((e) => e) || [];
+    message.description = object.description ?? "";
     return message;
   },
 };

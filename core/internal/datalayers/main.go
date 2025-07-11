@@ -1,3 +1,6 @@
+// Package datalayers provides a factory function for generating a
+// datalayer client. Current supported datalayers are:
+// - PostgreSQL
 package datalayers
 
 import (
@@ -9,10 +12,11 @@ import (
 	types "github.com/predixus/orca/core/internal/types"
 )
 
-// represents the supported database platforms as the datalayer
+// Platform resprents a database storage platform (e.g. PostgreSQL)
 type Platform string
 
 const (
+	// PostgreSQL is the postgresql platform
 	PostgreSQL Platform = "postgresql"
 )
 
@@ -26,6 +30,7 @@ func (p Platform) isValid() bool {
 	}
 }
 
+// NewDatalayerClient generates a new datalayer client of the specificed type.
 func NewDatalayerClient(
 	ctx context.Context,
 	platform Platform,
@@ -39,7 +44,11 @@ func NewDatalayerClient(
 	case PostgreSQL:
 		return psql.NewClient(ctx, connStr)
 	default:
-		slog.Error("attempted to access unsuported platform", "platform", platform)
+		slog.Error(
+			"attempted to access unsuported platform",
+			"platform",
+			platform,
+		)
 		return nil, fmt.Errorf("platform not implemented: %s", platform)
 	}
 }

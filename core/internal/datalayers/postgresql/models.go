@@ -90,7 +90,8 @@ type Annotation struct {
 	// Start time of the annotation time window
 	TimeFrom pgtype.Timestamp
 	// End time of the annotation time window
-	TimeTo pgtype.Timestamp
+	TimeTo   pgtype.Timestamp
+	Metadata []byte
 	// Detailed description of the annotation
 	Description pgtype.Text
 	CreatedAt   pgtype.Timestamp

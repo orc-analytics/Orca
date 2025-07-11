@@ -3,6 +3,7 @@ CREATE TABLE annotations (
   id BIGSERIAL PRIMARY KEY,
   time_from TIMESTAMP NOT NULL, 
   time_to TIMESTAMP NOT NULL,
+  metadata JSONB,
   description TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
