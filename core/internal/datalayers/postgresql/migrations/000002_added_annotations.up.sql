@@ -14,7 +14,7 @@ CREATE TABLE annotation_algorithms (
   algorithm_id BIGINT NOT NULL,
   PRIMARY KEY (annotation_id, algorithm_id),
   FOREIGN KEY (annotation_id) REFERENCES annotations(id) ON DELETE CASCADE,
-  FOREIGN KEY (algorithm_id) REFERENCES algorithms(id) ON DELETE CASCADE
+  FOREIGN KEY (algorithm_id) REFERENCES algorithm(id) ON DELETE CASCADE
 );
 
 -- Create junction table for annotation -> window type relationships  
@@ -23,7 +23,7 @@ CREATE TABLE annotation_window_types (
   window_type_id BIGINT NOT NULL,
   PRIMARY KEY (annotation_id, window_type_id),
   FOREIGN KEY (annotation_id) REFERENCES annotations(id) ON DELETE CASCADE,
-  FOREIGN KEY (window_type_id) REFERENCES window_types(id) ON DELETE CASCADE
+  FOREIGN KEY (window_type_id) REFERENCES window_type(id) ON DELETE CASCADE
 );
 
 -- Create indexes for better query performance
