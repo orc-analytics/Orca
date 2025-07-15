@@ -739,7 +739,11 @@ export interface AnnotateWrite {
     | WindowType[]
     | undefined;
   /** the description of the annotation */
-  description?: string | undefined;
+  description?:
+    | string
+    | undefined;
+  /** metadata to be attached to the annotation */
+  metadata?: { [key: string]: any } | undefined;
 }
 
 export interface AnnotateResponse {
@@ -4292,7 +4296,14 @@ export const ResultsForAlgorithmAndMetadata_ResultsRow: MessageFns<ResultsForAlg
 };
 
 function createBaseAnnotateWrite(): AnnotateWrite {
-  return { timeFrom: undefined, timeTo: undefined, capturedAlgorithms: [], capturedWindows: [], description: "" };
+  return {
+    timeFrom: undefined,
+    timeTo: undefined,
+    capturedAlgorithms: [],
+    capturedWindows: [],
+    description: "",
+    metadata: undefined,
+  };
 }
 
 export const AnnotateWrite: MessageFns<AnnotateWrite> = {
@@ -4315,6 +4326,9 @@ export const AnnotateWrite: MessageFns<AnnotateWrite> = {
     }
     if (message.description !== undefined && message.description !== "") {
       writer.uint32(42).string(message.description);
+    }
+    if (message.metadata !== undefined) {
+      Struct.encode(Struct.wrap(message.metadata), writer.uint32(50).fork()).join();
     }
     return writer;
   },
@@ -4372,6 +4386,14 @@ export const AnnotateWrite: MessageFns<AnnotateWrite> = {
           message.description = reader.string();
           continue;
         }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.metadata = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4392,6 +4414,7 @@ export const AnnotateWrite: MessageFns<AnnotateWrite> = {
         ? object.capturedWindows.map((e: any) => WindowType.fromJSON(e))
         : [],
       description: isSet(object.description) ? globalThis.String(object.description) : "",
+      metadata: isObject(object.metadata) ? object.metadata : undefined,
     };
   },
 
@@ -4412,6 +4435,9 @@ export const AnnotateWrite: MessageFns<AnnotateWrite> = {
     if (message.description !== undefined && message.description !== "") {
       obj.description = message.description;
     }
+    if (message.metadata !== undefined) {
+      obj.metadata = message.metadata;
+    }
     return obj;
   },
 
@@ -4425,6 +4451,7 @@ export const AnnotateWrite: MessageFns<AnnotateWrite> = {
     message.capturedAlgorithms = object.capturedAlgorithms?.map((e) => Algorithm.fromPartial(e)) || [];
     message.capturedWindows = object.capturedWindows?.map((e) => WindowType.fromPartial(e)) || [];
     message.description = object.description ?? "";
+    message.metadata = object.metadata ?? undefined;
     return message;
   },
 };

@@ -324,8 +324,8 @@ ORDER BY w.time_from, w.time_to ASC;
 
 ---------------------- Annotation operations ---------------------- 
 -- name: CreateAnnotation :one
-INSERT INTO annotations (time_from, time_to, description) 
-VALUES (sqlc.arg('time_from'), sqlc.arg('time_to'), sqlc.arg('description'))
+INSERT INTO annotations (time_from, time_to, description, metadata) 
+VALUES (sqlc.arg('time_from'), sqlc.arg('time_to'), sqlc.arg('description'), sqlc.arg('metadata'))
 RETURNING id;
 
 -- name: LinkAnnotationToAlgorithm :exec

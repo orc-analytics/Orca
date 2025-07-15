@@ -9,10 +9,11 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/predixus/orca/core/internal/dag"
-	pb "github.com/predixus/orca/core/protobufs/go"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/predixus/orca/core/internal/dag"
+	pb "github.com/predixus/orca/core/protobufs/go"
 )
 
 func (d *Datalayer) RegisterProcessor(
@@ -826,56 +827,60 @@ func (d *Datalayer) Annotate(
 		if tx != nil {
 			tx.Rollback(ctx)
 		}
-	} ()
+	}()
 
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
-  
-  
-  // insert annotation
-  annotationId, err := qtx.CreateAnnotation(ctx, CreateAnnotationParams{
-    TimeFrom                 : pgtype.Timestamp{
-      Time: annotateWrite.GetTimeFrom().AsTime(),
-      Valid: true,
-    },
-    TimeTo                    :pgtype.Timestamp{
-      Time: annotateWrite.GetTimeTo().AsTime(),
-      Valid: true,
-    },
-    Description               : pgtype.Text{
-      String: annotateWrite.GetDescription(),
-      Valid: true,
-    },
-  })
-  if (err != nil) {
-    return nil, fmt.Errorf("could not create annotation: %v", err)
-  }
 
-  // link annotation to window type
-  for _, capturedWindow := range annotateWrite.GetCapturedWindows() {
-    
-    err := qtx.LinkAnnotationToWindowType(ctx, LinkAnnotationToWindowTypeParams{
-      AnnotationID: annotationId,
-      WindowName: capturedWindow.GetName(),
-      WindowVersion: capturedWindow.GetVersion(),
-    })
+	// insert annotation
+	metadata := annotateWrite.GetMetadata()
+	metadataJson, err := metadata.MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal provided metadata to json: %v", err)
+	}
+	annotationId, err := qtx.CreateAnnotation(ctx, CreateAnnotationParams{
+		TimeFrom: pgtype.Timestamp{
+			Time:  annotateWrite.GetTimeFrom().AsTime(),
+			Valid: true,
+		},
+		TimeTo: pgtype.Timestamp{
+			Time:  annotateWrite.GetTimeTo().AsTime(),
+			Valid: true,
+		},
+		Description: pgtype.Text{
+			String: annotateWrite.GetDescription(),
+			Valid:  true,
+		},
+		Metadata: metadataJson,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create annotation: %v", err)
+	}
 
-    if (err != nil) {
-      return nil, fmt.Errorf("could not link annotation to window: %v", err)
-    }
-  }
+	// link annotation to window type
+	for _, capturedWindow := range annotateWrite.GetCapturedWindows() {
 
-  // link annotation to algorithm type
-  for _, capturedAlgorithm := range annotateWrite.GetCapturedAlgorithms() {
-    err:= qtx.LinkAnnotationToAlgorithm(ctx, LinkAnnotationToAlgorithmParams{
-      AnnotationID: annotationId,
-      AlgorithmName: capturedAlgorithm.GetName(),
-      AlgorithmVersion: capturedAlgorithm.GetVersion(),
-    })
-    if err != nil {
-      return nil, fmt.Errorf("could not link annotation to algorithm: %v", err)
-    }
-  }
+		err := qtx.LinkAnnotationToWindowType(ctx, LinkAnnotationToWindowTypeParams{
+			AnnotationID:  annotationId,
+			WindowName:    capturedWindow.GetName(),
+			WindowVersion: capturedWindow.GetVersion(),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("could not link annotation to window: %v", err)
+		}
+	}
 
-  return &pb.AnnotateResponse{},tx.Commit(ctx)
+	// link annotation to algorithm type
+	for _, capturedAlgorithm := range annotateWrite.GetCapturedAlgorithms() {
+		err := qtx.LinkAnnotationToAlgorithm(ctx, LinkAnnotationToAlgorithmParams{
+			AnnotationID:     annotationId,
+			AlgorithmName:    capturedAlgorithm.GetName(),
+			AlgorithmVersion: capturedAlgorithm.GetVersion(),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("could not link annotation to algorithm: %v", err)
+		}
+	}
+
+	return &pb.AnnotateResponse{}, tx.Commit(ctx)
 }

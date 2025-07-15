@@ -634,6 +634,9 @@ message AnnotateWrite {
   // the description of the annotation
   string description = 5 [(buf.validate.field) = {required: true}];
 
+  // metadata to be attached to the annotation
+  google.protobuf.Struct metadata = 6;
+
   option (buf.validate.message).cel = {
     id: "window.time_ordering",
     message: "time_to must be greater than time_from",

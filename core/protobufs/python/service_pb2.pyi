@@ -399,18 +399,20 @@ class ResultsForAlgorithmAndMetadata(_message.Message):
     def __init__(self, results: _Optional[_Iterable[_Union[ResultsForAlgorithmAndMetadata.ResultsRow, _Mapping]]] = ...) -> None: ...
 
 class AnnotateWrite(_message.Message):
-    __slots__ = ("time_from", "time_to", "captured_algorithms", "captured_windows", "description")
+    __slots__ = ("time_from", "time_to", "captured_algorithms", "captured_windows", "description", "metadata")
     TIME_FROM_FIELD_NUMBER: _ClassVar[int]
     TIME_TO_FIELD_NUMBER: _ClassVar[int]
     CAPTURED_ALGORITHMS_FIELD_NUMBER: _ClassVar[int]
     CAPTURED_WINDOWS_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    METADATA_FIELD_NUMBER: _ClassVar[int]
     time_from: _timestamp_pb2.Timestamp
     time_to: _timestamp_pb2.Timestamp
     captured_algorithms: _containers.RepeatedCompositeFieldContainer[Algorithm]
     captured_windows: _containers.RepeatedCompositeFieldContainer[WindowType]
     description: str
-    def __init__(self, time_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., time_to: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., captured_algorithms: _Optional[_Iterable[_Union[Algorithm, _Mapping]]] = ..., captured_windows: _Optional[_Iterable[_Union[WindowType, _Mapping]]] = ..., description: _Optional[str] = ...) -> None: ...
+    metadata: _struct_pb2.Struct
+    def __init__(self, time_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., time_to: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., captured_algorithms: _Optional[_Iterable[_Union[Algorithm, _Mapping]]] = ..., captured_windows: _Optional[_Iterable[_Union[WindowType, _Mapping]]] = ..., description: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
 class AnnotateResponse(_message.Message):
     __slots__ = ()

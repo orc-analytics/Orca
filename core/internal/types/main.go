@@ -46,8 +46,8 @@ type (
 			ctx context.Context,
 			windowsForMetadataRead *pb.WindowsForMetadataRead,
 		) (*pb.WindowsForMetadata, error)
-    Annotate(ctx context.Context, annotateWrite *pb.AnnotateWrite) (*pb.AnnotateResponse, error)
-  }
+		Annotate(ctx context.Context, annotateWrite *pb.AnnotateWrite) (*pb.AnnotateResponse, error)
+	}
 )
 
 // custom errors
