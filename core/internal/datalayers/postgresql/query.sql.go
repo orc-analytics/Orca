@@ -125,8 +125,8 @@ func (q *Queries) CreateAlgorithmDependency(ctx context.Context, arg CreateAlgor
 }
 
 const createAnnotation = `-- name: CreateAnnotation :one
-INSERT INTO annotations (time_from, time_to, description) 
-VALUES ($1, $2, $3)
+INSERT INTO annotations (time_from, time_to, description, metadata) 
+VALUES ($1, $2, $3, $4)
 RETURNING id
 `
 
@@ -134,11 +134,17 @@ type CreateAnnotationParams struct {
 	TimeFrom    pgtype.Timestamp
 	TimeTo      pgtype.Timestamp
 	Description pgtype.Text
+	Metadata    []byte
 }
 
 // -------------------- Annotation operations ----------------------
 func (q *Queries) CreateAnnotation(ctx context.Context, arg CreateAnnotationParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createAnnotation, arg.TimeFrom, arg.TimeTo, arg.Description)
+	row := q.db.QueryRow(ctx, createAnnotation,
+		arg.TimeFrom,
+		arg.TimeTo,
+		arg.Description,
+		arg.Metadata,
+	)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
