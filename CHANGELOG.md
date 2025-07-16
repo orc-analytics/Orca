@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Data operations within the gRPC service so common operations can be performed on the orca data.
+- Annotation operation so annotations can be left on periods of time
+
 ## [v0.5.0] - 15-06-2025
 
 ### Added
