@@ -10,7 +10,6 @@ COPY core/ ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-v -w" -o orca .
 
-# --- Runtime stage ---
 FROM alpine:latest
 
 WORKDIR /app
