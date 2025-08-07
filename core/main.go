@@ -7,18 +7,19 @@ import (
 	"net"
 	"os"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
 	orca "github.com/predixus/orca/core/internal"
 	dlyr "github.com/predixus/orca/core/internal/datalayers"
 	pb "github.com/predixus/orca/core/protobufs/go"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func startGRPCServer(
 	platform string,
 	dbConnString string,
 	port int,
-	logLevel string,
+	_ string,
 ) {
 	orcaServer, err := orca.NewServer(context.Background(), dlyr.Platform(platform), dbConnString)
 	if err != nil {

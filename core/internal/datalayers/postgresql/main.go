@@ -16,11 +16,13 @@ import (
 	pb "github.com/predixus/orca/core/protobufs/go"
 )
 
+// RegisterProcessor with Orca Core
 func (d *Datalayer) RegisterProcessor(
 	ctx context.Context,
 	proc *pb.ProcessorRegistration,
 ) error {
 	slog.Debug("creating processor", "protobuf", proc)
+
 	tx, err := d.WithTx(ctx)
 
 	defer func() {
@@ -36,6 +38,7 @@ func (d *Datalayer) RegisterProcessor(
 
 	// register the processor
 	err = d.createProcessorAndPurgeAlgos(ctx, tx, proc)
+
 	if err != nil {
 		slog.Error("could not create processor", "error", err)
 		return err
@@ -44,9 +47,9 @@ func (d *Datalayer) RegisterProcessor(
 	// add all algorithms first
 	for _, algo := range proc.GetSupportedAlgorithms() {
 		// add window types
-		window_type := algo.GetWindowType()
+		windowType := algo.GetWindowType()
 
-		err := d.createWindowType(ctx, tx, window_type)
+		err := d.createWindowType(ctx, tx, windowType)
 		if err != nil {
 			slog.Error("could not create window type", "error", err)
 			return err
@@ -88,6 +91,7 @@ func (d *Datalayer) RegisterProcessor(
 	return tx.Commit(ctx)
 }
 
+// EmitWindow with Orca core
 func (d *Datalayer) EmitWindow(
 	ctx context.Context,
 	window *pb.Window,
@@ -143,7 +147,7 @@ func (d *Datalayer) EmitWindow(
 		}
 	}
 	slog.Debug("window record inserted into the datalayer", "window", insertedWindow)
-	exec_paths, err := qtx.ReadAlgorithmExecutionPaths(
+	execPaths, err := qtx.ReadAlgorithmExecutionPaths(
 		ctx,
 		strconv.Itoa(int(insertedWindow.WindowTypeID)),
 	)
@@ -159,20 +163,20 @@ func (d *Datalayer) EmitWindow(
 	}
 
 	// create the algo path args
-	var algoIdPaths []string
+	var algoIDPaths []string
 	var windowTypeIDPaths []string
-	var procIdPaths []string
-	for _, path := range exec_paths {
-		algoIdPaths = append(algoIdPaths, path.AlgoIDPath)
+	var procIDPaths []string
+	for _, path := range execPaths {
+		algoIDPaths = append(algoIDPaths, path.AlgoIDPath)
 		windowTypeIDPaths = append(windowTypeIDPaths, path.WindowTypeIDPath)
-		procIdPaths = append(procIdPaths, path.ProcIDPath)
+		procIDPaths = append(procIDPaths, path.ProcIDPath)
 	}
 
 	// fire off processings
 	executionPlan, err := dag.BuildPlan(
-		algoIdPaths,
 		windowTypeIDPaths,
-		procIdPaths,
+		procIDPaths,
+		algoIDPaths,
 		int64(insertedWindow.WindowTypeID),
 	)
 	if err != nil {
@@ -192,13 +196,13 @@ func (d *Datalayer) EmitWindow(
 		return pb.WindowEmitStatus{
 			Status: pb.WindowEmitStatus_PROCESSING_TRIGGERED,
 		}, tx.Commit(ctx)
-	} else {
-		return pb.WindowEmitStatus{
-			Status: pb.WindowEmitStatus_NO_TRIGGERED_ALGORITHMS,
-		}, nil
 	}
+	return pb.WindowEmitStatus{
+		Status: pb.WindowEmitStatus_NO_TRIGGERED_ALGORITHMS,
+	}, nil
 }
 
+// ReadWindowTypes reads the types of windows registered with Orca core
 func (d *Datalayer) ReadWindowTypes(
 	ctx context.Context,
 ) (*pb.WindowTypes, error) {
@@ -236,6 +240,7 @@ func (d *Datalayer) ReadWindowTypes(
 	return &windowTypesPb, tx.Commit(ctx)
 }
 
+// ReadAlgorithms read the agorithms registered with Orca core
 func (d *Datalayer) ReadAlgorithms(
 	ctx context.Context,
 ) (*pb.Algorithms, error) {
@@ -293,6 +298,7 @@ func (d *Datalayer) ReadAlgorithms(
 	return &algorithmsPb, tx.Commit(ctx)
 }
 
+// ReadProcessors reads processors registered with Orca core
 func (d *Datalayer) ReadProcessors(
 	ctx context.Context,
 ) (*pb.Processors, error) {
@@ -813,6 +819,7 @@ func (d *Datalayer) ReadResultsForAlgorithmAndMetadata(
 	return &resultsPb, tx.Commit(ctx)
 }
 
+// Annotate a section of time
 func (d *Datalayer) Annotate(
 	ctx context.Context,
 	annotateWrite *pb.AnnotateWrite,
