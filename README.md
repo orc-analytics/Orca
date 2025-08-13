@@ -24,6 +24,7 @@ data-powered AI.
   - [ ] RDS
 - [ ] SDKs
   - [x] [Python](https://github.com/Predixus/orca-python)
+  - [ ] Go!
   - [ ] Node
   - [ ] Rust
 
