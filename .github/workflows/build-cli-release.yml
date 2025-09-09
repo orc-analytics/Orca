@@ -63,7 +63,7 @@ jobs:
         run: |
           docker build -t ghcr.io/orc-analytics/orca:${{ env.VERSION }} \
                        -t ghcr.io/orc-analytics/orca:latest \
-                       -f Dockerfile .
+                       -f ./core/Dockerfile .
 
       - name: Push Docker image
         if: steps.version_check.outputs.IS_PRERELEASE == 'false'
