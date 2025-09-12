@@ -2,7 +2,7 @@
 
 set -e
 
-REPO="Predixus/Orca"
+REPO="orc-analytics/orca"
 INSTALL_NAME="orca"
 
 # Disallow root user
