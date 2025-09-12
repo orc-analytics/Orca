@@ -75,7 +75,7 @@ func startOrca(networkName string) {
 			"--network",
 			networkName,
 			"-p", "0:3335",
-			"ghcr.io/predixus/orca:latest",
+			"ghcr.io/orc-analytics/orca:latest",
 			"-connStr", fmt.Sprintf("postgresql://orca:orca@%v:5432/orca?sslmode=disable", pgContainerName),
 			"-migrate",
 			"-platform", "postgresql",

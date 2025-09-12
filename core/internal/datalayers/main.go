@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	psql "github.com/predixus/orca/core/internal/datalayers/postgresql"
-	types "github.com/predixus/orca/core/internal/types"
+	psql "github.com/orc-analytics/orca/core/internal/datalayers/postgresql"
+	types "github.com/orc-analytics/orca/core/internal/types"
 )
 
 // Platform resprents a database storage platform (e.g. PostgreSQL)

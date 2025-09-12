@@ -12,8 +12,8 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/predixus/orca/core/internal/dag"
-	pb "github.com/predixus/orca/core/protobufs/go"
+	"github.com/orc-analytics/orca/core/internal/dag"
+	pb "github.com/orc-analytics/orca/core/protobufs/go"
 )
 
 // RegisterProcessor with Orca Core
