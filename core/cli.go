@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	dlyrs "github.com/predixus/orca/core/internal/datalayers"
+	dlyrs "github.com/orc-analytics/orca/core/internal/datalayers"
 )
 
 type cliFlags struct {
