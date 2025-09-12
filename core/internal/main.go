@@ -5,9 +5,9 @@ import (
 	"log/slog"
 
 	"github.com/bufbuild/protovalidate-go"
-	dlyr "github.com/predixus/orca/core/internal/datalayers"
-	types "github.com/predixus/orca/core/internal/types"
-	pb "github.com/predixus/orca/core/protobufs/go"
+	dlyr "github.com/orc-analytics/orca/core/internal/datalayers"
+	types "github.com/orc-analytics/orca/core/internal/types"
+	pb "github.com/orc-analytics/orca/core/protobufs/go"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )
@@ -178,5 +178,5 @@ func (o *OrcaCoreServer) Annotate(
 	ctx context.Context,
 	annotateWrite *pb.AnnotateWrite,
 ) (*pb.AnnotateResponse, error) {
-  return o.client.Annotate(ctx, annotateWrite)
+	return o.client.Annotate(ctx, annotateWrite)
 }
