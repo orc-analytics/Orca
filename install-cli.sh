@@ -103,7 +103,7 @@ install_binary() {
   echo ""
   echo "✅ Orca CLI installed to: $FINAL_BINARY"
   echo "✅ Symlink created at: $SYMLINK_PATH"
-  echo "🔗 To get started, visit: https://github.com/Predixus/Orca#readme"
+  echo "🔗 To get started, visit: https://github.com/orc-analytics/Orca#readme"
 }
 
 # Run install steps
