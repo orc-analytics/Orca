@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [v0.7.0] - 14-09-2025
+
 ### Fixed
 
 - Mismatch in DAG resolver
@@ -75,7 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/orc-analytics/Orca/compare/v0.6.0...HEAD
+[unreleased]: https://github.com/orc-analytics/Orca/compare/v0.7.0...HEAD
+[v0.6.0]: https://github.com/orc-analytics/Orca/compare/v0.6.0...v0.7.0
 [v0.6.0]: https://github.com/orc-analytics/Orca/compare/v0.5.0...v0.6.0
 [v0.5.0]: https://github.com/orc-analytics/Orca/compare/v0.4.0...v0.5.0
 [v0.4.0]: https://github.com/orc-analytics/Orca/compare/v0.3.0...v0.4.0
