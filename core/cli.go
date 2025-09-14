@@ -13,10 +13,6 @@ import (
 )
 
 type cliFlags struct {
-	platform string
-	connStr  string
-	port     int
-	logLevel string
 	migrate  bool
 	showHelp bool
 }
@@ -32,7 +28,6 @@ var logLevels = []string{
 var datalayerSuggestions = []string{
 	"postgresql",
 }
-var currentDatalayer = "postgresql"
 
 // templates for filling out connection string
 type (
@@ -53,43 +48,41 @@ var connectionTemplates = map[string]connStringTemplate{
 // validation functions
 func ValidateDatalayer(s string) error {
 	if s == "" {
-		return fmt.Errorf("Select a datalayer")
+		return fmt.Errorf("platform cannot be determined from connection string")
 	}
 	for _, v := range datalayerSuggestions {
 		if s == v {
-			currentDatalayer = v
 			return nil
 		}
 	}
-	return fmt.Errorf("Unsuported datalayer: %s", s)
+	return fmt.Errorf("unsupported datalayer: %s", s)
 }
 
-func ValidateConnStr(s string) error {
+func ValidateConnStr(s, platform string) error {
 	if s == "" {
-		return errors.New("Connection string cannot be empty")
+		return errors.New("connection string cannot be empty")
 	}
-	template, ok := connectionTemplates[currentDatalayer]
-	if !ok { // should never occur
-		return fmt.Errorf("no template found for datalayer: %s", currentDatalayer)
+	template, ok := connectionTemplates[platform]
+	if !ok {
+		// If we don't have a specific template, do basic validation
+		if len(s) < 5 {
+			return fmt.Errorf("connection string appears invalid")
+		}
+		return nil
 	}
 	_, err := template.validationFunc(s, template.exampleConnStr)
 	return err
 }
 
-func ValidatePort(s string) error {
-	if s == "" {
-		return errors.New("You have to select a port number")
-	}
-
-	// try to lookup the port to validate it
-	if _, err := net.LookupPort("tcp", s); err != nil {
-		return fmt.Errorf("Invalid port number '%s' (must be between 1-65535)", s)
+func ValidatePort(port int) error {
+	if port < 1 || port > 65535 {
+		return fmt.Errorf("invalid port number %d (must be between 1-65535)", port)
 	}
 
 	// check if port is already in use
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", s))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		return fmt.Errorf("Port %s is already in use", s)
+		return fmt.Errorf("port %d is already in use", port)
 	}
 	listener.Close()
 
@@ -98,7 +91,7 @@ func ValidatePort(s string) error {
 
 func ValidateLogLevel(s string) error {
 	if s == "" {
-		return errors.New("You must select a log level")
+		return errors.New("you must select a log level")
 	}
 
 	s = strings.ToUpper(s)
@@ -107,22 +100,12 @@ func ValidateLogLevel(s string) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("Invalid log level: %s. Must be one of: %s", s, strings.Join(logLevels, ", "))
+	return fmt.Errorf("invalid log level: %s. Must be one of: %s", s, strings.Join(logLevels, ", "))
 }
 
 func parseFlags() cliFlags {
 	flags := cliFlags{}
 
-	// connection string
-	flag.StringVar(
-		&flags.platform,
-		"platform",
-		"",
-		"Data platform to use as the data layer (e.g., postgresql)",
-	)
-	flag.StringVar(&flags.connStr, "connStr", "", "Connection string to the datalayer")
-	flag.IntVar(&flags.port, "port", 4040, "Port number for the Orca server")
-	flag.StringVar(&flags.logLevel, "logLevel", "INFO", "Log level (DEBUG, INFO, WARN, ERROR)")
 	flag.BoolVar(&flags.showHelp, "help", false, "Show help")
 	flag.BoolVar(
 		&flags.migrate,
@@ -154,26 +137,29 @@ func validateFlags(flags cliFlags) error {
 	if flags.showHelp {
 		return nil
 	}
+	return nil
+}
 
-	if flags.platform == "" {
-		return fmt.Errorf("a platform selection is required")
+func validateConfig(config *Config) error {
+	if config.Platform == "" {
+		return fmt.Errorf("platform cannot be determined from connection string")
 	}
-	if err := ValidateDatalayer(flags.platform); err != nil {
+	if err := ValidateDatalayer(config.Platform); err != nil {
 		return fmt.Errorf("invalid platform: %w", err)
 	}
 
-	if flags.connStr == "" {
-		return fmt.Errorf("connStr is required")
+	if config.ConnectionString == "" {
+		return fmt.Errorf("ORCA_CONNECTION_STRING environment variable is required")
 	}
-	if err := ValidateConnStr(flags.connStr); err != nil {
+	if err := ValidateConnStr(config.ConnectionString, config.Platform); err != nil {
 		return fmt.Errorf("invalid connection string: %w", err)
 	}
 
-	if err := ValidatePort(fmt.Sprintf("%d", flags.port)); err != nil {
+	if err := ValidatePort(config.Port); err != nil {
 		return fmt.Errorf("invalid port: %w", err)
 	}
 
-	if err := ValidateLogLevel(flags.logLevel); err != nil {
+	if err := ValidateLogLevel(config.LogLevel); err != nil {
 		return fmt.Errorf("invalid log level: %w", err)
 	}
 
@@ -183,28 +169,48 @@ func validateFlags(flags cliFlags) error {
 func runCLI(flags cliFlags) {
 	if flags.showHelp {
 		flag.Usage()
+		fmt.Println("\nEnvironment Variables:")
+		fmt.Println("  ORCA_CONNECTION_STRING  Database connection string (required)")
+		fmt.Println("  ORCA_PORT              Server port (default: 4040)")
+		fmt.Println("  ORCA_LOG_LEVEL         Log level (default: INFO)")
+		fmt.Println("  ORCA_ENV               Environment (production/prod for production mode - if in production mode TLS will be used throughout for all gRPC connections)")
 		return
+	}
+
+	// get singleton  configuration
+	config := GetConfig()
+
+	// validate configuration
+	if err := validateConfig(config); err != nil {
+		slog.Error("configuration error", "error", err)
+		os.Exit(1)
 	}
 
 	// stdout logger
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: parseLogLevel(flags.logLevel),
+		Level: parseLogLevel(config.LogLevel),
 	})
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
+	slog.Info("starting orca",
+		"platform", config.Platform,
+		"port", config.Port,
+		"production", config.IsProduction,
+		"logLevel", config.LogLevel)
+
 	// perform migrations if requested
 	slog.Info("premigration")
 	if flags.migrate {
-		slog.Info("migrating datalayer")
-		err := dlyrs.MigrateDatalayer(flags.platform, flags.connStr)
+		slog.Info("migrating datalayer", "platform", config.Platform)
+		err := dlyrs.MigrateDatalayer(config.Platform, config.ConnectionString)
 		if err != nil {
 			slog.Error("could not migrate the datalayer, exiting", "error", err)
 			os.Exit(1)
 		}
 	}
-	startGRPCServer(flags.platform, flags.connStr, flags.port, flags.logLevel)
+	startGRPCServer(config.Platform, config.ConnectionString, config.Port, config.LogLevel)
 
-	// Keep main thread alive
+	// keep main thread alive
 	select {}
 }

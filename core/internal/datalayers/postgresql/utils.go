@@ -64,6 +64,7 @@ func processTasks(
 	}
 
 	// for each stage, farm off processsings
+	slog.Info("execution plan", "executionPlan", executionPlan)
 	for _, stage := range executionPlan.Stages {
 		for _, task := range stage.Tasks {
 			proc, ok := processorMap[task.ProcId]
