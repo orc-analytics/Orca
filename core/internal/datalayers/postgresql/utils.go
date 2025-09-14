@@ -2,19 +2,25 @@ package postgresql
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/orc-analytics/orca/core/internal/dag"
+
+	"github.com/orc-analytics/orca/core/internal/envs"
 	pb "github.com/orc-analytics/orca/core/protobufs/go"
+
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -62,6 +68,8 @@ func processTasks(
 	for _, algo := range algorithms {
 		algorithmMap[algo.ID] = algo
 	}
+	// get the environment
+	config := envs.GetConfig()
 
 	// for each stage, farm off processsings
 	slog.Info("execution plan", "executionPlan", executionPlan)
@@ -72,11 +80,30 @@ func processTasks(
 				slog.Error("Processor not found for task", "proc_id", task.ProcId)
 				return fmt.Errorf("processor ID %d not found", task.ProcId)
 			}
+			var conn *grpc.ClientConn
 
-			conn, err := grpc.NewClient(
-				proc.ConnectionString,
-				grpc.WithTransportCredentials(insecure.NewCredentials()),
-			)
+			if config.IsProduction {
+				host, _, err := net.SplitHostPort(proc.ConnectionString)
+				if err != nil {
+					host = proc.ConnectionString
+				}
+				conn, err = grpc.NewClient(
+					proc.ConnectionString,
+					grpc.WithTransportCredentials(
+						credentials.NewTLS(
+							&tls.Config{
+								ServerName: host,
+							},
+						),
+					),
+				)
+			} else {
+
+				conn, err = grpc.NewClient(
+					proc.ConnectionString,
+					grpc.WithTransportCredentials(insecure.NewCredentials()),
+				)
+			}
 			if err != nil {
 				slog.Error("could not connect to processor", "proc_id", task.ProcId, "error", err)
 				return err

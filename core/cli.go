@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	dlyrs "github.com/orc-analytics/orca/core/internal/datalayers"
+	envs "github.com/orc-analytics/orca/core/internal/envs"
 )
 
 type cliFlags struct {
@@ -140,7 +141,7 @@ func validateFlags(flags cliFlags) error {
 	return nil
 }
 
-func validateConfig(config *Config) error {
+func validateConfig(config *envs.Config) error {
 	if config.Platform == "" {
 		return fmt.Errorf("platform cannot be determined from connection string")
 	}
@@ -178,7 +179,7 @@ func runCLI(flags cliFlags) {
 	}
 
 	// get singleton  configuration
-	config := GetConfig()
+	config := envs.GetConfig()
 
 	// validate configuration
 	if err := validateConfig(config); err != nil {
