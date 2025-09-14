@@ -174,9 +174,9 @@ func (d *Datalayer) EmitWindow(
 
 	// fire off processings
 	executionPlan, err := dag.BuildPlan(
+		algoIDPaths,
 		windowTypeIDPaths,
 		procIDPaths,
-		algoIDPaths,
 		int64(insertedWindow.WindowTypeID),
 	)
 	if err != nil {

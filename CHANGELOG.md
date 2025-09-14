@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixed
+
+- Mismatch in DAG resolver
+
+### Updated
+
+- The way key configurations are stored, e.g. database URL, port and log level - as environment variables instead of command line args
+
 ## [v0.6.3] - 12-09-2025
 
 ### Fixed 

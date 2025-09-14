@@ -93,6 +93,7 @@ func (o *OrcaCoreServer) EmitWindow(
 	ctx context.Context,
 	window *pb.Window,
 ) (*pb.WindowEmitStatus, error) {
+	slog.Debug("Recieved Window", "window", window)
 	err := validate(window)
 	if err != nil {
 		return nil, err
