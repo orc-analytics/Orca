@@ -273,21 +273,21 @@ func showStatus() {
 
 	if orcaStatus == "running" {
 		orcaPort := getContainerPort(orcaContainerName, 3335)
-		conn := fmt.Sprintf("grpc://localhost:%s", orcaPort)
+		conn := fmt.Sprintf("localhost:%s", orcaPort)
 		fmt.Println(infoStyle.Render("Connection string: " + conn))
 		fmt.Println()
 		fmt.Println(
 			prefixStyle.Render(
-				"Set these environment variables in your Orca SDKs to connect them to Orca:",
+				"Set these environment variables in your Orca processors to connect them to Orca:",
 			),
 		)
-		fmt.Println(prefixStyle.Render("\tORCASERVER=" + conn))
+		fmt.Println(prefixStyle.Render("\tORCA_CORE=" + conn))
 	}
 
 	// get network IP
 	gatewayIP := getNetworkGatewayIP()
 	if gatewayIP != "" {
-		fmt.Println(prefixStyle.Render("\tHOST=" + strings.Replace(gatewayIP, "'", "", 2)))
+		fmt.Println(prefixStyle.Render("\tPROCESSOR_ADDRESS=" + strings.Replace(gatewayIP, "'", "", 2)))
 	}
 }
 
