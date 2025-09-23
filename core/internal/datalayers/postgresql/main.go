@@ -49,10 +49,34 @@ func (d *Datalayer) RegisterProcessor(
 		// add window types
 		windowType := algo.GetWindowType()
 
-		err := d.createWindowType(ctx, tx, windowType)
+		// if there are metadata fields, add them
+		var metadataFieldIds []int64
+		if len(windowType.MetadataFields) > 0 {
+			for _, metadataField := range windowType.MetadataFields {
+				metadataFieldId, err := d.createMetadataField(ctx, tx, metadataField)
+				if err != nil {
+					slog.Error("could not create metadata field", "error", err)
+					return err
+				}
+				metadataFieldIds = append(metadataFieldIds, metadataFieldId)
+			}
+		}
+
+		windowTypeId, err := d.createWindowType(ctx, tx, windowType)
 		if err != nil {
 			slog.Error("could not create window type", "error", err)
 			return err
+		}
+
+		// if there were metadata fields, create the bridge
+		if len(metadataFieldIds) > 0 {
+			for _, metadataFieldId := range metadataFieldIds {
+				err := d.createMetadataFieldBridge(ctx, tx, windowTypeId, metadataFieldId)
+				if err != nil {
+					slog.Error("could not create metadata field bridge", "error", err)
+					return err
+				}
+			}
 		}
 
 		// create algos

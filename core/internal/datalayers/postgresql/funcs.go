@@ -82,20 +82,57 @@ func (d *Datalayer) createProcessorAndPurgeAlgos(
 	return nil
 }
 
+func (d *Datalayer) createMetadataField(
+	ctx context.Context,
+	tx types.Tx,
+	metadataField *pb.MetadataField,
+) (int64, error) {
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+	metadataFieldId, err := qtx.CreateMetadataField(ctx, CreateMetadataFieldParams{
+		Name:        metadataField.GetName(),
+		Description: metadataField.GetDescription(),
+	})
+	if err != nil {
+		slog.Error("could not create metadata field", "error", err)
+		return 0, err
+	}
+	return metadataFieldId, nil
+}
+
 func (d *Datalayer) createWindowType(
 	ctx context.Context,
 	tx types.Tx,
 	windowType *pb.WindowType,
-) error {
+) (int64, error) {
 	pgTx := tx.(*PgTx)
 	qtx := d.queries.WithTx(pgTx.tx)
-	err := qtx.CreateWindowType(ctx, CreateWindowTypeParams{
+	windowTypeId, err := qtx.CreateWindowType(ctx, CreateWindowTypeParams{
 		Name:        windowType.GetName(),
 		Version:     windowType.GetVersion(),
 		Description: windowType.GetDescription(),
 	})
 	if err != nil {
 		slog.Error("could not create window type", "error", err)
+		return 0, err
+	}
+	return windowTypeId, nil
+}
+
+func (d *Datalayer) createMetadataFieldBridge(
+	ctx context.Context,
+	tx types.Tx,
+	windowTypeId int64,
+	metadataFieldId int64,
+) error {
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+	err := qtx.CreateWindowTypeMetadataFieldBridge(ctx, CreateWindowTypeMetadataFieldBridgeParams{
+		WindowTypeID:     windowTypeId,
+		MetadataFieldsID: metadataFieldId,
+	})
+	if err != nil {
+		slog.Error("could not create metadata field bridge", "error", err)
 		return err
 	}
 	return nil
