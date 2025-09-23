@@ -266,6 +266,10 @@ type Window struct {
 	// A unique identifier that defines where the window came from
 	Origin string `protobuf:"bytes,5,opt,name=origin,proto3" json:"origin,omitempty"`
 	// Additional metadata to attach to this window
+	// The schema of this metadata is determined by the combination of
+	// window_type_name and window_type_version. Each window type version
+	// defines its own required and optional metadata fields, as defined
+	// at the time of registration.
 	Metadata      *structpb.Struct `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -477,6 +481,7 @@ func (x *WindowType) GetMetadataFields() []*MetadataField {
 	return nil
 }
 
+// WindowEmitStatus status message returned after emitting a window
 type WindowEmitStatus struct {
 	state         protoimpl.MessageState      `protogen:"open.v1"`
 	Status        WindowEmitStatus_StatusEnum `protobuf:"varint,1,opt,name=status,proto3,enum=WindowEmitStatus_StatusEnum" json:"status,omitempty"`

@@ -120,7 +120,7 @@ func (d *Datalayer) EmitWindow(
 	ctx context.Context,
 	window *pb.Window,
 ) (pb.WindowEmitStatus, error) {
-	slog.Debug("inserting window", "window", window)
+	slog.Debug("recieved emitted window", "window", window)
 
 	tx, err := d.WithTx(ctx)
 
@@ -143,6 +143,30 @@ func (d *Datalayer) EmitWindow(
 	metadataBytes, err := metadata.MarshalJSON()
 	if err != nil {
 		return pb.WindowEmitStatus{}, fmt.Errorf("could not marshal metadata: %v", err)
+	}
+
+	// check whether metadata is needed
+	metadataFields, err := qtx.ReadMetadataFieldsByWindowType(ctx, ReadMetadataFieldsByWindowTypeParams{
+		WindowTypeName:    window.GetWindowTypeName(),
+		WindowTypeVersion: window.GetWindowTypeVersion(),
+	})
+	if err != nil {
+		return pb.WindowEmitStatus{}, fmt.Errorf("could not read metadata for window: %v", err)
+	}
+
+	// confident that any required metadata is being supplied to the processor
+	if len(metadataFields) > 0 {
+		var metadataMap map[string]any
+		if err := json.Unmarshal(metadataBytes, &metadataMap); err != nil {
+			return pb.WindowEmitStatus{}, fmt.Errorf("could not unmarshal metadata for validation: %v", err)
+		}
+
+		for _, mDataField := range metadataFields {
+			fieldName := mDataField.MetadataFieldName
+			if _, exists := metadataMap[fieldName]; !exists {
+				return pb.WindowEmitStatus{}, fmt.Errorf("required metadata field '%s' is missing", fieldName)
+			}
+		}
 	}
 
 	insertedWindow, err := qtx.RegisterWindow(ctx, RegisterWindowParams{

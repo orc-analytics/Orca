@@ -155,3 +155,11 @@ type WindowType struct {
 	Description string
 	Created     pgtype.Timestamp
 }
+
+type WindowTypeMetadataField struct {
+	WindowTypeName           string
+	WindowTypeVersion        string
+	MetadataFieldID          int64
+	MetadataFieldName        string
+	MetadataFieldDescription string
+}
