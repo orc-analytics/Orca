@@ -208,6 +208,15 @@ FROM processor
 WHERE id = ANY(sqlc.arg('processor_ids')::bigint[])
 ORDER BY name, runtime;
 
+-- name: ReadMetadataFieldsByWindowType :many
+SELECT 
+    metadata_field_id,
+    metadata_field_name,
+    metadata_field_description
+FROM window_type_metadata_fields
+WHERE window_type_name = sqlc.arg('window_type_name')
+  AND window_type_version = sqlc.arg('window_type_version')
+ORDER BY metadata_field_name;
 
 ---------------------- Data operations ---------------------- 
 -- name: ReadWindowTypes :many

@@ -759,6 +759,48 @@ func (q *Queries) ReadFromAlgorithmDependencies(ctx context.Context, arg ReadFro
 	return items, nil
 }
 
+const readMetadataFieldsByWindowType = `-- name: ReadMetadataFieldsByWindowType :many
+SELECT 
+    metadata_field_id,
+    metadata_field_name,
+    metadata_field_description
+FROM window_type_metadata_fields
+WHERE window_type_name = $1
+  AND window_type_version = $2
+ORDER BY metadata_field_name
+`
+
+type ReadMetadataFieldsByWindowTypeParams struct {
+	WindowTypeName    string
+	WindowTypeVersion string
+}
+
+type ReadMetadataFieldsByWindowTypeRow struct {
+	MetadataFieldID          int64
+	MetadataFieldName        string
+	MetadataFieldDescription string
+}
+
+func (q *Queries) ReadMetadataFieldsByWindowType(ctx context.Context, arg ReadMetadataFieldsByWindowTypeParams) ([]ReadMetadataFieldsByWindowTypeRow, error) {
+	rows, err := q.db.Query(ctx, readMetadataFieldsByWindowType, arg.WindowTypeName, arg.WindowTypeVersion)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ReadMetadataFieldsByWindowTypeRow
+	for rows.Next() {
+		var i ReadMetadataFieldsByWindowTypeRow
+		if err := rows.Scan(&i.MetadataFieldID, &i.MetadataFieldName, &i.MetadataFieldDescription); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const readProcessors = `-- name: ReadProcessors :many
 SELECT
   id,

@@ -161,7 +161,13 @@ export interface Window {
   origin?:
     | string
     | undefined;
-  /** Additional metadata to attach to this window */
+  /**
+   * Additional metadata to attach to this window
+   * The schema of this metadata is determined by the combination of
+   * window_type_name and window_type_version. Each window type version
+   * defines its own required and optional metadata fields, as defined
+   * at the time of registration.
+   */
   metadata?: { [key: string]: any } | undefined;
 }
 
@@ -211,6 +217,7 @@ export interface WindowType {
   metadataFields?: MetadataField[] | undefined;
 }
 
+/** WindowEmitStatus status message returned after emitting a window */
 export interface WindowEmitStatus {
   status?: WindowEmitStatus_StatusEnum | undefined;
 }

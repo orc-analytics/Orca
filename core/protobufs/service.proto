@@ -91,6 +91,10 @@ message Window {
   }];
   
   // Additional metadata to attach to this window
+  // The schema of this metadata is determined by the combination of
+  // window_type_name and window_type_version. Each window type version
+  // defines its own required and optional metadata fields, as defined
+  // at the time of registration.
   google.protobuf.Struct metadata = 6;
 
   // Ensure time_to is after time_from
