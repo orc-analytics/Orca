@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Changed
+
+- Made metadata creation way more explicit with dedicated messages.
+
 ## [v0.8.0]
 
 ### Added
