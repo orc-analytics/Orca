@@ -51,7 +51,10 @@ INSERT INTO metadata_fields_references (
 ) VALUES (
   sqlc.arg('window_type_id'),
   sqlc.arg('metadata_fields_id')
-);
+) ON CONFLICT (window_type_id, metadata_fields_id) DO UPDATE
+SET 
+  window_type_id = EXCLUDED.window_type_id,
+  metadata_fields_id = EXCLUDED.metadata_fields_id;
 
 -- name: CreateAlgorithm :exec
 WITH processor_id AS (
