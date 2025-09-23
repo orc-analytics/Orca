@@ -150,7 +150,7 @@ func (q *Queries) CreateAnnotation(ctx context.Context, arg CreateAnnotationPara
 	return id, err
 }
 
-const createMetadataField = `-- name: CreateMetadataField :exec
+const createMetadataField = `-- name: CreateMetadataField :one
 INSERT INTO metadata_fields (
   name,
   description
@@ -169,9 +169,11 @@ type CreateMetadataFieldParams struct {
 	Description string
 }
 
-func (q *Queries) CreateMetadataField(ctx context.Context, arg CreateMetadataFieldParams) error {
-	_, err := q.db.Exec(ctx, createMetadataField, arg.Name, arg.Description)
-	return err
+func (q *Queries) CreateMetadataField(ctx context.Context, arg CreateMetadataFieldParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createMetadataField, arg.Name, arg.Description)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const createProcessorAndPurgeAlgos = `-- name: CreateProcessorAndPurgeAlgos :exec
@@ -244,7 +246,7 @@ func (q *Queries) CreateResult(ctx context.Context, arg CreateResultParams) (int
 	return id, err
 }
 
-const createWindowType = `-- name: CreateWindowType :exec
+const createWindowType = `-- name: CreateWindowType :one
 INSERT INTO window_type (
   name,
   version,
@@ -267,9 +269,11 @@ type CreateWindowTypeParams struct {
 	Description string
 }
 
-func (q *Queries) CreateWindowType(ctx context.Context, arg CreateWindowTypeParams) error {
-	_, err := q.db.Exec(ctx, createWindowType, arg.Name, arg.Version, arg.Description)
-	return err
+func (q *Queries) CreateWindowType(ctx context.Context, arg CreateWindowTypeParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createWindowType, arg.Name, arg.Version, arg.Description)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
 }
 
 const createWindowTypeMetadataFieldBridge = `-- name: CreateWindowTypeMetadataFieldBridge :exec

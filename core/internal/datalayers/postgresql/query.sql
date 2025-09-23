@@ -15,7 +15,7 @@ SET
   connection_string = EXCLUDED.connection_string
 RETURNING id;
 
--- name: CreateMetadataField :exec
+-- name: CreateMetadataField :one
 INSERT INTO metadata_fields (
   name,
   description
@@ -28,7 +28,7 @@ SET
   description = EXCLUDED.description
 RETURNING id;
 
--- name: CreateWindowType :exec
+-- name: CreateWindowType :one
 INSERT INTO window_type (
   name,
   version,
