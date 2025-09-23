@@ -15,10 +15,23 @@ SET
   connection_string = EXCLUDED.connection_string
 RETURNING id;
 
+-- name: CreateMetadataField :exec
+INSERT INTO metadata_fields (
+  name,
+  description
+) VALUES (
+  sqlc.arg('name'),
+  sqlc.arg('description')
+) ON CONFLICT (name) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description
+RETURNING id;
+
 -- name: CreateWindowType :exec
 INSERT INTO window_type (
-  name, 
-  version, 
+  name,
+  version,
   description
 ) VALUES (
   sqlc.arg('name'),
@@ -28,7 +41,17 @@ INSERT INTO window_type (
 SET
   name = EXCLUDED.name,
   version = EXCLUDED.version,
-  description = EXCLUDED.description;
+  description = EXCLUDED.description
+RETURNING id;
+
+-- name: CreateWindowTypeMetadataFieldBridge :exec
+INSERT INTO metadata_fields_references (
+  window_type_id,
+  metadata_fields_id
+) VALUES (
+  sqlc.arg('window_type_id'),
+  sqlc.arg('metadata_fields_id')
+);
 
 -- name: CreateAlgorithm :exec
 WITH processor_id AS (

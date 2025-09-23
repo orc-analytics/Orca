@@ -165,6 +165,22 @@ export interface Window {
   metadata?: { [key: string]: any } | undefined;
 }
 
+/** MetadataField describes the metadata that can be carried along with windows */
+export interface MetadataField {
+  /**
+   * Name of the metadata field
+   * Examples: "AssetID"
+   */
+  name?:
+    | string
+    | undefined;
+  /**
+   * Description of the field
+   * Examples: "Unique ID of the asset"
+   */
+  description?: string | undefined;
+}
+
 /**
  * WindowType defines a category of window that can trigger algorithms.
  * Algorithms subscribe to window types to indicate when they should be executed.
@@ -188,7 +204,11 @@ export interface WindowType {
    * Description of the window
    * E.g. "Emitted every day, at noon"
    */
-  description?: string | undefined;
+  description?:
+    | string
+    | undefined;
+  /** Metadata fields that are carried along with this window type */
+  metadataFields?: MetadataField[] | undefined;
 }
 
 export interface WindowEmitStatus {
@@ -896,8 +916,84 @@ export const Window: MessageFns<Window> = {
   },
 };
 
+function createBaseMetadataField(): MetadataField {
+  return { name: "", description: "" };
+}
+
+export const MetadataField: MessageFns<MetadataField> = {
+  encode(message: MetadataField, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== undefined && message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.description !== undefined && message.description !== "") {
+      writer.uint32(18).string(message.description);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MetadataField {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMetadataField();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MetadataField {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+    };
+  },
+
+  toJSON(message: MetadataField): unknown {
+    const obj: any = {};
+    if (message.name !== undefined && message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.description !== undefined && message.description !== "") {
+      obj.description = message.description;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MetadataField>, I>>(base?: I): MetadataField {
+    return MetadataField.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MetadataField>, I>>(object: I): MetadataField {
+    const message = createBaseMetadataField();
+    message.name = object.name ?? "";
+    message.description = object.description ?? "";
+    return message;
+  },
+};
+
 function createBaseWindowType(): WindowType {
-  return { name: "", version: "", description: "" };
+  return { name: "", version: "", description: "", metadataFields: [] };
 }
 
 export const WindowType: MessageFns<WindowType> = {
@@ -910,6 +1006,11 @@ export const WindowType: MessageFns<WindowType> = {
     }
     if (message.description !== undefined && message.description !== "") {
       writer.uint32(26).string(message.description);
+    }
+    if (message.metadataFields !== undefined && message.metadataFields.length !== 0) {
+      for (const v of message.metadataFields) {
+        MetadataField.encode(v!, writer.uint32(34).fork()).join();
+      }
     }
     return writer;
   },
@@ -945,6 +1046,17 @@ export const WindowType: MessageFns<WindowType> = {
           message.description = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          const el = MetadataField.decode(reader, reader.uint32());
+          if (el !== undefined) {
+            message.metadataFields!.push(el);
+          }
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -959,6 +1071,9 @@ export const WindowType: MessageFns<WindowType> = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       version: isSet(object.version) ? globalThis.String(object.version) : "",
       description: isSet(object.description) ? globalThis.String(object.description) : "",
+      metadataFields: globalThis.Array.isArray(object?.metadataFields)
+        ? object.metadataFields.map((e: any) => MetadataField.fromJSON(e))
+        : [],
     };
   },
 
@@ -973,6 +1088,9 @@ export const WindowType: MessageFns<WindowType> = {
     if (message.description !== undefined && message.description !== "") {
       obj.description = message.description;
     }
+    if (message.metadataFields?.length) {
+      obj.metadataFields = message.metadataFields.map((e) => MetadataField.toJSON(e));
+    }
     return obj;
   },
 
@@ -984,6 +1102,7 @@ export const WindowType: MessageFns<WindowType> = {
     message.name = object.name ?? "";
     message.version = object.version ?? "";
     message.description = object.description ?? "";
+    message.metadataFields = object.metadataFields?.map((e) => MetadataField.fromPartial(e)) || [];
     return message;
   },
 };

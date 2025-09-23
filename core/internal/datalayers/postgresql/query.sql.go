@@ -150,6 +150,30 @@ func (q *Queries) CreateAnnotation(ctx context.Context, arg CreateAnnotationPara
 	return id, err
 }
 
+const createMetadataField = `-- name: CreateMetadataField :exec
+INSERT INTO metadata_fields (
+  name,
+  description
+) VALUES (
+  $1,
+  $2
+) ON CONFLICT (name) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description
+RETURNING id
+`
+
+type CreateMetadataFieldParams struct {
+	Name        string
+	Description string
+}
+
+func (q *Queries) CreateMetadataField(ctx context.Context, arg CreateMetadataFieldParams) error {
+	_, err := q.db.Exec(ctx, createMetadataField, arg.Name, arg.Description)
+	return err
+}
+
 const createProcessorAndPurgeAlgos = `-- name: CreateProcessorAndPurgeAlgos :exec
 INSERT INTO processor (
   name,
@@ -222,8 +246,8 @@ func (q *Queries) CreateResult(ctx context.Context, arg CreateResultParams) (int
 
 const createWindowType = `-- name: CreateWindowType :exec
 INSERT INTO window_type (
-  name, 
-  version, 
+  name,
+  version,
   description
 ) VALUES (
   $1,
@@ -234,6 +258,7 @@ SET
   name = EXCLUDED.name,
   version = EXCLUDED.version,
   description = EXCLUDED.description
+RETURNING id
 `
 
 type CreateWindowTypeParams struct {
@@ -244,6 +269,26 @@ type CreateWindowTypeParams struct {
 
 func (q *Queries) CreateWindowType(ctx context.Context, arg CreateWindowTypeParams) error {
 	_, err := q.db.Exec(ctx, createWindowType, arg.Name, arg.Version, arg.Description)
+	return err
+}
+
+const createWindowTypeMetadataFieldBridge = `-- name: CreateWindowTypeMetadataFieldBridge :exec
+INSERT INTO metadata_fields_references (
+  window_type_id,
+  metadata_fields_id
+) VALUES (
+  $1,
+  $2
+)
+`
+
+type CreateWindowTypeMetadataFieldBridgeParams struct {
+	WindowTypeID     int64
+	MetadataFieldsID int64
+}
+
+func (q *Queries) CreateWindowTypeMetadataFieldBridge(ctx context.Context, arg CreateWindowTypeMetadataFieldBridgeParams) error {
+	_, err := q.db.Exec(ctx, createWindowTypeMetadataFieldBridge, arg.WindowTypeID, arg.MetadataFieldsID)
 	return err
 }
 

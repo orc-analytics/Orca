@@ -47,15 +47,25 @@ class Window(_message.Message):
     metadata: _struct_pb2.Struct
     def __init__(self, time_from: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., time_to: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., window_type_name: _Optional[str] = ..., window_type_version: _Optional[str] = ..., origin: _Optional[str] = ..., metadata: _Optional[_Union[_struct_pb2.Struct, _Mapping]] = ...) -> None: ...
 
+class MetadataField(_message.Message):
+    __slots__ = ("name", "description")
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    description: str
+    def __init__(self, name: _Optional[str] = ..., description: _Optional[str] = ...) -> None: ...
+
 class WindowType(_message.Message):
-    __slots__ = ("name", "version", "description")
+    __slots__ = ("name", "version", "description", "metadataFields")
     NAME_FIELD_NUMBER: _ClassVar[int]
     VERSION_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    METADATAFIELDS_FIELD_NUMBER: _ClassVar[int]
     name: str
     version: str
     description: str
-    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., description: _Optional[str] = ...) -> None: ...
+    metadataFields: _containers.RepeatedCompositeFieldContainer[MetadataField]
+    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., description: _Optional[str] = ..., metadataFields: _Optional[_Iterable[_Union[MetadataField, _Mapping]]] = ...) -> None: ...
 
 class WindowEmitStatus(_message.Message):
     __slots__ = ("status",)

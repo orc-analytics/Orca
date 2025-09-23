@@ -190,7 +190,7 @@ func (x WindowEmitStatus_StatusEnum) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WindowEmitStatus_StatusEnum.Descriptor instead.
 func (WindowEmitStatus_StatusEnum) EnumDescriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{2, 0}
+	return file_service_proto_rawDescGZIP(), []int{3, 0}
 }
 
 // Overall health status of the processor
@@ -247,7 +247,7 @@ func (x HealthCheckResponse_Status) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use HealthCheckResponse_Status.Descriptor instead.
 func (HealthCheckResponse_Status) EnumDescriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{14, 0}
+	return file_service_proto_rawDescGZIP(), []int{15, 0}
 }
 
 // Window represents a time-bounded processing context that triggers algorithm execution. Windows are the primary input that start DAG processing flows.
@@ -343,6 +343,63 @@ func (x *Window) GetMetadata() *structpb.Struct {
 	return nil
 }
 
+// MetadataField describes the metadata that can be carried along with windows
+type MetadataField struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Name of the metadata field
+	// Examples: "AssetID"
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Description of the field
+	// Examples: "Unique ID of the asset"
+	Description   string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MetadataField) Reset() {
+	*x = MetadataField{}
+	mi := &file_service_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MetadataField) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MetadataField) ProtoMessage() {}
+
+func (x *MetadataField) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MetadataField.ProtoReflect.Descriptor instead.
+func (*MetadataField) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *MetadataField) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MetadataField) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
 // WindowType defines a category of window that can trigger algorithms.
 // Algorithms subscribe to window types to indicate when they should be executed.
 type WindowType struct {
@@ -355,14 +412,16 @@ type WindowType struct {
 	Version string `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
 	// Description of the window
 	// E.g. "Emitted every day, at noon"
-	Description   string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// Metadata fields that are carried along with this window type
+	MetadataFields []*MetadataField `protobuf:"bytes,4,rep,name=metadataFields,proto3" json:"metadataFields,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *WindowType) Reset() {
 	*x = WindowType{}
-	mi := &file_service_proto_msgTypes[1]
+	mi := &file_service_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -374,7 +433,7 @@ func (x *WindowType) String() string {
 func (*WindowType) ProtoMessage() {}
 
 func (x *WindowType) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[1]
+	mi := &file_service_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -387,7 +446,7 @@ func (x *WindowType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WindowType.ProtoReflect.Descriptor instead.
 func (*WindowType) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{1}
+	return file_service_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *WindowType) GetName() string {
@@ -411,6 +470,13 @@ func (x *WindowType) GetDescription() string {
 	return ""
 }
 
+func (x *WindowType) GetMetadataFields() []*MetadataField {
+	if x != nil {
+		return x.MetadataFields
+	}
+	return nil
+}
+
 type WindowEmitStatus struct {
 	state         protoimpl.MessageState      `protogen:"open.v1"`
 	Status        WindowEmitStatus_StatusEnum `protobuf:"varint,1,opt,name=status,proto3,enum=WindowEmitStatus_StatusEnum" json:"status,omitempty"`
@@ -420,7 +486,7 @@ type WindowEmitStatus struct {
 
 func (x *WindowEmitStatus) Reset() {
 	*x = WindowEmitStatus{}
-	mi := &file_service_proto_msgTypes[2]
+	mi := &file_service_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -432,7 +498,7 @@ func (x *WindowEmitStatus) String() string {
 func (*WindowEmitStatus) ProtoMessage() {}
 
 func (x *WindowEmitStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[2]
+	mi := &file_service_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -445,7 +511,7 @@ func (x *WindowEmitStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WindowEmitStatus.ProtoReflect.Descriptor instead.
 func (*WindowEmitStatus) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{2}
+	return file_service_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *WindowEmitStatus) GetStatus() WindowEmitStatus_StatusEnum {
@@ -475,7 +541,7 @@ type AlgorithmDependency struct {
 
 func (x *AlgorithmDependency) Reset() {
 	*x = AlgorithmDependency{}
-	mi := &file_service_proto_msgTypes[3]
+	mi := &file_service_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -487,7 +553,7 @@ func (x *AlgorithmDependency) String() string {
 func (*AlgorithmDependency) ProtoMessage() {}
 
 func (x *AlgorithmDependency) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[3]
+	mi := &file_service_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -500,7 +566,7 @@ func (x *AlgorithmDependency) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlgorithmDependency.ProtoReflect.Descriptor instead.
 func (*AlgorithmDependency) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{3}
+	return file_service_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AlgorithmDependency) GetName() string {
@@ -557,7 +623,7 @@ type Algorithm struct {
 
 func (x *Algorithm) Reset() {
 	*x = Algorithm{}
-	mi := &file_service_proto_msgTypes[4]
+	mi := &file_service_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -569,7 +635,7 @@ func (x *Algorithm) String() string {
 func (*Algorithm) ProtoMessage() {}
 
 func (x *Algorithm) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[4]
+	mi := &file_service_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -582,7 +648,7 @@ func (x *Algorithm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Algorithm.ProtoReflect.Descriptor instead.
 func (*Algorithm) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{4}
+	return file_service_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Algorithm) GetName() string {
@@ -630,7 +696,7 @@ type FloatArray struct {
 
 func (x *FloatArray) Reset() {
 	*x = FloatArray{}
-	mi := &file_service_proto_msgTypes[5]
+	mi := &file_service_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -642,7 +708,7 @@ func (x *FloatArray) String() string {
 func (*FloatArray) ProtoMessage() {}
 
 func (x *FloatArray) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[5]
+	mi := &file_service_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -655,7 +721,7 @@ func (x *FloatArray) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FloatArray.ProtoReflect.Descriptor instead.
 func (*FloatArray) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{5}
+	return file_service_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *FloatArray) GetValues() []float32 {
@@ -686,7 +752,7 @@ type Result struct {
 
 func (x *Result) Reset() {
 	*x = Result{}
-	mi := &file_service_proto_msgTypes[6]
+	mi := &file_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -698,7 +764,7 @@ func (x *Result) String() string {
 func (*Result) ProtoMessage() {}
 
 func (x *Result) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[6]
+	mi := &file_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -711,7 +777,7 @@ func (x *Result) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Result.ProtoReflect.Descriptor instead.
 func (*Result) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{6}
+	return file_service_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Result) GetStatus() ResultStatus {
@@ -809,7 +875,7 @@ type ProcessorRegistration struct {
 
 func (x *ProcessorRegistration) Reset() {
 	*x = ProcessorRegistration{}
-	mi := &file_service_proto_msgTypes[7]
+	mi := &file_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -821,7 +887,7 @@ func (x *ProcessorRegistration) String() string {
 func (*ProcessorRegistration) ProtoMessage() {}
 
 func (x *ProcessorRegistration) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[7]
+	mi := &file_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -834,7 +900,7 @@ func (x *ProcessorRegistration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessorRegistration.ProtoReflect.Descriptor instead.
 func (*ProcessorRegistration) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{7}
+	return file_service_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ProcessorRegistration) GetName() string {
@@ -888,7 +954,7 @@ type ProcessingTask struct {
 
 func (x *ProcessingTask) Reset() {
 	*x = ProcessingTask{}
-	mi := &file_service_proto_msgTypes[8]
+	mi := &file_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -900,7 +966,7 @@ func (x *ProcessingTask) String() string {
 func (*ProcessingTask) ProtoMessage() {}
 
 func (x *ProcessingTask) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[8]
+	mi := &file_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -913,7 +979,7 @@ func (x *ProcessingTask) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessingTask.ProtoReflect.Descriptor instead.
 func (*ProcessingTask) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{8}
+	return file_service_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ProcessingTask) GetTaskId() string {
@@ -962,7 +1028,7 @@ type ExecutionRequest struct {
 
 func (x *ExecutionRequest) Reset() {
 	*x = ExecutionRequest{}
-	mi := &file_service_proto_msgTypes[9]
+	mi := &file_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -974,7 +1040,7 @@ func (x *ExecutionRequest) String() string {
 func (*ExecutionRequest) ProtoMessage() {}
 
 func (x *ExecutionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[9]
+	mi := &file_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -987,7 +1053,7 @@ func (x *ExecutionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecutionRequest.ProtoReflect.Descriptor instead.
 func (*ExecutionRequest) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{9}
+	return file_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ExecutionRequest) GetExecId() string {
@@ -1030,7 +1096,7 @@ type ExecutionResult struct {
 
 func (x *ExecutionResult) Reset() {
 	*x = ExecutionResult{}
-	mi := &file_service_proto_msgTypes[10]
+	mi := &file_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1042,7 +1108,7 @@ func (x *ExecutionResult) String() string {
 func (*ExecutionResult) ProtoMessage() {}
 
 func (x *ExecutionResult) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[10]
+	mi := &file_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1055,7 +1121,7 @@ func (x *ExecutionResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecutionResult.ProtoReflect.Descriptor instead.
 func (*ExecutionResult) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{10}
+	return file_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ExecutionResult) GetExecId() string {
@@ -1083,7 +1149,7 @@ type AlgorithmResult struct {
 
 func (x *AlgorithmResult) Reset() {
 	*x = AlgorithmResult{}
-	mi := &file_service_proto_msgTypes[11]
+	mi := &file_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1095,7 +1161,7 @@ func (x *AlgorithmResult) String() string {
 func (*AlgorithmResult) ProtoMessage() {}
 
 func (x *AlgorithmResult) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[11]
+	mi := &file_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1108,7 +1174,7 @@ func (x *AlgorithmResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlgorithmResult.ProtoReflect.Descriptor instead.
 func (*AlgorithmResult) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{11}
+	return file_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *AlgorithmResult) GetAlgorithm() *Algorithm {
@@ -1135,7 +1201,7 @@ type Status struct {
 
 func (x *Status) Reset() {
 	*x = Status{}
-	mi := &file_service_proto_msgTypes[12]
+	mi := &file_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1147,7 +1213,7 @@ func (x *Status) String() string {
 func (*Status) ProtoMessage() {}
 
 func (x *Status) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[12]
+	mi := &file_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1160,7 +1226,7 @@ func (x *Status) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Status.ProtoReflect.Descriptor instead.
 func (*Status) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{12}
+	return file_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Status) GetReceived() bool {
@@ -1189,7 +1255,7 @@ type HealthCheckRequest struct {
 
 func (x *HealthCheckRequest) Reset() {
 	*x = HealthCheckRequest{}
-	mi := &file_service_proto_msgTypes[13]
+	mi := &file_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1201,7 +1267,7 @@ func (x *HealthCheckRequest) String() string {
 func (*HealthCheckRequest) ProtoMessage() {}
 
 func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[13]
+	mi := &file_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1214,7 +1280,7 @@ func (x *HealthCheckRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthCheckRequest.ProtoReflect.Descriptor instead.
 func (*HealthCheckRequest) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{13}
+	return file_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *HealthCheckRequest) GetTimestamp() int64 {
@@ -1239,7 +1305,7 @@ type HealthCheckResponse struct {
 
 func (x *HealthCheckResponse) Reset() {
 	*x = HealthCheckResponse{}
-	mi := &file_service_proto_msgTypes[14]
+	mi := &file_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1251,7 +1317,7 @@ func (x *HealthCheckResponse) String() string {
 func (*HealthCheckResponse) ProtoMessage() {}
 
 func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[14]
+	mi := &file_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1264,7 +1330,7 @@ func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthCheckResponse.ProtoReflect.Descriptor instead.
 func (*HealthCheckResponse) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{14}
+	return file_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *HealthCheckResponse) GetStatus() HealthCheckResponse_Status {
@@ -1305,7 +1371,7 @@ type ProcessorMetrics struct {
 
 func (x *ProcessorMetrics) Reset() {
 	*x = ProcessorMetrics{}
-	mi := &file_service_proto_msgTypes[15]
+	mi := &file_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1317,7 +1383,7 @@ func (x *ProcessorMetrics) String() string {
 func (*ProcessorMetrics) ProtoMessage() {}
 
 func (x *ProcessorMetrics) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[15]
+	mi := &file_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1330,7 +1396,7 @@ func (x *ProcessorMetrics) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessorMetrics.ProtoReflect.Descriptor instead.
 func (*ProcessorMetrics) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{15}
+	return file_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ProcessorMetrics) GetActiveTasks() int32 {
@@ -1370,7 +1436,7 @@ type WindowTypeRead struct {
 
 func (x *WindowTypeRead) Reset() {
 	*x = WindowTypeRead{}
-	mi := &file_service_proto_msgTypes[16]
+	mi := &file_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1382,7 +1448,7 @@ func (x *WindowTypeRead) String() string {
 func (*WindowTypeRead) ProtoMessage() {}
 
 func (x *WindowTypeRead) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[16]
+	mi := &file_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1395,7 +1461,7 @@ func (x *WindowTypeRead) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WindowTypeRead.ProtoReflect.Descriptor instead.
 func (*WindowTypeRead) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{16}
+	return file_service_proto_rawDescGZIP(), []int{17}
 }
 
 type WindowTypes struct {
@@ -1407,7 +1473,7 @@ type WindowTypes struct {
 
 func (x *WindowTypes) Reset() {
 	*x = WindowTypes{}
-	mi := &file_service_proto_msgTypes[17]
+	mi := &file_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1419,7 +1485,7 @@ func (x *WindowTypes) String() string {
 func (*WindowTypes) ProtoMessage() {}
 
 func (x *WindowTypes) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[17]
+	mi := &file_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1432,7 +1498,7 @@ func (x *WindowTypes) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WindowTypes.ProtoReflect.Descriptor instead.
 func (*WindowTypes) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{17}
+	return file_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *WindowTypes) GetWindows() []*WindowType {
@@ -1450,7 +1516,7 @@ type AlgorithmsRead struct {
 
 func (x *AlgorithmsRead) Reset() {
 	*x = AlgorithmsRead{}
-	mi := &file_service_proto_msgTypes[18]
+	mi := &file_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1462,7 +1528,7 @@ func (x *AlgorithmsRead) String() string {
 func (*AlgorithmsRead) ProtoMessage() {}
 
 func (x *AlgorithmsRead) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[18]
+	mi := &file_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1475,7 +1541,7 @@ func (x *AlgorithmsRead) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlgorithmsRead.ProtoReflect.Descriptor instead.
 func (*AlgorithmsRead) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{18}
+	return file_service_proto_rawDescGZIP(), []int{19}
 }
 
 type Algorithms struct {
@@ -1487,7 +1553,7 @@ type Algorithms struct {
 
 func (x *Algorithms) Reset() {
 	*x = Algorithms{}
-	mi := &file_service_proto_msgTypes[19]
+	mi := &file_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1499,7 +1565,7 @@ func (x *Algorithms) String() string {
 func (*Algorithms) ProtoMessage() {}
 
 func (x *Algorithms) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[19]
+	mi := &file_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1512,7 +1578,7 @@ func (x *Algorithms) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Algorithms.ProtoReflect.Descriptor instead.
 func (*Algorithms) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{19}
+	return file_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *Algorithms) GetAlgorithm() []*Algorithm {
@@ -1530,7 +1596,7 @@ type ProcessorsRead struct {
 
 func (x *ProcessorsRead) Reset() {
 	*x = ProcessorsRead{}
-	mi := &file_service_proto_msgTypes[20]
+	mi := &file_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1542,7 +1608,7 @@ func (x *ProcessorsRead) String() string {
 func (*ProcessorsRead) ProtoMessage() {}
 
 func (x *ProcessorsRead) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[20]
+	mi := &file_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1555,7 +1621,7 @@ func (x *ProcessorsRead) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessorsRead.ProtoReflect.Descriptor instead.
 func (*ProcessorsRead) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{20}
+	return file_service_proto_rawDescGZIP(), []int{21}
 }
 
 type Processors struct {
@@ -1567,7 +1633,7 @@ type Processors struct {
 
 func (x *Processors) Reset() {
 	*x = Processors{}
-	mi := &file_service_proto_msgTypes[21]
+	mi := &file_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1579,7 +1645,7 @@ func (x *Processors) String() string {
 func (*Processors) ProtoMessage() {}
 
 func (x *Processors) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[21]
+	mi := &file_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1592,7 +1658,7 @@ func (x *Processors) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Processors.ProtoReflect.Descriptor instead.
 func (*Processors) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{21}
+	return file_service_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *Processors) GetProcessor() []*Processors_Processor {
@@ -1610,7 +1676,7 @@ type ResultsStatsRead struct {
 
 func (x *ResultsStatsRead) Reset() {
 	*x = ResultsStatsRead{}
-	mi := &file_service_proto_msgTypes[22]
+	mi := &file_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1622,7 +1688,7 @@ func (x *ResultsStatsRead) String() string {
 func (*ResultsStatsRead) ProtoMessage() {}
 
 func (x *ResultsStatsRead) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[22]
+	mi := &file_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1635,7 +1701,7 @@ func (x *ResultsStatsRead) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResultsStatsRead.ProtoReflect.Descriptor instead.
 func (*ResultsStatsRead) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{22}
+	return file_service_proto_rawDescGZIP(), []int{23}
 }
 
 type ResultsStats struct {
@@ -1647,7 +1713,7 @@ type ResultsStats struct {
 
 func (x *ResultsStats) Reset() {
 	*x = ResultsStats{}
-	mi := &file_service_proto_msgTypes[23]
+	mi := &file_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1659,7 +1725,7 @@ func (x *ResultsStats) String() string {
 func (*ResultsStats) ProtoMessage() {}
 
 func (x *ResultsStats) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[23]
+	mi := &file_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1672,7 +1738,7 @@ func (x *ResultsStats) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResultsStats.ProtoReflect.Descriptor instead.
 func (*ResultsStats) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{23}
+	return file_service_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ResultsStats) GetCount() int64 {
@@ -1693,7 +1759,7 @@ type AlgorithmFieldsRead struct {
 
 func (x *AlgorithmFieldsRead) Reset() {
 	*x = AlgorithmFieldsRead{}
-	mi := &file_service_proto_msgTypes[24]
+	mi := &file_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1705,7 +1771,7 @@ func (x *AlgorithmFieldsRead) String() string {
 func (*AlgorithmFieldsRead) ProtoMessage() {}
 
 func (x *AlgorithmFieldsRead) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[24]
+	mi := &file_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1718,7 +1784,7 @@ func (x *AlgorithmFieldsRead) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlgorithmFieldsRead.ProtoReflect.Descriptor instead.
 func (*AlgorithmFieldsRead) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{24}
+	return file_service_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *AlgorithmFieldsRead) GetTimeFrom() *timestamppb.Timestamp {
@@ -1751,7 +1817,7 @@ type AlgorithmFields struct {
 
 func (x *AlgorithmFields) Reset() {
 	*x = AlgorithmFields{}
-	mi := &file_service_proto_msgTypes[25]
+	mi := &file_service_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1763,7 +1829,7 @@ func (x *AlgorithmFields) String() string {
 func (*AlgorithmFields) ProtoMessage() {}
 
 func (x *AlgorithmFields) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[25]
+	mi := &file_service_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1776,7 +1842,7 @@ func (x *AlgorithmFields) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AlgorithmFields.ProtoReflect.Descriptor instead.
 func (*AlgorithmFields) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{25}
+	return file_service_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AlgorithmFields) GetField() []string {
@@ -1800,7 +1866,7 @@ type ResultsForAlgorithmRead struct {
 
 func (x *ResultsForAlgorithmRead) Reset() {
 	*x = ResultsForAlgorithmRead{}
-	mi := &file_service_proto_msgTypes[26]
+	mi := &file_service_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1812,7 +1878,7 @@ func (x *ResultsForAlgorithmRead) String() string {
 func (*ResultsForAlgorithmRead) ProtoMessage() {}
 
 func (x *ResultsForAlgorithmRead) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[26]
+	mi := &file_service_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1825,7 +1891,7 @@ func (x *ResultsForAlgorithmRead) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResultsForAlgorithmRead.ProtoReflect.Descriptor instead.
 func (*ResultsForAlgorithmRead) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{26}
+	return file_service_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ResultsForAlgorithmRead) GetTimeFrom() *timestamppb.Timestamp {
@@ -1858,7 +1924,7 @@ type ResultsForAlgorithm struct {
 
 func (x *ResultsForAlgorithm) Reset() {
 	*x = ResultsForAlgorithm{}
-	mi := &file_service_proto_msgTypes[27]
+	mi := &file_service_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1870,7 +1936,7 @@ func (x *ResultsForAlgorithm) String() string {
 func (*ResultsForAlgorithm) ProtoMessage() {}
 
 func (x *ResultsForAlgorithm) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[27]
+	mi := &file_service_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1883,7 +1949,7 @@ func (x *ResultsForAlgorithm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResultsForAlgorithm.ProtoReflect.Descriptor instead.
 func (*ResultsForAlgorithm) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{27}
+	return file_service_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ResultsForAlgorithm) GetResults() []*ResultsForAlgorithm_ResultsRow {
@@ -1907,7 +1973,7 @@ type WindowsRead struct {
 
 func (x *WindowsRead) Reset() {
 	*x = WindowsRead{}
-	mi := &file_service_proto_msgTypes[28]
+	mi := &file_service_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1919,7 +1985,7 @@ func (x *WindowsRead) String() string {
 func (*WindowsRead) ProtoMessage() {}
 
 func (x *WindowsRead) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[28]
+	mi := &file_service_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1932,7 +1998,7 @@ func (x *WindowsRead) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WindowsRead.ProtoReflect.Descriptor instead.
 func (*WindowsRead) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{28}
+	return file_service_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *WindowsRead) GetTimeFrom() *timestamppb.Timestamp {
@@ -1966,7 +2032,7 @@ type Windows struct {
 
 func (x *Windows) Reset() {
 	*x = Windows{}
-	mi := &file_service_proto_msgTypes[29]
+	mi := &file_service_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1978,7 +2044,7 @@ func (x *Windows) String() string {
 func (*Windows) ProtoMessage() {}
 
 func (x *Windows) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[29]
+	mi := &file_service_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1991,7 +2057,7 @@ func (x *Windows) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Windows.ProtoReflect.Descriptor instead.
 func (*Windows) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{29}
+	return file_service_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *Windows) GetWindow() []*Window {
@@ -2015,7 +2081,7 @@ type DistinctMetadataForWindowTypeRead struct {
 
 func (x *DistinctMetadataForWindowTypeRead) Reset() {
 	*x = DistinctMetadataForWindowTypeRead{}
-	mi := &file_service_proto_msgTypes[30]
+	mi := &file_service_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2027,7 +2093,7 @@ func (x *DistinctMetadataForWindowTypeRead) String() string {
 func (*DistinctMetadataForWindowTypeRead) ProtoMessage() {}
 
 func (x *DistinctMetadataForWindowTypeRead) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[30]
+	mi := &file_service_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2040,7 +2106,7 @@ func (x *DistinctMetadataForWindowTypeRead) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DistinctMetadataForWindowTypeRead.ProtoReflect.Descriptor instead.
 func (*DistinctMetadataForWindowTypeRead) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{30}
+	return file_service_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *DistinctMetadataForWindowTypeRead) GetTimeFrom() *timestamppb.Timestamp {
@@ -2073,7 +2139,7 @@ type DistinctMetadataForWindowType struct {
 
 func (x *DistinctMetadataForWindowType) Reset() {
 	*x = DistinctMetadataForWindowType{}
-	mi := &file_service_proto_msgTypes[31]
+	mi := &file_service_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2085,7 +2151,7 @@ func (x *DistinctMetadataForWindowType) String() string {
 func (*DistinctMetadataForWindowType) ProtoMessage() {}
 
 func (x *DistinctMetadataForWindowType) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[31]
+	mi := &file_service_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2098,7 +2164,7 @@ func (x *DistinctMetadataForWindowType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DistinctMetadataForWindowType.ProtoReflect.Descriptor instead.
 func (*DistinctMetadataForWindowType) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{31}
+	return file_service_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *DistinctMetadataForWindowType) GetMetadata() *structpb.ListValue {
@@ -2123,7 +2189,7 @@ type WindowsForMetadataRead struct {
 
 func (x *WindowsForMetadataRead) Reset() {
 	*x = WindowsForMetadataRead{}
-	mi := &file_service_proto_msgTypes[32]
+	mi := &file_service_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2135,7 +2201,7 @@ func (x *WindowsForMetadataRead) String() string {
 func (*WindowsForMetadataRead) ProtoMessage() {}
 
 func (x *WindowsForMetadataRead) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[32]
+	mi := &file_service_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2148,7 +2214,7 @@ func (x *WindowsForMetadataRead) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WindowsForMetadataRead.ProtoReflect.Descriptor instead.
 func (*WindowsForMetadataRead) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{32}
+	return file_service_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *WindowsForMetadataRead) GetTimeFrom() *timestamppb.Timestamp {
@@ -2189,7 +2255,7 @@ type WindowsForMetadata struct {
 
 func (x *WindowsForMetadata) Reset() {
 	*x = WindowsForMetadata{}
-	mi := &file_service_proto_msgTypes[33]
+	mi := &file_service_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2201,7 +2267,7 @@ func (x *WindowsForMetadata) String() string {
 func (*WindowsForMetadata) ProtoMessage() {}
 
 func (x *WindowsForMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[33]
+	mi := &file_service_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2214,7 +2280,7 @@ func (x *WindowsForMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WindowsForMetadata.ProtoReflect.Descriptor instead.
 func (*WindowsForMetadata) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{33}
+	return file_service_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *WindowsForMetadata) GetWindow() []*Window {
@@ -2239,7 +2305,7 @@ type ResultsForAlgorithmAndMetadataRead struct {
 
 func (x *ResultsForAlgorithmAndMetadataRead) Reset() {
 	*x = ResultsForAlgorithmAndMetadataRead{}
-	mi := &file_service_proto_msgTypes[34]
+	mi := &file_service_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2251,7 +2317,7 @@ func (x *ResultsForAlgorithmAndMetadataRead) String() string {
 func (*ResultsForAlgorithmAndMetadataRead) ProtoMessage() {}
 
 func (x *ResultsForAlgorithmAndMetadataRead) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[34]
+	mi := &file_service_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2264,7 +2330,7 @@ func (x *ResultsForAlgorithmAndMetadataRead) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ResultsForAlgorithmAndMetadataRead.ProtoReflect.Descriptor instead.
 func (*ResultsForAlgorithmAndMetadataRead) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{34}
+	return file_service_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ResultsForAlgorithmAndMetadataRead) GetTimeFrom() *timestamppb.Timestamp {
@@ -2304,7 +2370,7 @@ type ResultsForAlgorithmAndMetadata struct {
 
 func (x *ResultsForAlgorithmAndMetadata) Reset() {
 	*x = ResultsForAlgorithmAndMetadata{}
-	mi := &file_service_proto_msgTypes[35]
+	mi := &file_service_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2316,7 +2382,7 @@ func (x *ResultsForAlgorithmAndMetadata) String() string {
 func (*ResultsForAlgorithmAndMetadata) ProtoMessage() {}
 
 func (x *ResultsForAlgorithmAndMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[35]
+	mi := &file_service_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2329,7 +2395,7 @@ func (x *ResultsForAlgorithmAndMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResultsForAlgorithmAndMetadata.ProtoReflect.Descriptor instead.
 func (*ResultsForAlgorithmAndMetadata) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{35}
+	return file_service_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ResultsForAlgorithmAndMetadata) GetResults() []*ResultsForAlgorithmAndMetadata_ResultsRow {
@@ -2360,7 +2426,7 @@ type AnnotateWrite struct {
 
 func (x *AnnotateWrite) Reset() {
 	*x = AnnotateWrite{}
-	mi := &file_service_proto_msgTypes[36]
+	mi := &file_service_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2372,7 +2438,7 @@ func (x *AnnotateWrite) String() string {
 func (*AnnotateWrite) ProtoMessage() {}
 
 func (x *AnnotateWrite) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[36]
+	mi := &file_service_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2385,7 +2451,7 @@ func (x *AnnotateWrite) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnnotateWrite.ProtoReflect.Descriptor instead.
 func (*AnnotateWrite) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{36}
+	return file_service_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *AnnotateWrite) GetTimeFrom() *timestamppb.Timestamp {
@@ -2438,7 +2504,7 @@ type AnnotateResponse struct {
 
 func (x *AnnotateResponse) Reset() {
 	*x = AnnotateResponse{}
-	mi := &file_service_proto_msgTypes[37]
+	mi := &file_service_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2450,7 +2516,7 @@ func (x *AnnotateResponse) String() string {
 func (*AnnotateResponse) ProtoMessage() {}
 
 func (x *AnnotateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[37]
+	mi := &file_service_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2463,7 +2529,7 @@ func (x *AnnotateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnnotateResponse.ProtoReflect.Descriptor instead.
 func (*AnnotateResponse) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{37}
+	return file_service_proto_rawDescGZIP(), []int{38}
 }
 
 type Processors_Processor struct {
@@ -2476,7 +2542,7 @@ type Processors_Processor struct {
 
 func (x *Processors_Processor) Reset() {
 	*x = Processors_Processor{}
-	mi := &file_service_proto_msgTypes[38]
+	mi := &file_service_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2488,7 +2554,7 @@ func (x *Processors_Processor) String() string {
 func (*Processors_Processor) ProtoMessage() {}
 
 func (x *Processors_Processor) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[38]
+	mi := &file_service_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2501,7 +2567,7 @@ func (x *Processors_Processor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Processors_Processor.ProtoReflect.Descriptor instead.
 func (*Processors_Processor) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{21, 0}
+	return file_service_proto_rawDescGZIP(), []int{22, 0}
 }
 
 func (x *Processors_Processor) GetName() string {
@@ -2536,7 +2602,7 @@ type ResultsForAlgorithm_ResultsRow struct {
 
 func (x *ResultsForAlgorithm_ResultsRow) Reset() {
 	*x = ResultsForAlgorithm_ResultsRow{}
-	mi := &file_service_proto_msgTypes[39]
+	mi := &file_service_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2548,7 +2614,7 @@ func (x *ResultsForAlgorithm_ResultsRow) String() string {
 func (*ResultsForAlgorithm_ResultsRow) ProtoMessage() {}
 
 func (x *ResultsForAlgorithm_ResultsRow) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[39]
+	mi := &file_service_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2561,7 +2627,7 @@ func (x *ResultsForAlgorithm_ResultsRow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResultsForAlgorithm_ResultsRow.ProtoReflect.Descriptor instead.
 func (*ResultsForAlgorithm_ResultsRow) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{27, 0}
+	return file_service_proto_rawDescGZIP(), []int{28, 0}
 }
 
 func (x *ResultsForAlgorithm_ResultsRow) GetTime() *timestamppb.Timestamp {
@@ -2642,7 +2708,7 @@ type WindowsForMetadataRead_Metadata struct {
 
 func (x *WindowsForMetadataRead_Metadata) Reset() {
 	*x = WindowsForMetadataRead_Metadata{}
-	mi := &file_service_proto_msgTypes[40]
+	mi := &file_service_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2654,7 +2720,7 @@ func (x *WindowsForMetadataRead_Metadata) String() string {
 func (*WindowsForMetadataRead_Metadata) ProtoMessage() {}
 
 func (x *WindowsForMetadataRead_Metadata) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[40]
+	mi := &file_service_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2667,7 +2733,7 @@ func (x *WindowsForMetadataRead_Metadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WindowsForMetadataRead_Metadata.ProtoReflect.Descriptor instead.
 func (*WindowsForMetadataRead_Metadata) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{32, 0}
+	return file_service_proto_rawDescGZIP(), []int{33, 0}
 }
 
 func (x *WindowsForMetadataRead_Metadata) GetField() string {
@@ -2694,7 +2760,7 @@ type ResultsForAlgorithmAndMetadataRead_Metadata struct {
 
 func (x *ResultsForAlgorithmAndMetadataRead_Metadata) Reset() {
 	*x = ResultsForAlgorithmAndMetadataRead_Metadata{}
-	mi := &file_service_proto_msgTypes[41]
+	mi := &file_service_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2706,7 +2772,7 @@ func (x *ResultsForAlgorithmAndMetadataRead_Metadata) String() string {
 func (*ResultsForAlgorithmAndMetadataRead_Metadata) ProtoMessage() {}
 
 func (x *ResultsForAlgorithmAndMetadataRead_Metadata) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[41]
+	mi := &file_service_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2719,7 +2785,7 @@ func (x *ResultsForAlgorithmAndMetadataRead_Metadata) ProtoReflect() protoreflec
 
 // Deprecated: Use ResultsForAlgorithmAndMetadataRead_Metadata.ProtoReflect.Descriptor instead.
 func (*ResultsForAlgorithmAndMetadataRead_Metadata) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{34, 0}
+	return file_service_proto_rawDescGZIP(), []int{35, 0}
 }
 
 func (x *ResultsForAlgorithmAndMetadataRead_Metadata) GetField() string {
@@ -2754,7 +2820,7 @@ type ResultsForAlgorithmAndMetadata_ResultsRow struct {
 
 func (x *ResultsForAlgorithmAndMetadata_ResultsRow) Reset() {
 	*x = ResultsForAlgorithmAndMetadata_ResultsRow{}
-	mi := &file_service_proto_msgTypes[42]
+	mi := &file_service_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2766,7 +2832,7 @@ func (x *ResultsForAlgorithmAndMetadata_ResultsRow) String() string {
 func (*ResultsForAlgorithmAndMetadata_ResultsRow) ProtoMessage() {}
 
 func (x *ResultsForAlgorithmAndMetadata_ResultsRow) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[42]
+	mi := &file_service_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2779,7 +2845,7 @@ func (x *ResultsForAlgorithmAndMetadata_ResultsRow) ProtoReflect() protoreflect.
 
 // Deprecated: Use ResultsForAlgorithmAndMetadata_ResultsRow.ProtoReflect.Descriptor instead.
 func (*ResultsForAlgorithmAndMetadata_ResultsRow) Descriptor() ([]byte, []int) {
-	return file_service_proto_rawDescGZIP(), []int{35, 0}
+	return file_service_proto_rawDescGZIP(), []int{36, 0}
 }
 
 func (x *ResultsForAlgorithmAndMetadata_ResultsRow) GetTime() *timestamppb.Timestamp {
@@ -2889,14 +2955,23 @@ var file_service_proto_rawDesc = string([]byte{
 	0x65, 0x20, 0x67, 0x72, 0x65, 0x61, 0x74, 0x65, 0x72, 0x20, 0x74, 0x68, 0x61, 0x6e, 0x20, 0x74,
 	0x69, 0x6d, 0x65, 0x5f, 0x66, 0x72, 0x6f, 0x6d, 0x1a, 0x1d, 0x74, 0x68, 0x69, 0x73, 0x2e, 0x74,
 	0x69, 0x6d, 0x65, 0x5f, 0x74, 0x6f, 0x20, 0x3e, 0x20, 0x74, 0x68, 0x69, 0x73, 0x2e, 0x74, 0x69,
-	0x6d, 0x65, 0x5f, 0x66, 0x72, 0x6f, 0x6d, 0x22, 0x74, 0x0a, 0x0a, 0x57, 0x69, 0x6e, 0x64, 0x6f,
-	0x77, 0x54, 0x79, 0x70, 0x65, 0x12, 0x1a, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x04, 0x6e, 0x61, 0x6d,
-	0x65, 0x12, 0x20, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x09, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73,
-	0x69, 0x6f, 0x6e, 0x12, 0x28, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69,
-	0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01,
-	0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0xac, 0x01,
+	0x6d, 0x65, 0x5f, 0x66, 0x72, 0x6f, 0x6d, 0x22, 0x55, 0x0a, 0x0d, 0x4d, 0x65, 0x74, 0x61, 0x64,
+	0x61, 0x74, 0x61, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x12, 0x1a, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x04,
+	0x6e, 0x61, 0x6d, 0x65, 0x12, 0x28, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74,
+	0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01,
+	0x01, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0xac,
+	0x01, 0x0a, 0x0a, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x54, 0x79, 0x70, 0x65, 0x12, 0x1a, 0x0a,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x06, 0xba, 0x48, 0x03,
+	0xc8, 0x01, 0x01, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x20, 0x0a, 0x07, 0x76, 0x65, 0x72,
+	0x73, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8,
+	0x01, 0x01, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x28, 0x0a, 0x0b, 0x64,
+	0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69,
+	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x36, 0x0a, 0x0e, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
+	0x61, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0e, 0x2e,
+	0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x52, 0x0e, 0x6d,
+	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x22, 0xac, 0x01,
 	0x0a, 0x10, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x45, 0x6d, 0x69, 0x74, 0x53, 0x74, 0x61, 0x74,
 	0x75, 0x73, 0x12, 0x3c, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x0e, 0x32, 0x1c, 0x2e, 0x57, 0x69, 0x6e, 0x64, 0x6f, 0x77, 0x45, 0x6d, 0x69, 0x74, 0x53,
@@ -3339,159 +3414,161 @@ func file_service_proto_rawDescGZIP() []byte {
 }
 
 var file_service_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 43)
+var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
 var file_service_proto_goTypes = []any{
 	(ResultType)(0),                                     // 0: ResultType
 	(ResultStatus)(0),                                   // 1: ResultStatus
 	(WindowEmitStatus_StatusEnum)(0),                    // 2: WindowEmitStatus.StatusEnum
 	(HealthCheckResponse_Status)(0),                     // 3: HealthCheckResponse.Status
 	(*Window)(nil),                                      // 4: Window
-	(*WindowType)(nil),                                  // 5: WindowType
-	(*WindowEmitStatus)(nil),                            // 6: WindowEmitStatus
-	(*AlgorithmDependency)(nil),                         // 7: AlgorithmDependency
-	(*Algorithm)(nil),                                   // 8: Algorithm
-	(*FloatArray)(nil),                                  // 9: FloatArray
-	(*Result)(nil),                                      // 10: Result
-	(*ProcessorRegistration)(nil),                       // 11: ProcessorRegistration
-	(*ProcessingTask)(nil),                              // 12: ProcessingTask
-	(*ExecutionRequest)(nil),                            // 13: ExecutionRequest
-	(*ExecutionResult)(nil),                             // 14: ExecutionResult
-	(*AlgorithmResult)(nil),                             // 15: AlgorithmResult
-	(*Status)(nil),                                      // 16: Status
-	(*HealthCheckRequest)(nil),                          // 17: HealthCheckRequest
-	(*HealthCheckResponse)(nil),                         // 18: HealthCheckResponse
-	(*ProcessorMetrics)(nil),                            // 19: ProcessorMetrics
-	(*WindowTypeRead)(nil),                              // 20: WindowTypeRead
-	(*WindowTypes)(nil),                                 // 21: WindowTypes
-	(*AlgorithmsRead)(nil),                              // 22: AlgorithmsRead
-	(*Algorithms)(nil),                                  // 23: Algorithms
-	(*ProcessorsRead)(nil),                              // 24: ProcessorsRead
-	(*Processors)(nil),                                  // 25: Processors
-	(*ResultsStatsRead)(nil),                            // 26: ResultsStatsRead
-	(*ResultsStats)(nil),                                // 27: ResultsStats
-	(*AlgorithmFieldsRead)(nil),                         // 28: AlgorithmFieldsRead
-	(*AlgorithmFields)(nil),                             // 29: AlgorithmFields
-	(*ResultsForAlgorithmRead)(nil),                     // 30: ResultsForAlgorithmRead
-	(*ResultsForAlgorithm)(nil),                         // 31: ResultsForAlgorithm
-	(*WindowsRead)(nil),                                 // 32: WindowsRead
-	(*Windows)(nil),                                     // 33: Windows
-	(*DistinctMetadataForWindowTypeRead)(nil),           // 34: DistinctMetadataForWindowTypeRead
-	(*DistinctMetadataForWindowType)(nil),               // 35: DistinctMetadataForWindowType
-	(*WindowsForMetadataRead)(nil),                      // 36: WindowsForMetadataRead
-	(*WindowsForMetadata)(nil),                          // 37: WindowsForMetadata
-	(*ResultsForAlgorithmAndMetadataRead)(nil),          // 38: ResultsForAlgorithmAndMetadataRead
-	(*ResultsForAlgorithmAndMetadata)(nil),              // 39: ResultsForAlgorithmAndMetadata
-	(*AnnotateWrite)(nil),                               // 40: AnnotateWrite
-	(*AnnotateResponse)(nil),                            // 41: AnnotateResponse
-	(*Processors_Processor)(nil),                        // 42: Processors.Processor
-	(*ResultsForAlgorithm_ResultsRow)(nil),              // 43: ResultsForAlgorithm.ResultsRow
-	(*WindowsForMetadataRead_Metadata)(nil),             // 44: WindowsForMetadataRead.Metadata
-	(*ResultsForAlgorithmAndMetadataRead_Metadata)(nil), // 45: ResultsForAlgorithmAndMetadataRead.Metadata
-	(*ResultsForAlgorithmAndMetadata_ResultsRow)(nil),   // 46: ResultsForAlgorithmAndMetadata.ResultsRow
-	(*timestamppb.Timestamp)(nil),                       // 47: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),                             // 48: google.protobuf.Struct
-	(*structpb.ListValue)(nil),                          // 49: google.protobuf.ListValue
-	(*structpb.Value)(nil),                              // 50: google.protobuf.Value
+	(*MetadataField)(nil),                               // 5: MetadataField
+	(*WindowType)(nil),                                  // 6: WindowType
+	(*WindowEmitStatus)(nil),                            // 7: WindowEmitStatus
+	(*AlgorithmDependency)(nil),                         // 8: AlgorithmDependency
+	(*Algorithm)(nil),                                   // 9: Algorithm
+	(*FloatArray)(nil),                                  // 10: FloatArray
+	(*Result)(nil),                                      // 11: Result
+	(*ProcessorRegistration)(nil),                       // 12: ProcessorRegistration
+	(*ProcessingTask)(nil),                              // 13: ProcessingTask
+	(*ExecutionRequest)(nil),                            // 14: ExecutionRequest
+	(*ExecutionResult)(nil),                             // 15: ExecutionResult
+	(*AlgorithmResult)(nil),                             // 16: AlgorithmResult
+	(*Status)(nil),                                      // 17: Status
+	(*HealthCheckRequest)(nil),                          // 18: HealthCheckRequest
+	(*HealthCheckResponse)(nil),                         // 19: HealthCheckResponse
+	(*ProcessorMetrics)(nil),                            // 20: ProcessorMetrics
+	(*WindowTypeRead)(nil),                              // 21: WindowTypeRead
+	(*WindowTypes)(nil),                                 // 22: WindowTypes
+	(*AlgorithmsRead)(nil),                              // 23: AlgorithmsRead
+	(*Algorithms)(nil),                                  // 24: Algorithms
+	(*ProcessorsRead)(nil),                              // 25: ProcessorsRead
+	(*Processors)(nil),                                  // 26: Processors
+	(*ResultsStatsRead)(nil),                            // 27: ResultsStatsRead
+	(*ResultsStats)(nil),                                // 28: ResultsStats
+	(*AlgorithmFieldsRead)(nil),                         // 29: AlgorithmFieldsRead
+	(*AlgorithmFields)(nil),                             // 30: AlgorithmFields
+	(*ResultsForAlgorithmRead)(nil),                     // 31: ResultsForAlgorithmRead
+	(*ResultsForAlgorithm)(nil),                         // 32: ResultsForAlgorithm
+	(*WindowsRead)(nil),                                 // 33: WindowsRead
+	(*Windows)(nil),                                     // 34: Windows
+	(*DistinctMetadataForWindowTypeRead)(nil),           // 35: DistinctMetadataForWindowTypeRead
+	(*DistinctMetadataForWindowType)(nil),               // 36: DistinctMetadataForWindowType
+	(*WindowsForMetadataRead)(nil),                      // 37: WindowsForMetadataRead
+	(*WindowsForMetadata)(nil),                          // 38: WindowsForMetadata
+	(*ResultsForAlgorithmAndMetadataRead)(nil),          // 39: ResultsForAlgorithmAndMetadataRead
+	(*ResultsForAlgorithmAndMetadata)(nil),              // 40: ResultsForAlgorithmAndMetadata
+	(*AnnotateWrite)(nil),                               // 41: AnnotateWrite
+	(*AnnotateResponse)(nil),                            // 42: AnnotateResponse
+	(*Processors_Processor)(nil),                        // 43: Processors.Processor
+	(*ResultsForAlgorithm_ResultsRow)(nil),              // 44: ResultsForAlgorithm.ResultsRow
+	(*WindowsForMetadataRead_Metadata)(nil),             // 45: WindowsForMetadataRead.Metadata
+	(*ResultsForAlgorithmAndMetadataRead_Metadata)(nil), // 46: ResultsForAlgorithmAndMetadataRead.Metadata
+	(*ResultsForAlgorithmAndMetadata_ResultsRow)(nil),   // 47: ResultsForAlgorithmAndMetadata.ResultsRow
+	(*timestamppb.Timestamp)(nil),                       // 48: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),                             // 49: google.protobuf.Struct
+	(*structpb.ListValue)(nil),                          // 50: google.protobuf.ListValue
+	(*structpb.Value)(nil),                              // 51: google.protobuf.Value
 }
 var file_service_proto_depIdxs = []int32{
-	47, // 0: Window.time_from:type_name -> google.protobuf.Timestamp
-	47, // 1: Window.time_to:type_name -> google.protobuf.Timestamp
-	48, // 2: Window.metadata:type_name -> google.protobuf.Struct
-	2,  // 3: WindowEmitStatus.status:type_name -> WindowEmitStatus.StatusEnum
-	5,  // 4: Algorithm.window_type:type_name -> WindowType
-	7,  // 5: Algorithm.dependencies:type_name -> AlgorithmDependency
-	0,  // 6: Algorithm.result_type:type_name -> ResultType
-	1,  // 7: Result.status:type_name -> ResultStatus
-	9,  // 8: Result.float_values:type_name -> FloatArray
-	48, // 9: Result.struct_value:type_name -> google.protobuf.Struct
-	8,  // 10: ProcessorRegistration.supported_algorithms:type_name -> Algorithm
-	8,  // 11: ProcessingTask.algorithm:type_name -> Algorithm
-	4,  // 12: ProcessingTask.window:type_name -> Window
-	10, // 13: ProcessingTask.dependency_results:type_name -> Result
-	4,  // 14: ExecutionRequest.window:type_name -> Window
-	15, // 15: ExecutionRequest.algorithm_results:type_name -> AlgorithmResult
-	8,  // 16: ExecutionRequest.algorithms:type_name -> Algorithm
-	15, // 17: ExecutionResult.algorithm_result:type_name -> AlgorithmResult
-	8,  // 18: AlgorithmResult.algorithm:type_name -> Algorithm
-	10, // 19: AlgorithmResult.result:type_name -> Result
-	3,  // 20: HealthCheckResponse.status:type_name -> HealthCheckResponse.Status
-	19, // 21: HealthCheckResponse.metrics:type_name -> ProcessorMetrics
-	5,  // 22: WindowTypes.windows:type_name -> WindowType
-	8,  // 23: Algorithms.algorithm:type_name -> Algorithm
-	42, // 24: Processors.processor:type_name -> Processors.Processor
-	47, // 25: AlgorithmFieldsRead.time_from:type_name -> google.protobuf.Timestamp
-	47, // 26: AlgorithmFieldsRead.time_to:type_name -> google.protobuf.Timestamp
-	8,  // 27: AlgorithmFieldsRead.algorithm:type_name -> Algorithm
-	47, // 28: ResultsForAlgorithmRead.time_from:type_name -> google.protobuf.Timestamp
-	47, // 29: ResultsForAlgorithmRead.time_to:type_name -> google.protobuf.Timestamp
-	8,  // 30: ResultsForAlgorithmRead.algorithm:type_name -> Algorithm
-	43, // 31: ResultsForAlgorithm.results:type_name -> ResultsForAlgorithm.ResultsRow
-	47, // 32: WindowsRead.time_from:type_name -> google.protobuf.Timestamp
-	47, // 33: WindowsRead.time_to:type_name -> google.protobuf.Timestamp
-	5,  // 34: WindowsRead.window:type_name -> WindowType
-	4,  // 35: Windows.window:type_name -> Window
-	47, // 36: DistinctMetadataForWindowTypeRead.time_from:type_name -> google.protobuf.Timestamp
-	47, // 37: DistinctMetadataForWindowTypeRead.time_to:type_name -> google.protobuf.Timestamp
-	5,  // 38: DistinctMetadataForWindowTypeRead.window_type:type_name -> WindowType
-	49, // 39: DistinctMetadataForWindowType.metadata:type_name -> google.protobuf.ListValue
-	47, // 40: WindowsForMetadataRead.time_from:type_name -> google.protobuf.Timestamp
-	47, // 41: WindowsForMetadataRead.time_to:type_name -> google.protobuf.Timestamp
-	5,  // 42: WindowsForMetadataRead.window:type_name -> WindowType
-	44, // 43: WindowsForMetadataRead.metadata:type_name -> WindowsForMetadataRead.Metadata
-	4,  // 44: WindowsForMetadata.window:type_name -> Window
-	47, // 45: ResultsForAlgorithmAndMetadataRead.time_from:type_name -> google.protobuf.Timestamp
-	47, // 46: ResultsForAlgorithmAndMetadataRead.time_to:type_name -> google.protobuf.Timestamp
-	8,  // 47: ResultsForAlgorithmAndMetadataRead.algorithm:type_name -> Algorithm
-	45, // 48: ResultsForAlgorithmAndMetadataRead.metadata:type_name -> ResultsForAlgorithmAndMetadataRead.Metadata
-	46, // 49: ResultsForAlgorithmAndMetadata.results:type_name -> ResultsForAlgorithmAndMetadata.ResultsRow
-	47, // 50: AnnotateWrite.time_from:type_name -> google.protobuf.Timestamp
-	47, // 51: AnnotateWrite.time_to:type_name -> google.protobuf.Timestamp
-	8,  // 52: AnnotateWrite.captured_algorithms:type_name -> Algorithm
-	5,  // 53: AnnotateWrite.captured_windows:type_name -> WindowType
-	48, // 54: AnnotateWrite.metadata:type_name -> google.protobuf.Struct
-	47, // 55: ResultsForAlgorithm.ResultsRow.time:type_name -> google.protobuf.Timestamp
-	9,  // 56: ResultsForAlgorithm.ResultsRow.array_values:type_name -> FloatArray
-	48, // 57: ResultsForAlgorithm.ResultsRow.struct_value:type_name -> google.protobuf.Struct
-	50, // 58: WindowsForMetadataRead.Metadata.value:type_name -> google.protobuf.Value
-	50, // 59: ResultsForAlgorithmAndMetadataRead.Metadata.value:type_name -> google.protobuf.Value
-	47, // 60: ResultsForAlgorithmAndMetadata.ResultsRow.time:type_name -> google.protobuf.Timestamp
-	9,  // 61: ResultsForAlgorithmAndMetadata.ResultsRow.array_values:type_name -> FloatArray
-	48, // 62: ResultsForAlgorithmAndMetadata.ResultsRow.struct_value:type_name -> google.protobuf.Struct
-	11, // 63: OrcaCore.RegisterProcessor:input_type -> ProcessorRegistration
-	4,  // 64: OrcaCore.EmitWindow:input_type -> Window
-	20, // 65: OrcaCore.ReadWindowTypes:input_type -> WindowTypeRead
-	22, // 66: OrcaCore.ReadAlgorithms:input_type -> AlgorithmsRead
-	24, // 67: OrcaCore.ReadProcessors:input_type -> ProcessorsRead
-	26, // 68: OrcaCore.ReadResultsStats:input_type -> ResultsStatsRead
-	28, // 69: OrcaCore.ReadResultFieldsForAlgorithm:input_type -> AlgorithmFieldsRead
-	30, // 70: OrcaCore.ReadResultsForAlgorithm:input_type -> ResultsForAlgorithmRead
-	32, // 71: OrcaCore.ReadWindows:input_type -> WindowsRead
-	34, // 72: OrcaCore.ReadDistinctMetadataForWindowType:input_type -> DistinctMetadataForWindowTypeRead
-	36, // 73: OrcaCore.ReadWindowsForMetadata:input_type -> WindowsForMetadataRead
-	38, // 74: OrcaCore.ReadResultsForAlgorithmAndMetadata:input_type -> ResultsForAlgorithmAndMetadataRead
-	40, // 75: OrcaCore.Annotate:input_type -> AnnotateWrite
-	13, // 76: OrcaProcessor.ExecuteDagPart:input_type -> ExecutionRequest
-	17, // 77: OrcaProcessor.HealthCheck:input_type -> HealthCheckRequest
-	16, // 78: OrcaCore.RegisterProcessor:output_type -> Status
-	6,  // 79: OrcaCore.EmitWindow:output_type -> WindowEmitStatus
-	21, // 80: OrcaCore.ReadWindowTypes:output_type -> WindowTypes
-	23, // 81: OrcaCore.ReadAlgorithms:output_type -> Algorithms
-	25, // 82: OrcaCore.ReadProcessors:output_type -> Processors
-	27, // 83: OrcaCore.ReadResultsStats:output_type -> ResultsStats
-	29, // 84: OrcaCore.ReadResultFieldsForAlgorithm:output_type -> AlgorithmFields
-	31, // 85: OrcaCore.ReadResultsForAlgorithm:output_type -> ResultsForAlgorithm
-	33, // 86: OrcaCore.ReadWindows:output_type -> Windows
-	35, // 87: OrcaCore.ReadDistinctMetadataForWindowType:output_type -> DistinctMetadataForWindowType
-	37, // 88: OrcaCore.ReadWindowsForMetadata:output_type -> WindowsForMetadata
-	39, // 89: OrcaCore.ReadResultsForAlgorithmAndMetadata:output_type -> ResultsForAlgorithmAndMetadata
-	41, // 90: OrcaCore.Annotate:output_type -> AnnotateResponse
-	14, // 91: OrcaProcessor.ExecuteDagPart:output_type -> ExecutionResult
-	18, // 92: OrcaProcessor.HealthCheck:output_type -> HealthCheckResponse
-	78, // [78:93] is the sub-list for method output_type
-	63, // [63:78] is the sub-list for method input_type
-	63, // [63:63] is the sub-list for extension type_name
-	63, // [63:63] is the sub-list for extension extendee
-	0,  // [0:63] is the sub-list for field type_name
+	48, // 0: Window.time_from:type_name -> google.protobuf.Timestamp
+	48, // 1: Window.time_to:type_name -> google.protobuf.Timestamp
+	49, // 2: Window.metadata:type_name -> google.protobuf.Struct
+	5,  // 3: WindowType.metadataFields:type_name -> MetadataField
+	2,  // 4: WindowEmitStatus.status:type_name -> WindowEmitStatus.StatusEnum
+	6,  // 5: Algorithm.window_type:type_name -> WindowType
+	8,  // 6: Algorithm.dependencies:type_name -> AlgorithmDependency
+	0,  // 7: Algorithm.result_type:type_name -> ResultType
+	1,  // 8: Result.status:type_name -> ResultStatus
+	10, // 9: Result.float_values:type_name -> FloatArray
+	49, // 10: Result.struct_value:type_name -> google.protobuf.Struct
+	9,  // 11: ProcessorRegistration.supported_algorithms:type_name -> Algorithm
+	9,  // 12: ProcessingTask.algorithm:type_name -> Algorithm
+	4,  // 13: ProcessingTask.window:type_name -> Window
+	11, // 14: ProcessingTask.dependency_results:type_name -> Result
+	4,  // 15: ExecutionRequest.window:type_name -> Window
+	16, // 16: ExecutionRequest.algorithm_results:type_name -> AlgorithmResult
+	9,  // 17: ExecutionRequest.algorithms:type_name -> Algorithm
+	16, // 18: ExecutionResult.algorithm_result:type_name -> AlgorithmResult
+	9,  // 19: AlgorithmResult.algorithm:type_name -> Algorithm
+	11, // 20: AlgorithmResult.result:type_name -> Result
+	3,  // 21: HealthCheckResponse.status:type_name -> HealthCheckResponse.Status
+	20, // 22: HealthCheckResponse.metrics:type_name -> ProcessorMetrics
+	6,  // 23: WindowTypes.windows:type_name -> WindowType
+	9,  // 24: Algorithms.algorithm:type_name -> Algorithm
+	43, // 25: Processors.processor:type_name -> Processors.Processor
+	48, // 26: AlgorithmFieldsRead.time_from:type_name -> google.protobuf.Timestamp
+	48, // 27: AlgorithmFieldsRead.time_to:type_name -> google.protobuf.Timestamp
+	9,  // 28: AlgorithmFieldsRead.algorithm:type_name -> Algorithm
+	48, // 29: ResultsForAlgorithmRead.time_from:type_name -> google.protobuf.Timestamp
+	48, // 30: ResultsForAlgorithmRead.time_to:type_name -> google.protobuf.Timestamp
+	9,  // 31: ResultsForAlgorithmRead.algorithm:type_name -> Algorithm
+	44, // 32: ResultsForAlgorithm.results:type_name -> ResultsForAlgorithm.ResultsRow
+	48, // 33: WindowsRead.time_from:type_name -> google.protobuf.Timestamp
+	48, // 34: WindowsRead.time_to:type_name -> google.protobuf.Timestamp
+	6,  // 35: WindowsRead.window:type_name -> WindowType
+	4,  // 36: Windows.window:type_name -> Window
+	48, // 37: DistinctMetadataForWindowTypeRead.time_from:type_name -> google.protobuf.Timestamp
+	48, // 38: DistinctMetadataForWindowTypeRead.time_to:type_name -> google.protobuf.Timestamp
+	6,  // 39: DistinctMetadataForWindowTypeRead.window_type:type_name -> WindowType
+	50, // 40: DistinctMetadataForWindowType.metadata:type_name -> google.protobuf.ListValue
+	48, // 41: WindowsForMetadataRead.time_from:type_name -> google.protobuf.Timestamp
+	48, // 42: WindowsForMetadataRead.time_to:type_name -> google.protobuf.Timestamp
+	6,  // 43: WindowsForMetadataRead.window:type_name -> WindowType
+	45, // 44: WindowsForMetadataRead.metadata:type_name -> WindowsForMetadataRead.Metadata
+	4,  // 45: WindowsForMetadata.window:type_name -> Window
+	48, // 46: ResultsForAlgorithmAndMetadataRead.time_from:type_name -> google.protobuf.Timestamp
+	48, // 47: ResultsForAlgorithmAndMetadataRead.time_to:type_name -> google.protobuf.Timestamp
+	9,  // 48: ResultsForAlgorithmAndMetadataRead.algorithm:type_name -> Algorithm
+	46, // 49: ResultsForAlgorithmAndMetadataRead.metadata:type_name -> ResultsForAlgorithmAndMetadataRead.Metadata
+	47, // 50: ResultsForAlgorithmAndMetadata.results:type_name -> ResultsForAlgorithmAndMetadata.ResultsRow
+	48, // 51: AnnotateWrite.time_from:type_name -> google.protobuf.Timestamp
+	48, // 52: AnnotateWrite.time_to:type_name -> google.protobuf.Timestamp
+	9,  // 53: AnnotateWrite.captured_algorithms:type_name -> Algorithm
+	6,  // 54: AnnotateWrite.captured_windows:type_name -> WindowType
+	49, // 55: AnnotateWrite.metadata:type_name -> google.protobuf.Struct
+	48, // 56: ResultsForAlgorithm.ResultsRow.time:type_name -> google.protobuf.Timestamp
+	10, // 57: ResultsForAlgorithm.ResultsRow.array_values:type_name -> FloatArray
+	49, // 58: ResultsForAlgorithm.ResultsRow.struct_value:type_name -> google.protobuf.Struct
+	51, // 59: WindowsForMetadataRead.Metadata.value:type_name -> google.protobuf.Value
+	51, // 60: ResultsForAlgorithmAndMetadataRead.Metadata.value:type_name -> google.protobuf.Value
+	48, // 61: ResultsForAlgorithmAndMetadata.ResultsRow.time:type_name -> google.protobuf.Timestamp
+	10, // 62: ResultsForAlgorithmAndMetadata.ResultsRow.array_values:type_name -> FloatArray
+	49, // 63: ResultsForAlgorithmAndMetadata.ResultsRow.struct_value:type_name -> google.protobuf.Struct
+	12, // 64: OrcaCore.RegisterProcessor:input_type -> ProcessorRegistration
+	4,  // 65: OrcaCore.EmitWindow:input_type -> Window
+	21, // 66: OrcaCore.ReadWindowTypes:input_type -> WindowTypeRead
+	23, // 67: OrcaCore.ReadAlgorithms:input_type -> AlgorithmsRead
+	25, // 68: OrcaCore.ReadProcessors:input_type -> ProcessorsRead
+	27, // 69: OrcaCore.ReadResultsStats:input_type -> ResultsStatsRead
+	29, // 70: OrcaCore.ReadResultFieldsForAlgorithm:input_type -> AlgorithmFieldsRead
+	31, // 71: OrcaCore.ReadResultsForAlgorithm:input_type -> ResultsForAlgorithmRead
+	33, // 72: OrcaCore.ReadWindows:input_type -> WindowsRead
+	35, // 73: OrcaCore.ReadDistinctMetadataForWindowType:input_type -> DistinctMetadataForWindowTypeRead
+	37, // 74: OrcaCore.ReadWindowsForMetadata:input_type -> WindowsForMetadataRead
+	39, // 75: OrcaCore.ReadResultsForAlgorithmAndMetadata:input_type -> ResultsForAlgorithmAndMetadataRead
+	41, // 76: OrcaCore.Annotate:input_type -> AnnotateWrite
+	14, // 77: OrcaProcessor.ExecuteDagPart:input_type -> ExecutionRequest
+	18, // 78: OrcaProcessor.HealthCheck:input_type -> HealthCheckRequest
+	17, // 79: OrcaCore.RegisterProcessor:output_type -> Status
+	7,  // 80: OrcaCore.EmitWindow:output_type -> WindowEmitStatus
+	22, // 81: OrcaCore.ReadWindowTypes:output_type -> WindowTypes
+	24, // 82: OrcaCore.ReadAlgorithms:output_type -> Algorithms
+	26, // 83: OrcaCore.ReadProcessors:output_type -> Processors
+	28, // 84: OrcaCore.ReadResultsStats:output_type -> ResultsStats
+	30, // 85: OrcaCore.ReadResultFieldsForAlgorithm:output_type -> AlgorithmFields
+	32, // 86: OrcaCore.ReadResultsForAlgorithm:output_type -> ResultsForAlgorithm
+	34, // 87: OrcaCore.ReadWindows:output_type -> Windows
+	36, // 88: OrcaCore.ReadDistinctMetadataForWindowType:output_type -> DistinctMetadataForWindowType
+	38, // 89: OrcaCore.ReadWindowsForMetadata:output_type -> WindowsForMetadata
+	40, // 90: OrcaCore.ReadResultsForAlgorithmAndMetadata:output_type -> ResultsForAlgorithmAndMetadata
+	42, // 91: OrcaCore.Annotate:output_type -> AnnotateResponse
+	15, // 92: OrcaProcessor.ExecuteDagPart:output_type -> ExecutionResult
+	19, // 93: OrcaProcessor.HealthCheck:output_type -> HealthCheckResponse
+	79, // [79:94] is the sub-list for method output_type
+	64, // [64:79] is the sub-list for method input_type
+	64, // [64:64] is the sub-list for extension type_name
+	64, // [64:64] is the sub-list for extension extendee
+	0,  // [0:64] is the sub-list for field type_name
 }
 
 func init() { file_service_proto_init() }
@@ -3499,17 +3576,17 @@ func file_service_proto_init() {
 	if File_service_proto != nil {
 		return
 	}
-	file_service_proto_msgTypes[6].OneofWrappers = []any{
+	file_service_proto_msgTypes[7].OneofWrappers = []any{
 		(*Result_SingleValue)(nil),
 		(*Result_FloatValues)(nil),
 		(*Result_StructValue)(nil),
 	}
-	file_service_proto_msgTypes[39].OneofWrappers = []any{
+	file_service_proto_msgTypes[40].OneofWrappers = []any{
 		(*ResultsForAlgorithm_ResultsRow_SingleValue)(nil),
 		(*ResultsForAlgorithm_ResultsRow_ArrayValues)(nil),
 		(*ResultsForAlgorithm_ResultsRow_StructValue)(nil),
 	}
-	file_service_proto_msgTypes[42].OneofWrappers = []any{
+	file_service_proto_msgTypes[43].OneofWrappers = []any{
 		(*ResultsForAlgorithmAndMetadata_ResultsRow_SingleValue)(nil),
 		(*ResultsForAlgorithmAndMetadata_ResultsRow_ArrayValues)(nil),
 		(*ResultsForAlgorithmAndMetadata_ResultsRow_StructValue)(nil),
@@ -3520,7 +3597,7 @@ func file_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_service_proto_rawDesc), len(file_service_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   43,
+			NumMessages:   44,
 			NumExtensions: 0,
 			NumServices:   2,
 		},
