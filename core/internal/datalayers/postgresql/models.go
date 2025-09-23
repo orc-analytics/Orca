@@ -109,6 +109,17 @@ type AnnotationWindowType struct {
 	WindowTypeID int64
 }
 
+type MetadataField struct {
+	ID          int64
+	Name        string
+	Description string
+}
+
+type MetadataFieldsReference struct {
+	WindowTypeID     int64
+	MetadataFieldsID int64
+}
+
 type Processor struct {
 	ID               int64
 	Name             string

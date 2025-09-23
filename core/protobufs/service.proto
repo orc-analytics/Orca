@@ -100,6 +100,17 @@ message Window {
     expression: "this.time_to > this.time_from"
   };
 }
+
+// MetadataField describes the metadata that can be carried along with windows
+message MetadataField {
+  // Name of the metadata field
+  // Examples: "AssetID"
+  string name = 1 [(buf.validate.field).required = true];
+  // Description of the field
+  // Examples: "Unique ID of the asset"
+  string description = 2 [(buf.validate.field).required = true];
+}
+
 // WindowType defines a category of window that can trigger algorithms.
 // Algorithms subscribe to window types to indicate when they should be executed.
 message WindowType {
@@ -114,10 +125,13 @@ message WindowType {
   // Description of the window
   // E.g. "Emitted every day, at noon"
   string description = 3 [(buf.validate.field).required=true];
+
+  // Metadata fields that are carried along with this window type
+  repeated MetadataField metadataFields = 4;
 }
 
+// WindowEmitStatus status message returned after emitting a window
 message WindowEmitStatus {
-
   // A status enum that captures scenarios regarding a window being emmited
   enum StatusEnum {
     // When no algorithms could be found that are triggered by this window
