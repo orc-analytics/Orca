@@ -21,7 +21,7 @@ func (d *Datalayer) RegisterProcessor(
 	ctx context.Context,
 	proc *pb.ProcessorRegistration,
 ) error {
-	slog.Debug("creating processor", "protobuf", proc)
+	slog.Debug("registering processor", "processor", proc)
 
 	tx, err := d.WithTx(ctx)
 
@@ -65,6 +65,12 @@ func (d *Datalayer) RegisterProcessor(
 		windowTypeId, err := d.createWindowType(ctx, tx, windowType)
 		if err != nil {
 			slog.Error("could not create window type", "error", err)
+			return err
+		}
+
+		// remove any existing metadata field references for this window
+		err = d.flushMetadataFields(ctx, tx, windowTypeId)
+		if err != nil {
 			return err
 		}
 
