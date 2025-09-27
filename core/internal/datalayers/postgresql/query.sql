@@ -56,6 +56,10 @@ SET
   window_type_id = EXCLUDED.window_type_id,
   metadata_fields_id = EXCLUDED.metadata_fields_id;
 
+-- name: FlushMetadataFieldBridgeForWindowType :exec
+DELETE FROM metadata_fields_references
+WHERE window_type_id = sqlc.arg('window_type_id');
+
 -- name: CreateAlgorithm :exec
 WITH processor_id AS (
   SELECT id FROM processor p

@@ -138,6 +138,20 @@ func (d *Datalayer) createMetadataFieldBridge(
 	return nil
 }
 
+func (d *Datalayer) flushMetadataFields(
+	ctx context.Context,
+	tx types.Tx,
+	windowTypeId int64,
+) error {
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+	err := qtx.FlushMetadataFieldBridgeForWindowType(ctx, windowTypeId)
+	if err != nil {
+		return fmt.Errorf("could not flush metadata fields for window type id: %v - %v", windowTypeId, err)
+	}
+	return nil
+}
+
 func (d *Datalayer) addAlgorithm(
 	ctx context.Context,
 	tx types.Tx,

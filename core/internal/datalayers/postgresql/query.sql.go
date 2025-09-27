@@ -299,6 +299,16 @@ func (q *Queries) CreateWindowTypeMetadataFieldBridge(ctx context.Context, arg C
 	return err
 }
 
+const flushMetadataFieldBridgeForWindowType = `-- name: FlushMetadataFieldBridgeForWindowType :exec
+DELETE FROM metadata_fields_references
+WHERE window_type_id = $1
+`
+
+func (q *Queries) FlushMetadataFieldBridgeForWindowType(ctx context.Context, windowTypeID int64) error {
+	_, err := q.db.Exec(ctx, flushMetadataFieldBridgeForWindowType, windowTypeID)
+	return err
+}
+
 const linkAnnotationToAlgorithm = `-- name: LinkAnnotationToAlgorithm :exec
 WITH algorithm_id AS (
   SELECT
