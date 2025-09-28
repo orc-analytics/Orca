@@ -79,7 +79,7 @@ INSERT INTO algorithm (
   (SELECT id FROM processor_id),
   (SELECT id FROM window_type_id),
   sqlc.arg('result_type')
-); -- throw an error - name & version is globally unique.
+) ON CONFLICT DO NOTHING ;
 
 -- name: ReadAlgorithmsForWindow :many
 SELECT a.* FROM algorithm a

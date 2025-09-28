@@ -100,6 +100,31 @@ func (d *Datalayer) createMetadataField(
 	return metadataFieldId, nil
 }
 
+func (d *Datalayer) readMetadataFieldsByWindowType(
+	ctx context.Context,
+	tx types.Tx,
+	windowType *pb.WindowType,
+) ([]*pb.MetadataField, error) {
+	pgTx := tx.(*PgTx)
+	qtx := d.queries.WithTx(pgTx.tx)
+	metadataFields, err := qtx.ReadMetadataFieldsByWindowType(ctx, ReadMetadataFieldsByWindowTypeParams{
+		WindowTypeName:    windowType.GetName(),
+		WindowTypeVersion: windowType.GetVersion(),
+	})
+	if err != nil {
+		return []*pb.MetadataField{}, fmt.Errorf("could not read metadata fields: %v", err)
+
+	}
+	metadataFieldsPb := make([]*pb.MetadataField, len(metadataFields))
+	for ii, field := range metadataFields {
+		metadataFieldsPb[ii] = &pb.MetadataField{
+			Name:        field.MetadataFieldName,
+			Description: field.MetadataFieldDescription,
+		}
+	}
+	return metadataFieldsPb, nil
+}
+
 func (d *Datalayer) createWindowType(
 	ctx context.Context,
 	tx types.Tx,
@@ -134,20 +159,6 @@ func (d *Datalayer) createMetadataFieldBridge(
 	if err != nil {
 		slog.Error("could not create metadata field bridge", "error", err)
 		return err
-	}
-	return nil
-}
-
-func (d *Datalayer) flushMetadataFields(
-	ctx context.Context,
-	tx types.Tx,
-	windowTypeId int64,
-) error {
-	pgTx := tx.(*PgTx)
-	qtx := d.queries.WithTx(pgTx.tx)
-	err := qtx.FlushMetadataFieldBridgeForWindowType(ctx, windowTypeId)
-	if err != nil {
-		return fmt.Errorf("could not flush metadata fields for window type id: %v - %v", windowTypeId, err)
 	}
 	return nil
 }

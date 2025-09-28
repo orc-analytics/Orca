@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -49,33 +50,56 @@ func (d *Datalayer) RegisterProcessor(
 		// add window types
 		windowType := algo.GetWindowType()
 
-		// if there are metadata fields, add them
-		var metadataFieldIds []int64
-		if len(windowType.MetadataFields) > 0 {
-			for _, metadataField := range windowType.MetadataFields {
-				metadataFieldId, err := d.createMetadataField(ctx, tx, metadataField)
-				if err != nil {
-					slog.Error("could not create metadata field", "error", err)
-					return err
-				}
-				metadataFieldIds = append(metadataFieldIds, metadataFieldId)
-			}
-		}
-
+		// create / update the window type
 		windowTypeId, err := d.createWindowType(ctx, tx, windowType)
 		if err != nil {
-			slog.Error("could not create window type", "error", err)
 			return err
 		}
 
-		// if there were metadata fields, create the bridge
-		if len(metadataFieldIds) > 0 {
-			for _, metadataFieldId := range metadataFieldIds {
-				err := d.createMetadataFieldBridge(ctx, tx, windowTypeId, metadataFieldId)
-				if err != nil {
-					slog.Error("could not create metadata field bridge", "error", err)
-					return err
+		// read any existing metadata fields for the window
+		metadataFieldsAsStored, err := d.readMetadataFieldsByWindowType(ctx, tx, windowType)
+		if err != nil {
+			return err
+		}
+
+		// if there are existing fields, check they are the same as the provided window
+		// just check on metadatafield name
+		if len(metadataFieldsAsStored) > 0 {
+			if len(windowType.MetadataFields) != len(metadataFieldsAsStored) {
+				return fmt.Errorf(
+					`Metadata fields of incoming window type %v, do not match the
+					number of fields stored in the database for this window.
+					Expected: %v, got %v. Considering bumping the version of the
+					window type.`, windowType, metadataFieldsAsStored, windowType.MetadataFields,
+				)
+			}
+			metadataFieldNamesAsStored := make([]string, len(metadataFieldsAsStored))
+			for ii, field := range metadataFieldsAsStored {
+				metadataFieldNamesAsStored[ii] = field.GetName()
+			}
+
+			for _, metadataField := range windowType.MetadataFields {
+				if !slices.Contains(metadataFieldNamesAsStored, metadataField.GetName()) {
+					return fmt.Errorf(
+						`Recieved a metadata field %v of window type %v that is not registered
+						in the database. If you want to keep this field, bump the version
+						of the window type.`, metadataField.GetName(), windowType,
+					)
 				}
+			}
+		} else {
+			var metadataFieldIds []int64
+			for _, metadataField := range windowType.MetadataFields {
+				metadataFieldId, err := d.createMetadataField(ctx, tx, metadataField)
+				if err != nil {
+					return fmt.Errorf("sql issue creating the metadata field: %v", err)
+				}
+
+				err = d.createMetadataFieldBridge(ctx, tx, windowTypeId, metadataFieldId)
+				if err != nil {
+					return fmt.Errorf("sql issue in creating the metadata field bridge: %v", err)
+				}
+				metadataFieldIds = append(metadataFieldIds, metadataFieldId)
 			}
 		}
 
