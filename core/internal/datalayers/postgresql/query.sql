@@ -15,6 +15,9 @@ SET
   connection_string = EXCLUDED.connection_string
 RETURNING id;
 
+-- name: DeleteProcessor :exec
+DELETE FROM processor WHERE name = sqlc.arg('name') AND runtime = sqlc.arg('runtime');
+
 -- name: CreateMetadataField :one
 INSERT INTO metadata_fields (
   name,
