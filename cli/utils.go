@@ -278,16 +278,14 @@ func showStatus() {
 		fmt.Println()
 		fmt.Println(
 			prefixStyle.Render(
-				"Set these environment variables in your Orca processors to connect them to Orca:",
+				"Set these environment variables in your Orca processors to connect to Orca:",
 			),
 		)
 		fmt.Println(prefixStyle.Render("\tORCA_CORE=" + conn))
-	}
-
-	// get network IP
-	gatewayIP := getNetworkGatewayIP()
-	if gatewayIP != "" {
-		fmt.Println(prefixStyle.Render("\tPROCESSOR_ADDRESS=" + strings.Replace(gatewayIP, "'", "", 2)))
+		fmt.Println(prefixStyle.Render("\tPROCESSOR_ADDRESS=host.docker.internal:<your-processor-port>"))
+		fmt.Println()
+		fmt.Println(prefixStyle.Render("Optional: Override the port Orca uses to contact your processor:"))
+		fmt.Println(prefixStyle.Render("\tPROCESSOR_EXTERNAL_PORT=<custom-external-port>"))
 	}
 }
 
