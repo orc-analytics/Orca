@@ -216,6 +216,8 @@ func (d *Datalayer) EmitWindow(
 		return pb.WindowEmitStatus{Status: pb.WindowEmitStatus_TRIGGERING_FAILED}, err
 	}
 
+	slog.Info("EXEC PATHS: ", "paths", execPaths)
+
 	// create the algo path args
 	var algoIDPaths []string
 	var windowTypeIDPaths []string

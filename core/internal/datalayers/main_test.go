@@ -182,8 +182,11 @@ func TestMetadataFieldsChangeable(t *testing.T) {
 	asset_id := pb.MetadataField{Name: "asset_id", Description: "Unique ID of the asset"}
 	fleet_id := pb.MetadataField{Name: "fleet_id", Description: "Unique ID of the fleet"}
 
+	// two windows - that look the same, but have different metadata ids.
+	// when registering with the first, we should see no issue. but registering
+	// the second should return an issue.
 	windowType := pb.WindowType{
-		Name:    "TestWindow",
+		Name:    "TestWindowForMetadataFields",
 		Version: "1.0.0",
 		MetadataFields: []*pb.MetadataField{
 			&asset_id,
@@ -192,10 +195,17 @@ func TestMetadataFieldsChangeable(t *testing.T) {
 	}
 
 	windowTypeModified := pb.WindowType{
-		Name:    "TestWindow",
+		Name:    "TestWindowForMetadataFields`",
 		Version: "1.0.0",
 		MetadataFields: []*pb.MetadataField{
 			&asset_id, // just contains asset_id this time
+		},
+	}
+	windowTypeNew := pb.WindowType{
+		Name:    "TestWindowForMetadataFields`",
+		Version: "1.1.0", // Minor version bump
+		MetadataFields: []*pb.MetadataField{
+			&asset_id,
 		},
 	}
 
@@ -213,6 +223,13 @@ func TestMetadataFieldsChangeable(t *testing.T) {
 		ResultType: pb.ResultType_VALUE,
 	}
 
+	algoNew := pb.Algorithm{
+		Name:       "TestAlgorithm2",
+		Version:    "1.1.0",
+		WindowType: &windowTypeNew,
+		ResultType: pb.ResultType_VALUE,
+	}
+
 	proc := pb.ProcessorRegistration{
 		Name:                "TestProcessor",
 		Runtime:             "Test",
@@ -225,6 +242,13 @@ func TestMetadataFieldsChangeable(t *testing.T) {
 		Runtime:             "Test",
 		ConnectionStr:       processorConnStr,
 		SupportedAlgorithms: []*pb.Algorithm{&algo_2},
+	}
+
+	procNew := pb.ProcessorRegistration{
+		Name:                "TestProcessor",
+		Runtime:             "Test",
+		ConnectionStr:       processorConnStr,
+		SupportedAlgorithms: []*pb.Algorithm{&algoNew},
 	}
 
 	// 1. register a processor
@@ -250,7 +274,8 @@ func TestMetadataFieldsChangeable(t *testing.T) {
 		},
 	}
 	emitStatus, err := dlyr.EmitWindow(testCtx, &window)
-	assert.Equal(t, emitStatus.GetStatus(), pb.WindowEmitStatus_PROCESSING_TRIGGERED)
+	assert.NoError(t, err)
+	assert.Equal(t, pb.WindowEmitStatus_PROCESSING_TRIGGERED, emitStatus.GetStatus())
 
 	// 3. Re-register with the modified window type
 	err = dlyr.RegisterProcessor(testCtx, &procModified)
@@ -273,10 +298,37 @@ func TestMetadataFieldsChangeable(t *testing.T) {
 			},
 		},
 	}
+	// 5. Confirm that the window could not be emitted becuase it is missing the field ID
 	emitStatus, err = dlyr.EmitWindow(testCtx, &window)
+	assert.Error(t, err)
+	assert.Equal(t, pb.WindowEmitStatus_TRIGGERING_FAILED, emitStatus.GetStatus())
 
-	// 5. Confirm there are no issues
-	assert.Equal(t, emitStatus.GetStatus(), pb.WindowEmitStatus_PROCESSING_TRIGGERED)
+	// 6. Confirm that if we bump the window version, then this is treated as a new window.
+	// To do this, we need to re-register the processor with the new window
+	err = dlyr.RegisterProcessor(testCtx, &procNew)
+	assert.NoError(t, err)
+
+	window = pb.Window{TimeFrom: &timestamppb.Timestamp{
+		Seconds: 0,
+		Nanos:   0,
+	}, TimeTo: &timestamppb.Timestamp{
+		Seconds: 1,
+		Nanos:   0,
+	},
+		WindowTypeName:    windowTypeNew.GetName(),
+		WindowTypeVersion: windowTypeNew.GetVersion(),
+		Origin:            "Test",
+		Metadata: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"asset_id": {Kind: &structpb.Value_NumberValue{NumberValue: 0}},
+			},
+		},
+	}
+
+	// 7. Confirm that this window is totally different and so not bound by the old metadata fields
+	emitStatus, err = dlyr.EmitWindow(testCtx, &window)
+	assert.NoError(t, err)
+	assert.Equal(t, pb.WindowEmitStatus_PROCESSING_TRIGGERED, emitStatus.GetStatus())
 }
 
 // func TestCircularDependency(t *testing.T) {
