@@ -34,7 +34,7 @@ INSERT INTO algorithm (
   (SELECT id FROM processor_id),
   (SELECT id FROM window_type_id),
   $3
-) ON CONFLICT DO NOTHING
+)
 `
 
 type CreateAlgorithmParams struct {
@@ -176,7 +176,7 @@ func (q *Queries) CreateMetadataField(ctx context.Context, arg CreateMetadataFie
 	return id, err
 }
 
-const createProcessorAndPurgeAlgos = `-- name: CreateProcessorAndPurgeAlgos :exec
+const createProcessor = `-- name: CreateProcessor :exec
 INSERT INTO processor (
   name,
   runtime,
@@ -193,15 +193,15 @@ SET
 RETURNING id
 `
 
-type CreateProcessorAndPurgeAlgosParams struct {
+type CreateProcessorParams struct {
 	Name             string
 	Runtime          string
 	ConnectionString string
 }
 
 // -------------------- Core Operations ----------------------
-func (q *Queries) CreateProcessorAndPurgeAlgos(ctx context.Context, arg CreateProcessorAndPurgeAlgosParams) error {
-	_, err := q.db.Exec(ctx, createProcessorAndPurgeAlgos, arg.Name, arg.Runtime, arg.ConnectionString)
+func (q *Queries) CreateProcessor(ctx context.Context, arg CreateProcessorParams) error {
+	_, err := q.db.Exec(ctx, createProcessor, arg.Name, arg.Runtime, arg.ConnectionString)
 	return err
 }
 
@@ -296,20 +296,6 @@ type CreateWindowTypeMetadataFieldBridgeParams struct {
 
 func (q *Queries) CreateWindowTypeMetadataFieldBridge(ctx context.Context, arg CreateWindowTypeMetadataFieldBridgeParams) error {
 	_, err := q.db.Exec(ctx, createWindowTypeMetadataFieldBridge, arg.WindowTypeID, arg.MetadataFieldsID)
-	return err
-}
-
-const deleteProcessor = `-- name: DeleteProcessor :exec
-DELETE FROM processor WHERE name = $1 AND runtime = $2
-`
-
-type DeleteProcessorParams struct {
-	Name    string
-	Runtime string
-}
-
-func (q *Queries) DeleteProcessor(ctx context.Context, arg DeleteProcessorParams) error {
-	_, err := q.db.Exec(ctx, deleteProcessor, arg.Name, arg.Runtime)
 	return err
 }
 
@@ -573,6 +559,7 @@ func (q *Queries) ReadAlgorithms(ctx context.Context) ([]ReadAlgorithmsRow, erro
 }
 
 const readAlgorithmsForWindow = `-- name: ReadAlgorithmsForWindow :many
+
 SELECT a.id, a.name, a.version, a.processor_id, a.window_type_id, a.result_type, a.created FROM algorithm a
 JOIN window_type wt ON a.window_type_id = wt.id
 WHERE wt.name = $1 
@@ -584,6 +571,7 @@ type ReadAlgorithmsForWindowParams struct {
 	WindowTypeVersion string
 }
 
+// throw an error - name & version is globally unique.
 func (q *Queries) ReadAlgorithmsForWindow(ctx context.Context, arg ReadAlgorithmsForWindowParams) ([]Algorithm, error) {
 	rows, err := q.db.Query(ctx, readAlgorithmsForWindow, arg.WindowTypeName, arg.WindowTypeVersion)
 	if err != nil {

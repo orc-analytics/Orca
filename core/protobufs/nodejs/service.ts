@@ -224,26 +224,26 @@ export interface WindowEmitStatus {
 
 /** A status enum that captures scenarios regarding a window being emmited */
 export enum WindowEmitStatus_StatusEnum {
-  /** NO_TRIGGERED_ALGORITHMS - When no algorithms could be found that are triggered by this window */
-  NO_TRIGGERED_ALGORITHMS = 0,
-  /** PROCESSING_TRIGGERED - When processing has successfully been triggered */
-  PROCESSING_TRIGGERED = 1,
   /** TRIGGERING_FAILED - When triggering has failed */
-  TRIGGERING_FAILED = 2,
+  TRIGGERING_FAILED = 0,
+  /** NO_TRIGGERED_ALGORITHMS - When no algorithms could be found that are triggered by this window */
+  NO_TRIGGERED_ALGORITHMS = 1,
+  /** PROCESSING_TRIGGERED - When processing has successfully been triggered */
+  PROCESSING_TRIGGERED = 2,
   UNRECOGNIZED = -1,
 }
 
 export function windowEmitStatus_StatusEnumFromJSON(object: any): WindowEmitStatus_StatusEnum {
   switch (object) {
     case 0:
-    case "NO_TRIGGERED_ALGORITHMS":
-      return WindowEmitStatus_StatusEnum.NO_TRIGGERED_ALGORITHMS;
-    case 1:
-    case "PROCESSING_TRIGGERED":
-      return WindowEmitStatus_StatusEnum.PROCESSING_TRIGGERED;
-    case 2:
     case "TRIGGERING_FAILED":
       return WindowEmitStatus_StatusEnum.TRIGGERING_FAILED;
+    case 1:
+    case "NO_TRIGGERED_ALGORITHMS":
+      return WindowEmitStatus_StatusEnum.NO_TRIGGERED_ALGORITHMS;
+    case 2:
+    case "PROCESSING_TRIGGERED":
+      return WindowEmitStatus_StatusEnum.PROCESSING_TRIGGERED;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -253,12 +253,12 @@ export function windowEmitStatus_StatusEnumFromJSON(object: any): WindowEmitStat
 
 export function windowEmitStatus_StatusEnumToJSON(object: WindowEmitStatus_StatusEnum): string {
   switch (object) {
+    case WindowEmitStatus_StatusEnum.TRIGGERING_FAILED:
+      return "TRIGGERING_FAILED";
     case WindowEmitStatus_StatusEnum.NO_TRIGGERED_ALGORITHMS:
       return "NO_TRIGGERED_ALGORITHMS";
     case WindowEmitStatus_StatusEnum.PROCESSING_TRIGGERED:
       return "PROCESSING_TRIGGERED";
-    case WindowEmitStatus_StatusEnum.TRIGGERING_FAILED:
-      return "TRIGGERING_FAILED";
     case WindowEmitStatus_StatusEnum.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

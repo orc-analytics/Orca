@@ -37,7 +37,7 @@ func (d *Datalayer) RegisterProcessor(
 	}
 
 	// register the processor
-	err = d.createProcessorAndPurgeAlgos(ctx, tx, proc)
+	err = d.createProcessor(ctx, tx, proc)
 
 	if err != nil {
 		slog.Error("could not create processor", "error", err)
@@ -67,12 +67,6 @@ func (d *Datalayer) RegisterProcessor(
 			slog.Error("could not create window type", "error", err)
 			return err
 		}
-
-		// // remove any existing metadata field references for this window
-		// err = d.flushMetadataFields(ctx, tx, windowTypeId)
-		// if err != nil {
-		// 	return err
-		// }
 
 		// if there were metadata fields, create the bridge
 		if len(metadataFieldIds) > 0 {
@@ -192,12 +186,10 @@ func (d *Datalayer) EmitWindow(
 	if err != nil {
 		slog.Error("could not insert window", "error", err)
 		if strings.Contains(err.Error(), "(SQLSTATE 23503)") {
-			return pb.WindowEmitStatus{
-					Status: pb.WindowEmitStatus_TRIGGERING_FAILED,
-				}, fmt.Errorf(
-					"window type does not exist - insert via window type registration: %v",
-					err.Error(),
-				)
+			return pb.WindowEmitStatus{}, fmt.Errorf(
+				"window type does not exist - insert via window type registration: %v",
+				err.Error(),
+			)
 		}
 	}
 	slog.Debug("window record inserted into the datalayer", "window", insertedWindow)
@@ -215,8 +207,6 @@ func (d *Datalayer) EmitWindow(
 		)
 		return pb.WindowEmitStatus{Status: pb.WindowEmitStatus_TRIGGERING_FAILED}, err
 	}
-
-	slog.Info("EXEC PATHS: ", "paths", execPaths)
 
 	// create the algo path args
 	var algoIDPaths []string

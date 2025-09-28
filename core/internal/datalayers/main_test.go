@@ -225,7 +225,7 @@ func TestMetadataFieldsChangeable(t *testing.T) {
 
 	algoNew := pb.Algorithm{
 		Name:       "TestAlgorithm2",
-		Version:    "1.1.0",
+		Version:    "1.0.0", // no need to bump the version
 		WindowType: &windowTypeNew,
 		ResultType: pb.ResultType_VALUE,
 	}
