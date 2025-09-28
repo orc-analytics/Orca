@@ -68,11 +68,11 @@ func (d *Datalayer) RegisterProcessor(
 			return err
 		}
 
-		// remove any existing metadata field references for this window
-		err = d.flushMetadataFields(ctx, tx, windowTypeId)
-		if err != nil {
-			return err
-		}
+		// // remove any existing metadata field references for this window
+		// err = d.flushMetadataFields(ctx, tx, windowTypeId)
+		// if err != nil {
+		// 	return err
+		// }
 
 		// if there were metadata fields, create the bridge
 		if len(metadataFieldIds) > 0 {

@@ -1,0 +1,521 @@
+package datalayers
+
+import (
+	"context"
+	"os"
+	"testing"
+	"time"
+
+	pb "github.com/orc-analytics/orca/core/protobufs/go"
+	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+)
+
+var (
+	testConnStr string
+	testCtx     context.Context
+)
+
+func TestMain(m *testing.M) {
+	var cleanup func()
+	testCtx = context.Background()
+	testConnStr, cleanup = setupPgOnce(testCtx)
+
+	// runs all tests
+	code := m.Run()
+
+	cleanup()
+	os.Exit(code)
+}
+
+// confirms at a pg db can be setup and migrated
+func setupPgOnce(ctx context.Context) (string, func()) {
+	postgresContainer, err := postgres.Run(ctx,
+		"postgres:17-alpine",
+		postgres.WithDatabase("test"),
+		postgres.WithUsername("user"),
+		postgres.WithPassword("password"),
+		postgres.BasicWaitStrategies(),
+		postgres.WithSQLDriver("pgx"),
+	)
+	if err != nil {
+		panic("Failed to start postgres container: " + err.Error())
+	}
+
+	connStr, err := postgresContainer.ConnectionString(ctx, "sslmode=disable")
+	if err != nil {
+		panic("Failed to get connection string: " + err.Error())
+	}
+
+	err = MigrateDatalayer("postgresql", connStr)
+	if err != nil {
+		panic("Failed to migrate database: " + err.Error())
+	}
+
+	cleanup := func() {
+		if err := postgresContainer.Terminate(ctx); err != nil {
+			// Log error but don't panic during cleanup
+			println("Failed to terminate postgres container:", err.Error())
+		}
+	}
+
+	return connStr, cleanup
+}
+
+// TestAddProcessor tests that several processors can be added
+func TestAddProcessor(t *testing.T) {
+
+	// start the mock OrcaProcessor gRPC server
+	mockProcessor_1, mockListener_1, err := StartMockOrcaProcessor(0) // set port to 0 to get random available port
+	mockProcessor_2, mockListener_2, err := StartMockOrcaProcessor(0) // set port to 0 to get random available port
+	assert.NoError(t, err)
+
+	t.Cleanup(func() {
+		time.Sleep(100 * time.Millisecond) // some time for processing to complete
+		mockProcessor_1.GracefulStop()
+		mockListener_1.Close()
+		mockProcessor_2.GracefulStop()
+		mockListener_2.Close()
+	})
+
+	// get the actual address the mock server is listening on
+	processorConnStr_1 := mockListener_1.Addr().String()
+	processorConnStr_2 := mockListener_2.Addr().String()
+
+	// TODO: paramaterise if we have more datalayers (e.g. MySQL, SQLite) - high level function should be the same between them
+	dlyr, err := NewDatalayerClient(testCtx, "postgresql", testConnStr)
+	assert.NoError(t, err)
+
+	asset_id := pb.MetadataField{Name: "asset_id", Description: "Unique ID of the asset"}
+	fleet_id := pb.MetadataField{Name: "fleet_id", Description: "Unique ID of the fleet"}
+
+	windowType := pb.WindowType{
+		Name:    "TestWindow",
+		Version: "1.0.0",
+		MetadataFields: []*pb.MetadataField{
+			&asset_id,
+			&fleet_id,
+		},
+	}
+
+	algo_1 := pb.Algorithm{
+		Name:       "TestAlgorithm1",
+		Version:    "1.0.0",
+		WindowType: &windowType,
+		ResultType: pb.ResultType_VALUE,
+	}
+
+	algo_2 := pb.Algorithm{
+		Name:       "TestAlgorithm2",
+		Version:    "1.0.0",
+		WindowType: &windowType,
+		ResultType: pb.ResultType_VALUE,
+	}
+
+	proc_1 := pb.ProcessorRegistration{
+		Name:                "TestProcessor1",
+		Runtime:             "Test",
+		ConnectionStr:       processorConnStr_1,
+		SupportedAlgorithms: []*pb.Algorithm{&algo_1},
+	}
+
+	proc_2 := pb.ProcessorRegistration{
+		Name:                "TestProcessor2",
+		Runtime:             "Test",
+		ConnectionStr:       processorConnStr_2,
+		SupportedAlgorithms: []*pb.Algorithm{&algo_2},
+	}
+
+	// 1. register a processor
+	err = dlyr.RegisterProcessor(testCtx, &proc_1)
+	assert.NoError(t, err)
+
+	// 1. register another processor
+	err = dlyr.RegisterProcessor(testCtx, &proc_2)
+	assert.NoError(t, err)
+
+	// 2. Emit a window
+	window := pb.Window{TimeFrom: &timestamppb.Timestamp{
+		Seconds: 0,
+		Nanos:   0,
+	}, TimeTo: &timestamppb.Timestamp{
+		Seconds: 1,
+		Nanos:   0,
+	},
+		WindowTypeName:    windowType.GetName(),
+		WindowTypeVersion: windowType.GetVersion(),
+		Origin:            "Test",
+		Metadata: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"asset_id": {Kind: &structpb.Value_NumberValue{NumberValue: 0}},
+				"fleet_id": {Kind: &structpb.Value_NumberValue{NumberValue: 0}},
+			},
+		},
+	}
+	emitStatus, err := dlyr.EmitWindow(testCtx, &window)
+	assert.Equal(t, emitStatus.GetStatus(), pb.WindowEmitStatus_PROCESSING_TRIGGERED)
+}
+
+// TestMetadataFieldsChangeable tests that metadata fields on a window type can be changed
+func TestMetadataFieldsChangeable(t *testing.T) {
+
+	// start the mock OrcaProcessor gRPC server
+	mockProcessor, mockListener, err := StartMockOrcaProcessor(0) // set port to 0 to get random available port
+	assert.NoError(t, err)
+
+	t.Cleanup(func() {
+		time.Sleep(100 * time.Millisecond) // some time for processing to complete
+		mockProcessor.GracefulStop()
+		mockListener.Close()
+	})
+
+	// get the actual address the mock server is listening on
+	processorConnStr := mockListener.Addr().String()
+
+	// TODO: paramaterise if we have more datalayers (e.g. MySQL, SQLite) - high level function should be the same between them
+	dlyr, err := NewDatalayerClient(testCtx, "postgresql", testConnStr)
+	assert.NoError(t, err)
+
+	asset_id := pb.MetadataField{Name: "asset_id", Description: "Unique ID of the asset"}
+	fleet_id := pb.MetadataField{Name: "fleet_id", Description: "Unique ID of the fleet"}
+
+	windowType := pb.WindowType{
+		Name:    "TestWindow",
+		Version: "1.0.0",
+		MetadataFields: []*pb.MetadataField{
+			&asset_id,
+			&fleet_id,
+		},
+	}
+
+	windowTypeModified := pb.WindowType{
+		Name:    "TestWindow",
+		Version: "1.0.0",
+		MetadataFields: []*pb.MetadataField{
+			&asset_id, // just contains asset_id this time
+		},
+	}
+
+	algo_1 := pb.Algorithm{
+		Name:       "TestAlgorithm1",
+		Version:    "1.0.0",
+		WindowType: &windowType,
+		ResultType: pb.ResultType_VALUE,
+	}
+
+	algo_2 := pb.Algorithm{
+		Name:       "TestAlgorithm2",
+		Version:    "1.0.0",
+		WindowType: &windowTypeModified,
+		ResultType: pb.ResultType_VALUE,
+	}
+
+	proc := pb.ProcessorRegistration{
+		Name:                "TestProcessor",
+		Runtime:             "Test",
+		ConnectionStr:       processorConnStr,
+		SupportedAlgorithms: []*pb.Algorithm{&algo_1},
+	}
+
+	procModified := pb.ProcessorRegistration{
+		Name:                "TestProcessor",
+		Runtime:             "Test",
+		ConnectionStr:       processorConnStr,
+		SupportedAlgorithms: []*pb.Algorithm{&algo_2},
+	}
+
+	// 1. register a processor
+	err = dlyr.RegisterProcessor(testCtx, &proc)
+	assert.NoError(t, err)
+
+	// 2. Emit a window
+	window := pb.Window{TimeFrom: &timestamppb.Timestamp{
+		Seconds: 0,
+		Nanos:   0,
+	}, TimeTo: &timestamppb.Timestamp{
+		Seconds: 1,
+		Nanos:   0,
+	},
+		WindowTypeName:    windowType.GetName(),
+		WindowTypeVersion: windowType.GetVersion(),
+		Origin:            "Test",
+		Metadata: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"asset_id": {Kind: &structpb.Value_NumberValue{NumberValue: 0}},
+				"fleet_id": {Kind: &structpb.Value_NumberValue{NumberValue: 0}},
+			},
+		},
+	}
+	emitStatus, err := dlyr.EmitWindow(testCtx, &window)
+	assert.Equal(t, emitStatus.GetStatus(), pb.WindowEmitStatus_PROCESSING_TRIGGERED)
+
+	// 3. Re-register with the modified window type
+	err = dlyr.RegisterProcessor(testCtx, &procModified)
+	assert.NoError(t, err)
+
+	// 4. Emit a window with the new metadata field structure
+	window = pb.Window{TimeFrom: &timestamppb.Timestamp{
+		Seconds: 0,
+		Nanos:   0,
+	}, TimeTo: &timestamppb.Timestamp{
+		Seconds: 1,
+		Nanos:   0,
+	},
+		WindowTypeName:    windowType.GetName(),
+		WindowTypeVersion: windowType.GetVersion(),
+		Origin:            "Test",
+		Metadata: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"asset_id": {Kind: &structpb.Value_NumberValue{NumberValue: 0}},
+			},
+		},
+	}
+	emitStatus, err = dlyr.EmitWindow(testCtx, &window)
+
+	// 5. Confirm there are no issues
+	assert.Equal(t, emitStatus.GetStatus(), pb.WindowEmitStatus_PROCESSING_TRIGGERED)
+}
+
+// func TestCircularDependency(t *testing.T) {
+// 	dlyr, tx := getCleanTx(t, testCtx)
+// 	defer tx.Rollback(testCtx)
+//
+// 	windowType := pb.WindowType{
+// 		Name:    "TestWindow",
+// 		Version: "1.0.0",
+// 	}
+//
+// 	algo1 := pb.Algorithm{
+// 		Name:       "TestAlgorithm1",
+// 		Version:    "1.0.0",
+// 		WindowType: &windowType,
+// 	}
+//
+// 	algo2 := pb.Algorithm{
+// 		Name:       "TestAlgorithm2",
+// 		Version:    "1.0.0",
+// 		WindowType: &windowType,
+// 	}
+//
+// 	proc := pb.ProcessorRegistration{
+// 		Name:                "TestProcessor",
+// 		Runtime:             "Test",
+// 		ConnectionStr:       "Test",
+// 		SupportedAlgorithms: []*pb.Algorithm{&algo1, &algo2},
+// 	}
+//
+// 	// 1. register a processor
+// 	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc)
+// 	assert.NoError(t, err)
+//
+// 	// 2. register the window type
+// 	err = dlyr.CreateWindowType(testCtx, tx, &windowType)
+// 	assert.NoError(t, err)
+//
+// 	// 3. add an algorithm
+// 	err = dlyr.AddAlgorithm(testCtx, tx, &algo1, &proc)
+// 	assert.NoError(t, err)
+//
+// 	// 4. add another algorithm
+// 	err = dlyr.AddAlgorithm(testCtx, tx, &algo2, &proc)
+// 	assert.NoError(t, err)
+//
+// 	// so far so good
+//
+// 	// 5. add a dependency between algorithm 1 and algorithm 2
+// 	algo1.Dependencies = []*pb.AlgorithmDependency{
+// 		{
+// 			Name:             "TestAlgorithm2",
+// 			Version:          "1.0.0",
+// 			ProcessorName:    "TestProcessor",
+// 			ProcessorRuntime: "Test",
+// 		},
+// 	}
+//
+// 	err = dlyr.AddOverwriteAlgorithmDependency(
+// 		testCtx,
+// 		tx,
+// 		&algo1,
+// 		&proc,
+// 	)
+// 	assert.NoError(t, err)
+//
+// 	// 6. now add a dependency between 2 and 1. This should raise a circular error
+// 	algo2.Dependencies = []*pb.AlgorithmDependency{
+// 		{
+// 			Name:             "TestAlgorithm1",
+// 			Version:          "1.0.0",
+// 			ProcessorName:    "TestProcessor",
+// 			ProcessorRuntime: "Test",
+// 		},
+// 	}
+//
+// 	err = dlyr.AddOverwriteAlgorithmDependency(
+// 		testCtx,
+// 		tx,
+// 		&algo2,
+// 		&proc,
+// 	)
+// 	var circularError *types.CircularDependencyError
+// 	assert.ErrorAs(t, err, &circularError)
+// 	assert.Equal(t, algo1.GetName(), circularError.FromAlgoName)
+// 	assert.Equal(t, algo2.GetName(), circularError.ToAlgoName)
+// 	assert.Equal(t, algo1.GetVersion(), circularError.FromAlgoVersion)
+// 	assert.Equal(t, algo2.GetVersion(), circularError.ToAlgoVersion)
+// 	assert.Equal(t, proc.GetName(), circularError.FromAlgoProcessor)
+// 	assert.Equal(t, proc.GetName(), circularError.ToAlgoProcessor)
+// }
+
+//
+// func TestValidDependenciesBetweenProcessors(t *testing.T) {
+// 	dlyr, tx := getCleanTx(t, testCtx)
+// 	defer tx.Rollback(testCtx)
+//
+// 	windowType := pb.WindowType{
+// 		Name:    "TestWindow",
+// 		Version: "1.0.0",
+// 	}
+//
+// 	algo1 := pb.Algorithm{
+// 		Name:       "TestAlgorithm1",
+// 		Version:    "1.0.0",
+// 		WindowType: &windowType,
+// 	}
+// 	algo2 := pb.Algorithm{
+// 		Name:       "TestAlgorithm2",
+// 		Version:    "1.0.0",
+// 		WindowType: &windowType,
+// 	}
+//
+// 	algo3 := pb.Algorithm{
+// 		Name:       "TestAlgorithm3",
+// 		Version:    "1.0.0",
+// 		WindowType: &windowType,
+// 	}
+//
+// 	algo4 := pb.Algorithm{
+// 		Name:       "TestAlgorithm4",
+// 		Version:    "1.0.0",
+// 		WindowType: &windowType,
+// 	}
+//
+// 	proc := pb.ProcessorRegistration{
+// 		Name:                "TestProcessor",
+// 		Runtime:             "Test",
+// 		ConnectionStr:       "Test",
+// 		SupportedAlgorithms: []*pb.Algorithm{&algo1, &algo2},
+// 	}
+//
+// 	algo3.Dependencies = []*pb.AlgorithmDependency{
+// 		{
+// 			Name:             algo1.Name,
+// 			Version:          algo1.Version,
+// 			ProcessorName:    proc.GetName(),
+// 			ProcessorRuntime: proc.GetRuntime(),
+// 		},
+// 		{
+// 			Name:             algo2.Name,
+// 			Version:          algo2.Version,
+// 			ProcessorName:    proc.GetName(),
+// 			ProcessorRuntime: proc.GetRuntime(),
+// 		},
+// 	}
+//
+// 	algo4.Dependencies = []*pb.AlgorithmDependency{
+// 		{
+// 			Name:             algo3.Name,
+// 			Version:          algo3.Version,
+// 			ProcessorName:    proc.GetName(),
+// 			ProcessorRuntime: proc.GetRuntime(),
+// 		},
+// 	}
+//
+// 	// 1. register a processor
+// 	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc)
+// 	assert.NoError(t, err)
+//
+// 	// 2. register the window type
+// 	err = dlyr.CreateWindowType(testCtx, tx, &windowType)
+// 	assert.NoError(t, err)
+//
+// 	// 3. add algorithms
+// 	err = dlyr.AddAlgorithm(testCtx, tx, &algo1, &proc)
+// 	assert.NoError(t, err)
+// 	err = dlyr.AddAlgorithm(testCtx, tx, &algo2, &proc)
+// 	assert.NoError(t, err)
+// 	err = dlyr.AddAlgorithm(testCtx, tx, &algo3, &proc)
+// 	assert.NoError(t, err)
+// 	err = dlyr.AddAlgorithm(testCtx, tx, &algo4, &proc)
+// 	assert.NoError(t, err)
+//
+// 	err = dlyr.AddOverwriteAlgorithmDependency(
+// 		testCtx,
+// 		tx,
+// 		&algo3,
+// 		&proc,
+// 	)
+// 	assert.NoError(t, err)
+//
+// 	err = dlyr.AddOverwriteAlgorithmDependency(
+// 		testCtx,
+// 		tx,
+// 		&algo4,
+// 		&proc,
+// 	)
+// 	assert.NoError(t, err)
+// }
+//
+// func TestAlgosSameNamesDifferentProcessors(t *testing.T) {
+// 	dlyr, tx := getCleanTx(t, testCtx)
+// 	defer tx.Rollback(testCtx)
+//
+// 	windowType := pb.WindowType{
+// 		Name:    "TestWindow",
+// 		Version: "1.0.0",
+// 	}
+//
+// 	algo1 := pb.Algorithm{
+// 		Name:       "TestAlgorithm",
+// 		Version:    "1.0.0",
+// 		WindowType: &windowType,
+// 	}
+//
+// 	algo2 := pb.Algorithm{
+// 		Name:       "TestAlgorithm",
+// 		Version:    "1.0.0",
+// 		WindowType: &windowType,
+// 	}
+//
+// 	proc1 := pb.ProcessorRegistration{
+// 		Name:                "TestProcessor1",
+// 		Runtime:             "TestRuntime1",
+// 		ConnectionStr:       "Test",
+// 		SupportedAlgorithms: []*pb.Algorithm{&algo1},
+// 	}
+//
+// 	proc2 := pb.ProcessorRegistration{
+// 		Name:                "TestProcessor2",
+// 		Runtime:             "TestRuntime2",
+// 		ConnectionStr:       "Test",
+// 		SupportedAlgorithms: []*pb.Algorithm{&algo2},
+// 	}
+//
+// 	// 1. register the processors
+// 	err := dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc1)
+// 	assert.NoError(t, err)
+// 	err = dlyr.CreateProcessorAndPurgeAlgos(testCtx, tx, &proc2)
+// 	assert.NoError(t, err)
+//
+// 	// 2. register the window type
+// 	err = dlyr.CreateWindowType(testCtx, tx, &windowType)
+// 	assert.NoError(t, err)
+//
+// 	// 3. add algorithms
+// 	err = dlyr.AddAlgorithm(testCtx, tx, &algo1, &proc1)
+// 	assert.NoError(t, err)
+// 	err = dlyr.AddAlgorithm(testCtx, tx, &algo2, &proc2)
+// 	assert.NoError(t, err)
+// }

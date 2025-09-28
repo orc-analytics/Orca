@@ -299,6 +299,20 @@ func (q *Queries) CreateWindowTypeMetadataFieldBridge(ctx context.Context, arg C
 	return err
 }
 
+const deleteProcessor = `-- name: DeleteProcessor :exec
+DELETE FROM processor WHERE name = $1 AND runtime = $2
+`
+
+type DeleteProcessorParams struct {
+	Name    string
+	Runtime string
+}
+
+func (q *Queries) DeleteProcessor(ctx context.Context, arg DeleteProcessorParams) error {
+	_, err := q.db.Exec(ctx, deleteProcessor, arg.Name, arg.Runtime)
+	return err
+}
+
 const flushMetadataFieldBridgeForWindowType = `-- name: FlushMetadataFieldBridgeForWindowType :exec
 DELETE FROM metadata_fields_references
 WHERE window_type_id = $1
