@@ -68,7 +68,7 @@ type CircularDependencyError struct {
 
 func (c *CircularDependencyError) Error() string {
 	return fmt.Sprintf(
-		"Circular dependency introduced between algortithm %s to %s, with versions %s and %s, of processor(s) %s and %s respectively.",
+		"Circular dependency introduced between algorithm %s to %s, with versions %s and %s, of processor(s) %s and %s respectively.",
 		c.FromAlgoName,
 		c.ToAlgoName,
 		c.FromAlgoVersion,
