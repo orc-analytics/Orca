@@ -2,8 +2,29 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net"
 	"os/exec"
 )
+
+func isPortAvailable(port int) bool {
+	address := fmt.Sprintf(":%d", port)
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		return false
+	}
+	listener.Close()
+	return true
+}
+
+func findAvailablePort(startPort int) int {
+	for port := startPort; port <= 65535; port++ {
+		if isPortAvailable(port) {
+			return port
+		}
+	}
+	return -1 // No available port found
+}
 
 // startPostgres starts the postgres instance that orca needs.
 func startPostgres(networkName string) {
@@ -66,7 +87,14 @@ func startRedis(networkName string) {
 
 func startOrca(networkName string) {
 	exists := checkStartContainer(orcaContainerName)
+
 	if !exists {
+		preferredPort := 33670
+		availablePort := findAvailablePort(preferredPort)
+		if availablePort == -1 {
+			log.Fatal("No available ports found")
+		}
+		portMapping := fmt.Sprintf("%d:3335", availablePort)
 		args := []string{
 			"run",
 			"-d",
@@ -74,7 +102,8 @@ func startOrca(networkName string) {
 			orcaContainerName,
 			"--network",
 			networkName,
-			"-p", "0:3335",
+			"--add-host", "host.docker.internal:host-gateway",
+			"-p", portMapping,
 			"-e", fmt.Sprintf("ORCA_CONNECTION_STRING=postgresql://orca:orca@%s:5432/orca?sslmode=disable", pgContainerName),
 			"-e", "ORCA_PORT=3335",
 			"-e", "ORCA_LOG_LEVEL=DEBUG",
