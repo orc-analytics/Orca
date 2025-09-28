@@ -1,5 +1,5 @@
 ---------------------- Core Operations ----------------------  
--- name: CreateProcessorAndPurgeAlgos :exec
+-- name: CreateProcessor :exec
 INSERT INTO processor (
   name,
   runtime,
@@ -56,10 +56,6 @@ SET
   window_type_id = EXCLUDED.window_type_id,
   metadata_fields_id = EXCLUDED.metadata_fields_id;
 
--- name: FlushMetadataFieldBridgeForWindowType :exec
-DELETE FROM metadata_fields_references
-WHERE window_type_id = sqlc.arg('window_type_id');
-
 -- name: CreateAlgorithm :exec
 WITH processor_id AS (
   SELECT id FROM processor p
@@ -83,7 +79,7 @@ INSERT INTO algorithm (
   (SELECT id FROM processor_id),
   (SELECT id FROM window_type_id),
   sqlc.arg('result_type')
-) ON CONFLICT DO NOTHING;
+); -- throw an error - name & version is globally unique.
 
 -- name: ReadAlgorithmsForWindow :many
 SELECT a.* FROM algorithm a

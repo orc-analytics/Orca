@@ -61,7 +61,7 @@ func (d *Datalayer) WithTx(ctx context.Context) (types.Tx, error) {
 	return &PgTx{tx: tx}, nil
 }
 
-func (d *Datalayer) createProcessorAndPurgeAlgos(
+func (d *Datalayer) createProcessor(
 	ctx context.Context,
 	tx types.Tx,
 	proc *pb.ProcessorRegistration,
@@ -69,8 +69,8 @@ func (d *Datalayer) createProcessorAndPurgeAlgos(
 	pgTx := tx.(*PgTx)
 
 	qtx := d.queries.WithTx(pgTx.tx)
-	// register the processor
-	err := qtx.CreateProcessorAndPurgeAlgos(ctx, CreateProcessorAndPurgeAlgosParams{
+
+	err := qtx.CreateProcessor(ctx, CreateProcessorParams{
 		Name:             proc.GetName(),
 		Runtime:          proc.GetRuntime(),
 		ConnectionString: proc.GetConnectionStr(),

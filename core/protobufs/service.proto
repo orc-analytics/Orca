@@ -138,14 +138,14 @@ message WindowType {
 message WindowEmitStatus {
   // A status enum that captures scenarios regarding a window being emmited
   enum StatusEnum {
+    // When triggering has failed
+    TRIGGERING_FAILED = 0;
+
     // When no algorithms could be found that are triggered by this window
-    NO_TRIGGERED_ALGORITHMS = 0;
+    NO_TRIGGERED_ALGORITHMS = 1;
 
     // When processing has successfully been triggered
-    PROCESSING_TRIGGERED = 1;
-
-    // When triggering has failed
-    TRIGGERING_FAILED = 2;
+    PROCESSING_TRIGGERED = 2;
   }
   StatusEnum status = 1 [(buf.validate.field).required = true];
 }
