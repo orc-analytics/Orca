@@ -34,7 +34,7 @@ INSERT INTO algorithm (
   (SELECT id FROM processor_id),
   (SELECT id FROM window_type_id),
   $3
-)
+) ON CONFLICT DO NOTHING
 `
 
 type CreateAlgorithmParams struct {
@@ -299,16 +299,6 @@ func (q *Queries) CreateWindowTypeMetadataFieldBridge(ctx context.Context, arg C
 	return err
 }
 
-const flushMetadataFieldBridgeForWindowType = `-- name: FlushMetadataFieldBridgeForWindowType :exec
-DELETE FROM metadata_fields_references
-WHERE window_type_id = $1
-`
-
-func (q *Queries) FlushMetadataFieldBridgeForWindowType(ctx context.Context, windowTypeID int64) error {
-	_, err := q.db.Exec(ctx, flushMetadataFieldBridgeForWindowType, windowTypeID)
-	return err
-}
-
 const linkAnnotationToAlgorithm = `-- name: LinkAnnotationToAlgorithm :exec
 WITH algorithm_id AS (
   SELECT
@@ -559,7 +549,6 @@ func (q *Queries) ReadAlgorithms(ctx context.Context) ([]ReadAlgorithmsRow, erro
 }
 
 const readAlgorithmsForWindow = `-- name: ReadAlgorithmsForWindow :many
-
 SELECT a.id, a.name, a.version, a.processor_id, a.window_type_id, a.result_type, a.created FROM algorithm a
 JOIN window_type wt ON a.window_type_id = wt.id
 WHERE wt.name = $1 
@@ -571,7 +560,6 @@ type ReadAlgorithmsForWindowParams struct {
 	WindowTypeVersion string
 }
 
-// throw an error - name & version is globally unique.
 func (q *Queries) ReadAlgorithmsForWindow(ctx context.Context, arg ReadAlgorithmsForWindowParams) ([]Algorithm, error) {
 	rows, err := q.db.Query(ctx, readAlgorithmsForWindow, arg.WindowTypeName, arg.WindowTypeVersion)
 	if err != nil {

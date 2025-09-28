@@ -330,6 +330,70 @@ func TestMetadataFieldsChangeable(t *testing.T) {
 	assert.Equal(t, pb.WindowEmitStatus_PROCESSING_TRIGGERED, emitStatus.GetStatus())
 }
 
+// TestWindowTypeDefinition tests for errors raised when building and registering window types that already exist
+func TestWindowTypeDefintion(t *testing.T) {
+
+	// start the mock OrcaProcessor gRPC server
+	mockProcessor, mockListener, err := StartMockOrcaProcessor(0) // set port to 0 to get random available port
+	assert.NoError(t, err)
+
+	t.Cleanup(func() {
+		time.Sleep(100 * time.Millisecond) // some time for processing to complete
+		mockProcessor.GracefulStop()
+		mockListener.Close()
+	})
+
+	// get the actual address the mock server is listening on
+	processorConnStr := mockListener.Addr().String()
+
+	// TODO: paramaterise if we have more datalayers (e.g. MySQL, SQLite) - high level function should be the same between them
+	dlyr, err := NewDatalayerClient(testCtx, "postgresql", testConnStr)
+	assert.NoError(t, err)
+
+	asset_id := pb.MetadataField{Name: "asset_id", Description: "Unique ID of the asset"}
+	fleet_id := pb.MetadataField{Name: "fleet_id", Description: "Unique ID of the fleet"}
+
+	windowtype1 := pb.WindowType{
+		Name:    "TestWindow",
+		Version: "1.0.0",
+		MetadataFields: []*pb.MetadataField{
+			&asset_id,
+			&fleet_id,
+		},
+	}
+
+	// second window has the same name and version, but one less field
+	windowtype2 := pb.WindowType{
+		Name:    "TestWindow",
+		Version: "1.0.0",
+		MetadataFields: []*pb.MetadataField{
+			&asset_id,
+		},
+	}
+
+	algo := pb.Algorithm{
+		Name:       "StubAlgo",
+		Version:    "1.0.0",
+		WindowType: &windowtype1,
+		ResultType: pb.ResultType_VALUE,
+	}
+
+	proc := pb.ProcessorRegistration{
+		Name:                "StubProcessor",
+		Runtime:             "Stub",
+		SupportedAlgorithms: []*pb.Algorithm{&algo},
+		ConnectionStr:       processorConnStr,
+	}
+
+	err = dlyr.RegisterProcessor(testCtx, &proc)
+	assert.NoError(t, err)
+
+	algo.WindowType = &windowtype2
+	err = dlyr.RegisterProcessor(testCtx, &proc)
+	assert.Error(t, err)
+
+}
+
 // func TestCircularDependency(t *testing.T) {
 // 	dlyr, tx := getCleanTx(t, testCtx)
 // 	defer tx.Rollback(testCtx)
