@@ -271,7 +271,7 @@ func processTasks(
 }
 
 func convertFloat32ToFloat64(float32Slice []float32) []float64 {
-	float64Slice := make([]float64, len(float32Slice), len(float32Slice))
+	float64Slice := make([]float64, len(float32Slice))
 	for i, value := range float32Slice {
 		float64Slice[i] = float64(value)
 	}
@@ -291,7 +291,7 @@ func convertStructToJsonBytes(s *structpb.Struct) ([]byte, error) {
 }
 
 func unmarshalToStruct(data []byte) (*structpb.Struct, error) {
-	var m map[string]interface{}
+	var m map[string]any
 	if err := json.Unmarshal(data, &m); err != nil {
 		return nil, err
 	}

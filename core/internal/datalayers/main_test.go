@@ -57,7 +57,6 @@ func setupPgOnce(ctx context.Context) (string, func()) {
 
 	cleanup := func() {
 		if err := postgresContainer.Terminate(ctx); err != nil {
-			// Log error but don't panic during cleanup
 			println("Failed to terminate postgres container:", err.Error())
 		}
 	}
