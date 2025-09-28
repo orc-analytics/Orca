@@ -6,11 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
-## [v0.10.0]
 
 ### Changed
 
-- The way metadata field references are treated. When a processor is re-registers, and the windows also get registered, the old metadata field references get flushed.
+- How algorithm definitions are defined as unique. Unique definitions are now a composite of algorithm, processor, and window type.
+- How metadata fields are controlled within the DB. Each metadata field is now checked for consistency with existing window types that use them. If consistency is broken - an error is raised, with the fix being to bump the version of the window type.
 
 ## [v0.9.0]
 
