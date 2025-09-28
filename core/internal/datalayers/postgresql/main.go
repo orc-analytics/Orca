@@ -113,26 +113,15 @@ func (d *Datalayer) RegisterProcessor(
 
 	// then add the dependencies and associate the processor with all the algos
 	for _, algo := range proc.GetSupportedAlgorithms() {
-
-		dependencies := algo.GetDependencies()
-		for _, algoDependentOn := range dependencies {
-			err := d.addOverwriteAlgorithmDependency(
-				ctx,
-				tx,
-				algo,
-				proc,
-			)
-			if err != nil {
-				slog.Error(
-					"cloud not create algotrithm dependency",
-					"algorithm",
-					algo,
-					"depends_on",
-					algoDependentOn, "error",
-					err,
-				)
-				return err
-			}
+		err := d.addOverwriteAlgorithmDependency(
+			ctx,
+			tx,
+			algo,
+			proc,
+		)
+		if err != nil {
+			// error wrapping is important here because we return some custom errors
+			return fmt.Errorf("issue adding algorithm dependency: %w", err)
 		}
 	}
 

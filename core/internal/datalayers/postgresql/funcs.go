@@ -229,12 +229,11 @@ func (d *Datalayer) addOverwriteAlgorithmDependency(
 		algoDependentOnId, err := qtx.ReadAlgorithmId(ctx, ReadAlgorithmIdParams{
 			AlgorithmName:    algoDependentOn.GetName(),
 			AlgorithmVersion: algoDependentOn.GetVersion(),
-			ProcessorName:    proc.GetName(),
-			ProcessorRuntime: proc.GetRuntime(),
+			ProcessorName:    algoDependentOn.GetProcessorName(),
+			ProcessorRuntime: algoDependentOn.GetProcessorRuntime(),
 		})
 		if err != nil {
-			slog.Error("could not get algorithm ID of dependant", "algorithm", algoDependentOn)
-			return err
+			return fmt.Errorf("issue getting algorithm ID of dependant: %v", err)
 		}
 
 		// get the algo execution path
@@ -255,11 +254,11 @@ func (d *Datalayer) addOverwriteAlgorithmDependency(
 				)
 				return &types.CircularDependencyError{
 					FromAlgoName:      algoDependentOn.GetName(),
-					ToAlgoName:        algo.GetName(),
 					FromAlgoVersion:   algoDependentOn.GetVersion(),
+					FromAlgoProcessor: algoDependentOn.GetProcessorName(),
+					ToAlgoName:        algo.GetName(),
 					ToAlgoVersion:     algo.GetVersion(),
-					FromAlgoProcessor: proc.GetName(),
-					ToAlgoProcessor:   algoDependentOn.GetProcessorName(),
+					ToAlgoProcessor:   proc.GetName(),
 				}
 			} else {
 				err = qtx.CreateAlgorithmDependency(ctx, CreateAlgorithmDependencyParams{
@@ -273,16 +272,7 @@ func (d *Datalayer) addOverwriteAlgorithmDependency(
 					ToProcessorRuntime:   proc.GetRuntime(),
 				})
 				if err != nil {
-					slog.Error(
-						"cloud not create algotrithm dependency",
-						"algorithm",
-						algo,
-						"depends_on",
-						algoDependentOn,
-						"error",
-						err,
-					)
-					return err
+					return fmt.Errorf("issue constructing algorithm dependency: %v", err)
 				}
 
 			}
